@@ -4,9 +4,7 @@ mod commands {
 
 pub mod io;
 
-mod info {
-
-}
+pub mod info;
 
 mod inventory {
 
