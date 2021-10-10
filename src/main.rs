@@ -1,6 +1,6 @@
-use adventure_script::io;
+use adventure_script::io::AdventureIO;
 
 fn main() {
-    let result = (io::DEFAULT_IO.query)("", vec!["one","two","three"], true);
+    let result = (AdventureIO::default().query)("", vec!["one", "two", "three"], true);
     println!("result: {}", result);
 }
