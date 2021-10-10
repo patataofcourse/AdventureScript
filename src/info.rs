@@ -8,7 +8,7 @@ pub struct GameInfo {
 }
 
 impl GameInfo {
-    fn create(io: AdventureIO, game: &str) -> GameInfo {
+    pub fn create(io: AdventureIO, game: &str) -> GameInfo {
         GameInfo {
             io: io,
             game_name: String::from(game),
@@ -17,16 +17,20 @@ impl GameInfo {
         }
     }
 
-    fn script_data(&self) -> (&str, u32) {
+    pub fn script_data(&self) -> (&str, u32) {
         //used for error messages
         (&self.script_name, self.pointer + 1)
     }
 
-    fn set_pointer(&mut self, pointer: u32) {
+    pub fn set_pointer(&mut self, pointer: u32) {
         self.pointer = pointer - 1;
     }
 
-    fn next_line(&mut self) {
+    pub fn next_line(&mut self) {
         self.pointer += 1;
+    }
+
+    pub fn get_io(&self) -> &AdventureIO {
+        &self.io
     }
 }

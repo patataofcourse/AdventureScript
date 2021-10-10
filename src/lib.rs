@@ -1,19 +1,11 @@
-mod commands {
-    
-}
+pub mod commands;
 
 pub mod io;
 
 pub mod info;
 
-mod inventory {
+mod inventory {}
 
-}
+mod methods {}
 
-mod methods {
-
-}
-
-mod parsing {
-
-}
+mod parsing {}

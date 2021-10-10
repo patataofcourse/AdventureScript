@@ -1,6 +1,7 @@
-use adventure_script::io::AdventureIO;
+use adventure_script::{commands, info::GameInfo, io::AdventureIO};
+use std::collections::HashMap;
 
 fn main() {
-    let result = (AdventureIO::default().query)("", vec!["one", "two", "three"], true);
-    println!("result: {}", result);
+    let info = GameInfo::create(AdventureIO::default(), "some name");
+    commands::input(info);
 }
