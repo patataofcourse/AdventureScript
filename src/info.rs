@@ -8,10 +8,10 @@ pub struct GameInfo {
 }
 
 impl GameInfo {
-    pub fn create(io: AdventureIO, game: &str) -> GameInfo {
+    pub fn create(io: AdventureIO, game: String) -> GameInfo {
         GameInfo {
             io: io,
-            game_name: String::from(game),
+            game_name: game,
             script_name: String::from("start"),
             pointer: 0,
         }
