@@ -1,5 +1,4 @@
 use super::{
-    error::ASError,
     info::GameInfo,
     variables::{ASType, ASVariable},
 };
