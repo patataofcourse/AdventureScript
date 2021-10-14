@@ -1,14 +1,17 @@
 use std::{io::{stdin, Read}};
+use super::error::ASError;
 
-fn show(text: &str) {
+fn show(text: &str) -> Result<(), ASError>{
     println!("{}", text);
+    Ok(())
 }
 
-fn wait() {
+fn wait() -> Result<(), ASError>{
     stdin().read(&mut [0]).unwrap();
+    Ok(())
 }
 
-fn query(text: &str, choices: Vec<&str>, allow_save: bool) -> u8 {
+fn query(text: &str, choices: Vec<&str>, allow_save: bool) -> Result<u8, ASError> {
     if text != "" {
         show(&text);
     }
@@ -36,7 +39,7 @@ fn query(text: &str, choices: Vec<&str>, allow_save: bool) -> u8 {
                     show(&String::from("Would restore here"));
                 }
             }
-            "q" => return 0,
+            "q" => return Ok(0),
             _ => (),
         }
 
@@ -46,7 +49,7 @@ fn query(text: &str, choices: Vec<&str>, allow_save: bool) -> u8 {
         };
 
         if (num_result as usize) <= choices.len() {
-            return num_result;
+            return Ok(num_result);
         }
     }
 }
@@ -54,9 +57,9 @@ fn query(text: &str, choices: Vec<&str>, allow_save: bool) -> u8 {
 //TODO: add load_file function
 
 pub struct AdventureIO {
-    pub show: fn(&str),
-    pub wait: fn(),
-    pub query: fn(&str, Vec<&str>, bool) -> u8,
+    pub show: fn(&str) -> Result<(), ASError>,
+    pub wait: fn() -> Result<(), ASError>,
+    pub query: fn(&str, Vec<&str>, bool) -> Result<u8, ASError>,
 }
 
 impl Default for AdventureIO {

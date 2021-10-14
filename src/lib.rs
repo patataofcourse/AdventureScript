@@ -1,5 +1,7 @@
 pub mod commands;
 
+pub mod error;
+
 pub mod io;
 
 pub mod info;
