@@ -1,18 +1,19 @@
 use super::error::ASError;
+use anyhow;
 use std::io::{stdin, Read};
 
-fn show(text: &str) -> Result<(), ASError> {
+fn show(text: &str) -> anyhow::Result<()> {
     println!("{}", text);
     Ok(())
 }
 
-fn wait() -> Result<(), ASError> {
+fn wait() -> anyhow::Result<()> {
     stdin().read(&mut [0]).unwrap();
     Ok(())
 }
 
-fn query(text: &str, choices: Vec<&str>, allow_save: bool) -> Result<u8, ASError> {
-    if text != "" {
+fn query(text: &str, choices: Vec<&str>, allow_save: bool) -> anyhow::Result<u8> {
+    if !text.is_empty() {
         show(&text)?;
     }
 
@@ -26,7 +27,7 @@ fn query(text: &str, choices: Vec<&str>, allow_save: bool) -> Result<u8, ASError
     loop {
         //print!(">");
         result = String::new();
-        stdin().read_line(&mut result).expect("Failed to read line");
+        stdin().read_line(&mut result).expect("Failed to read line"); //TODO: move this to a separate function
         match result.trim() {
             "s" => {
                 if allow_save {
@@ -56,9 +57,9 @@ fn query(text: &str, choices: Vec<&str>, allow_save: bool) -> Result<u8, ASError
 //TODO: add load_file function
 
 pub struct AdventureIO {
-    pub show: fn(&str) -> Result<(), ASError>,
-    pub wait: fn() -> Result<(), ASError>,
-    pub query: fn(&str, Vec<&str>, bool) -> Result<u8, ASError>,
+    pub show: fn(&str) -> anyhow::Result<()>,
+    pub wait: fn() -> anyhow::Result<()>,
+    pub query: fn(&str, Vec<&str>, bool) -> anyhow::Result<u8>,
 }
 
 impl Default for AdventureIO {
