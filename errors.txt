@@ -2,3 +2,6 @@
 // Why are error codes needed? They're cool, and easier to remember
 GenericCommandError: 1
 NotImplementedError: 2
+TooManyArguments: 3
+UndefinedKeywordArgument: 4
+MissingKeywordArgument: 5
