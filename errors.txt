@@ -1,0 +1,4 @@
+// These are the current error codes, will be changed for a release
+// Why are error codes needed? They're cool, and easier to remember
+GenericCommandError: 1
+NotImplementedError: 2
