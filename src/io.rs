@@ -1,24 +1,24 @@
-use std::{io::{stdin, Read}};
 use super::error::ASError;
+use std::io::{stdin, Read};
 
-fn show(text: &str) -> Result<(), ASError>{
+fn show(text: &str) -> Result<(), ASError> {
     println!("{}", text);
     Ok(())
 }
 
-fn wait() -> Result<(), ASError>{
+fn wait() -> Result<(), ASError> {
     stdin().read(&mut [0]).unwrap();
     Ok(())
 }
 
 fn query(text: &str, choices: Vec<&str>, allow_save: bool) -> Result<u8, ASError> {
     if text != "" {
-        show(&text);
+        show(&text)?;
     }
 
     let mut c = 1;
     for ch in &choices {
-        show(&format!("{}. {}", c, ch));
+        show(&format!("{}. {}", c, ch))?;
         c += 1;
     }
 
@@ -26,17 +26,16 @@ fn query(text: &str, choices: Vec<&str>, allow_save: bool) -> Result<u8, ASError
     loop {
         //print!(">");
         result = String::new();
-        stdin().read_line(&mut result)
-            .expect("Failed to read line");
+        stdin().read_line(&mut result).expect("Failed to read line");
         match result.trim() {
             "s" => {
                 if allow_save {
-                    show(&String::from("Would save here"));
+                    show("Would save here")?;
                 }
             }
             "r" => {
                 if allow_save {
-                    show(&String::from("Would restore here"));
+                    show("Would restore here")?;
                 }
             }
             "q" => return Ok(0),
