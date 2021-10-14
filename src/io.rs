@@ -1,11 +1,11 @@
-use std::io;
+use std::{io::{stdin, Read}};
 
 fn show(text: &str) {
     println!("{}", text);
 }
 
 fn wait() {
-    println!("would wait for input here");
+    stdin().read(&mut [0]).unwrap();
 }
 
 fn query(text: &str, choices: Vec<&str>, allow_save: bool) -> u8 {
@@ -23,8 +23,7 @@ fn query(text: &str, choices: Vec<&str>, allow_save: bool) -> u8 {
     loop {
         //print!(">");
         result = String::new();
-        io::stdin()
-            .read_line(&mut result)
+        stdin().read_line(&mut result)
             .expect("Failed to read line");
         match result.trim() {
             "s" => {
