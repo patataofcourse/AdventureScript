@@ -3,5 +3,5 @@ use std::collections::HashMap;
 
 fn main() {
     let info = GameInfo::create(AdventureIO::default(), "some name");
-    commands::input(info);
+    commands::input(info, Vec::new(), HashMap::new());
 }
