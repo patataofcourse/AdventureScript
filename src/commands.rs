@@ -23,13 +23,13 @@ impl Command {
         kwargs: HashMap<String, &'a ASVariable>,
     ) -> anyhow::Result<()> {
         let mut c = 0;
-        let mut kwargs_ = kwargs;
+        let mut kwargs = kwargs;
         // Turn given arguments into keyword arguments
         for arg in &args {
             let argname = match self.args_to_kwargs.get(c) {
                 None => {
                     let (script, line) = info.script_data();
-                    Err(error::TooManyArguments {
+                    Err(error::TooManyPositionalArguments {
                         script: String::from(script),
                         line: line,
                         command: String::from(&self.name),
@@ -40,10 +40,10 @@ impl Command {
                 }
                 Some(c) => Ok(c),
             }?;
-            kwargs_.insert(String::from(argname), arg);
+            kwargs.insert(String::from(argname), arg);
             c += 1;
         }
-        (self.func)(info, kwargs_)
+        (self.func)(info, kwargs)
     }
 }
 
@@ -51,9 +51,7 @@ pub fn input(inf: &GameInfo, _kwargs: HashMap<String, &ASVariable>) -> anyhow::R
     (inf.get_io().wait)()
 }
 
-pub fn choice(inf: &GameInfo, kwargs: HashMap<String, &ASVariable>) {
-    ()
-}
+// pub fn choice(inf: &GameInfo, kwargs: HashMap<String, &ASVariable>) {}
 
 pub fn test_fn(_inf: &GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
     for (key, arg) in kwargs {
@@ -64,11 +62,20 @@ pub fn test_fn(_inf: &GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow:
 //TODO: create command list and pass to the info
 
 pub fn test() -> Command {
+    let mut accepted = HashMap::<String, ASType>::with_capacity(3);
+    accepted.insert(String::from("test"), ASType::Int);
+    accepted.insert(String::from("arg1"), ASType::Any);
+    accepted.insert(String::from("arg2"), ASType::Any);
+    let mut default = HashMap::<String, ASVariable>::with_capacity(1);
+    default.insert(
+        String::from("arg2"),
+        ASVariable::String(String::from("this is a test")),
+    );
     Command {
         name: "test".to_string(),
         func: test_fn,
-        args_to_kwargs: Vec::<String>::from([String::from("arg1")]),
-        accepted_kwargs: HashMap::<String, ASType>::new(),
-        default_values: HashMap::<String, ASVariable>::new(),
+        args_to_kwargs: Vec::<String>::from([String::from("arg1"), String::from("arg2")]),
+        accepted_kwargs: accepted,
+        default_values: default,
     }
 }

@@ -1,3 +1,4 @@
+use super::variables::ASType;
 use std::{error::Error, fmt};
 
 #[derive(Debug)]
@@ -64,7 +65,7 @@ impl ASErr for NotImplementedError {
     }
 }
 
-pub struct TooManyArguments {
+pub struct TooManyPositionalArguments {
     pub script: String,
     pub line: u32,
     pub command: String,
@@ -72,16 +73,62 @@ pub struct TooManyArguments {
     pub given_args: u32,
 }
 
-impl ASErr for TooManyArguments {
+impl ASErr for TooManyPositionalArguments {
     fn generic_err(self) -> ASError {
         ASError {
             code: 3,
             script: self.script,
             line: self.line,
-            name: String::from("TooManyArguments"),
+            name: String::from("TooManyPositionalArguments"),
             message: format!(
-                "Command {} takes at most {} non-keyword arguments, but was given {}",
+                "Command {} takes at most {} positional arguments, but was given {}",
                 self.command, self.max_args, self.given_args
+            ),
+        }
+    }
+}
+
+pub struct UndefinedArgument {
+    pub script: String,
+    pub line: u32,
+    pub command: String,
+    pub argument_name: String,
+    pub argument_type: ASType,
+}
+
+impl ASErr for UndefinedArgument {
+    fn generic_err(self) -> ASError {
+        ASError {
+            code: 4,
+            script: self.script,
+            line: self.line,
+            name: String::from("UndefinedArgument"),
+            message: format!(
+                "Command {} was given argument {} (type {:?}), which it doesn't take",
+                self.command, self.argument_name, self.argument_type
+            ),
+        }
+    }
+}
+
+pub struct MissingRequiredArgument {
+    pub script: String,
+    pub line: u32,
+    pub command: String,
+    pub argument_name: String,
+    pub argument_type: ASType,
+}
+
+impl ASErr for MissingRequiredArgument {
+    fn generic_err(self) -> ASError {
+        ASError {
+            code: 4,
+            script: self.script,
+            line: self.line,
+            name: String::from("UndefinedArgument"),
+            message: format!(
+                "Command {} requires argument {} (type {:?}), which it didn't get",
+                self.command, self.argument_name, self.argument_type
             ),
         }
     }
