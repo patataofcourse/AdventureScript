@@ -26,8 +26,10 @@ impl AdventureScriptGame {
         println!("AdventureScript v2.0.0-alpha.0\n");
 
         let test = commands::test();
-        let args = Vec::<&ASVariable>::new();
-        let kwargs = HashMap::<String, &ASVariable>::new();
+        let var = ASVariable::String(String::from("hi"));
+        let args = Vec::<&ASVariable>::from([&var]);
+        let mut kwargs = HashMap::<String, &ASVariable>::new();
+        kwargs.insert(String::from("test"), &ASVariable::Int(3));
         let result = test.run(&self.info, args, kwargs);
         if let Err(e) = result {
             println!("{}", e);

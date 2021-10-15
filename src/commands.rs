@@ -56,14 +56,9 @@ pub fn choice(inf: &GameInfo, kwargs: HashMap<String, &ASVariable>) {
 }
 
 pub fn test_fn(inf: &GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
-    let (script, line) = inf.script_data();
-    Err(error::GenericCommandError {
-        script: String::from(script),
-        line: line,
-        command: String::from("test"),
-        details: String::from("hi"),
+    for (key, arg) in kwargs {
+        println!("{}: {:?}", key, arg);
     }
-    .generic_err())?;
     Ok(())
 }
 //TODO: create command list and pass to the info
@@ -72,7 +67,7 @@ pub fn test() -> Command {
     Command {
         name: "test".to_string(),
         func: test_fn,
-        args_to_kwargs: Vec::<String>::new(),
+        args_to_kwargs: Vec::<String>::from([String::from("arg1")]),
         accepted_kwargs: HashMap::<String, ASType>::new(),
         default_values: HashMap::<String, ASVariable>::new(),
     }
