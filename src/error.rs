@@ -134,16 +134,16 @@ impl ASErr for MissingRequiredArgument {
     }
 }
 
-pub struct ArgumentTypeError {
+pub struct ArgumentTypeError<'a> {
     pub script: String,
     pub line: u32,
     pub command: String,
     pub argument_name: String,
     pub given_type: ASType,
-    pub argument_type: ASType,
+    pub argument_type: &'a ASType,
 }
 
-impl ASErr for ArgumentTypeError {
+impl ASErr for ArgumentTypeError<'_> {
     fn generic_err(self) -> ASError {
         ASError {
             code: 4,

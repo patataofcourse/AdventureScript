@@ -53,7 +53,17 @@ impl Command {
                 .generic_err())?;
             }
             let arg_type = value.get_type();
-            //if self.accepted_kwargs[key] != arg_type {}
+            if self.accepted_kwargs[key] != arg_type {
+                Err(error::ArgumentTypeError {
+                    script: String::from(script),
+                    line: line,
+                    command: String::from(&self.name),
+                    argument_name: String::from(key),
+                    argument_type: &self.accepted_kwargs[key],
+                    given_type: value.get_type(),
+                }
+                .generic_err())?;
+            }
         }
         (self.func)(info, kwargs)
     }
