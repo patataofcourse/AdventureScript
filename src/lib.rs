@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 pub mod commands;
 
 pub mod error;
@@ -16,9 +14,8 @@ mod parsing;
 
 pub mod variables;
 
-use error::ASErr;
-use std::error::Error;
-use variables::ASVariable;
+use std::collections::HashMap;
+use variables::{ASType, ASVariable};
 
 pub struct AdventureScriptGame {
     info: info::GameInfo,
@@ -26,10 +23,16 @@ pub struct AdventureScriptGame {
 
 impl AdventureScriptGame {
     pub fn run(&self) {
-        let result = commands::input(&self.info, HashMap::<String, &ASVariable>::new());
+        println!("AdventureScript v2.0.0-alpha.0\n");
+
+        let test = commands::test();
+        let args = Vec::<&ASVariable>::new();
+        let kwargs = HashMap::<String, &ASVariable>::new();
+        let result = test.run(&self.info, args, kwargs);
         if let Err(e) = result {
             println!("{}", e);
         }
+
         //TODO: parser and stuff :D
     }
 }
