@@ -5,3 +5,4 @@ NotImplementedError: 2
 TooManyPositionalArguments: 3
 UndefinedArgument: 4
 MissingRequiredArgument: 5
+ArgumentTypeError: 6

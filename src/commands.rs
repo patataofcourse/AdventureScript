@@ -22,26 +22,38 @@ impl Command {
         args: Vec<&'a ASVariable>,
         kwargs: HashMap<String, &'a ASVariable>,
     ) -> anyhow::Result<()> {
+        let (script, line) = info.script_data(); // This will be needed for errors
         let mut c = 0;
         let mut kwargs = kwargs;
         // Turn given arguments into keyword arguments
         for arg in &args {
             let argname = match self.args_to_kwargs.get(c) {
-                None => {
-                    let (script, line) = info.script_data();
-                    Err(error::TooManyPositionalArguments {
-                        script: String::from(script),
-                        line: line,
-                        command: String::from(&self.name),
-                        max_args: self.args_to_kwargs.len() as u32,
-                        given_args: (&args).len() as u32,
-                    }
-                    .generic_err())
+                None => Err(error::TooManyPositionalArguments {
+                    script: String::from(script),
+                    line: line,
+                    command: String::from(&self.name),
+                    max_args: self.args_to_kwargs.len() as u32,
+                    given_args: (&args).len() as u32,
                 }
+                .generic_err()),
                 Some(c) => Ok(c),
             }?;
             kwargs.insert(String::from(argname), arg);
             c += 1;
+        }
+        for (key, value) in &kwargs {
+            if !self.accepted_kwargs.contains_key(key) {
+                Err(error::UndefinedArgument {
+                    script: String::from(script),
+                    line: line,
+                    command: String::from(&self.name),
+                    argument_name: String::from(key),
+                    argument_type: value.get_type(),
+                }
+                .generic_err())?;
+            }
+            let arg_type = value.get_type();
+            //if self.accepted_kwargs[key] != arg_type {}
         }
         (self.func)(info, kwargs)
     }

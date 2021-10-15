@@ -125,10 +125,34 @@ impl ASErr for MissingRequiredArgument {
             code: 4,
             script: self.script,
             line: self.line,
-            name: String::from("UndefinedArgument"),
+            name: String::from("MissingRequiredArgument"),
             message: format!(
                 "Command {} requires argument {} (type {:?}), which it didn't get",
                 self.command, self.argument_name, self.argument_type
+            ),
+        }
+    }
+}
+
+pub struct ArgumentTypeError {
+    pub script: String,
+    pub line: u32,
+    pub command: String,
+    pub argument_name: String,
+    pub given_type: ASType,
+    pub argument_type: ASType,
+}
+
+impl ASErr for ArgumentTypeError {
+    fn generic_err(self) -> ASError {
+        ASError {
+            code: 4,
+            script: self.script,
+            line: self.line,
+            name: String::from("ArgumentTypeError"),
+            message: format!(
+                "Argument {} for command {} is type {:?}, but got {:?}",
+                self.argument_name, self.command, self.argument_type, self.given_type
             ),
         }
     }
