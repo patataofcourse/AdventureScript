@@ -47,7 +47,7 @@ impl Command {
     }
 }
 
-pub fn input(inf: &GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+pub fn input(inf: &GameInfo, _kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
     (inf.get_io().wait)()
 }
 
@@ -55,7 +55,7 @@ pub fn choice(inf: &GameInfo, kwargs: HashMap<String, &ASVariable>) {
     ()
 }
 
-pub fn test_fn(inf: &GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+pub fn test_fn(_inf: &GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
     for (key, arg) in kwargs {
         println!("{}: {:?}", key, arg);
     }

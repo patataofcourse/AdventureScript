@@ -15,7 +15,7 @@ mod parsing;
 pub mod variables;
 
 use std::collections::HashMap;
-use variables::{ASType, ASVariable};
+use variables::ASVariable;
 
 pub struct AdventureScriptGame {
     info: info::GameInfo,
