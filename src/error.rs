@@ -111,15 +111,15 @@ impl ASErr for UndefinedArgument {
     }
 }
 
-pub struct MissingRequiredArgument {
+pub struct MissingRequiredArgument<'a> {
     pub script: String,
     pub line: u32,
     pub command: String,
     pub argument_name: String,
-    pub argument_type: ASType,
+    pub argument_type: &'a ASType,
 }
 
-impl ASErr for MissingRequiredArgument {
+impl ASErr for MissingRequiredArgument<'_> {
     fn generic_err(self) -> ASError {
         ASError {
             code: 4,

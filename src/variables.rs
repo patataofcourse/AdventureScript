@@ -1,4 +1,4 @@
-use std::{clone::Clone, cmp::PartialEq, collections::HashMap};
+use std::{cmp::PartialEq, collections::HashMap};
 
 #[derive(Debug)]
 pub enum ASType {

@@ -41,6 +41,14 @@ impl Command {
             kwargs.insert(String::from(argname), arg);
             c += 1;
         }
+        // Pass default argument values
+        for (key, value) in &self.default_values {
+            if !kwargs.contains_key(key) {
+                kwargs.insert(String::from(key), value);
+            }
+        }
+        // Check that all given arguments are taken by the command and
+        // of the required type
         for (key, value) in &kwargs {
             if !self.accepted_kwargs.contains_key(key) {
                 Err(error::UndefinedArgument {
@@ -61,6 +69,19 @@ impl Command {
                     argument_name: String::from(key),
                     argument_type: &self.accepted_kwargs[key],
                     given_type: value.get_type(),
+                }
+                .generic_err())?;
+            }
+        }
+        // Check that all arguments in the command have a value
+        for (key, value) in &self.accepted_kwargs {
+            if !kwargs.contains_key(key) {
+                Err(error::MissingRequiredArgument {
+                    script: String::from(script),
+                    line: line,
+                    command: String::from(&self.name),
+                    argument_name: String::from(key),
+                    argument_type: value,
                 }
                 .generic_err())?;
             }
