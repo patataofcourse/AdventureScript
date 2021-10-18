@@ -25,7 +25,7 @@ impl Command {
         let (script, line) = info.script_data(); // This will be needed for errors
         let mut c = 0;
         let mut kwargs = kwargs;
-        // Turn given arguments into keyword arguments
+        // Turn positional arguments into keyword arguments
         for arg in &args {
             let argname = match self.args_to_kwargs.get(c) {
                 None => Err(error::TooManyPositionalArguments {
