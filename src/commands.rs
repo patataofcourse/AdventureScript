@@ -4,7 +4,7 @@ use super::{
     variables::{ASType, ASVariable},
 };
 use anyhow;
-use std::collections::HashMap;
+use std::{collections::HashMap, iter::FromIterator};
 
 //TODO: figure out how this will work??
 pub struct Command {
@@ -90,28 +90,63 @@ impl Command {
     }
 }
 
-pub fn input_fn(inf: &GameInfo, _kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
-    (inf.get_io().wait)()
+pub fn input_fn(info: &mut GameInfo, _kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+    (info.get_io().wait)()
 }
 
-// pub fn choice(inf: &GameInfo, kwargs: HashMap<String, &ASVariable>) {}
+pub fn choice_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+    let mut a = 0;
+    let mut choices = Vec::<&str>::new();
+    let mut gotos = Vec::<i32>::new();
+    //get lists of the choices and gotos
+    while a < 9 {
+        a += 1;
+        let choice = match kwargs[&format!("ch{}", a)] {
+            ASVariable::String(c) => c,
+            _ => "",
+        };
+        let goto = match kwargs[&format!("go{}", a)] {
+            ASVariable::Int(c) => *c,
+            _ => 0,
+        };
+        if goto == 0 {
+            break;
+        }
+        choices.append(&mut Vec::<&str>::from([choice]));
+        gotos.append(&mut Vec::<i32>::from([goto]));
+    }
+    //get text
+    let text = match kwargs["text"] {
+        ASVariable::String(c) => c,
+        _ => "",
+    };
+    //run io func and manage result
+    let pick = (info.get_io().query)(text, choices, true)?; //TODO: add allow_save
+    if pick == 0 {
+        // used in save/return/quit
+        info.set_pointer(info.script_data().1 - 1); //TODO: make it possible to get the pointer on its own
+        return Ok(());
+    };
+    info.set_pointer(*gotos.get((pick - 1) as usize).expect(""));
+    Ok(())
+}
 
-pub fn goto_fn(inf: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+pub fn goto_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
     let pos = match kwargs["pos"] {
         ASVariable::Int(c) => *c,
         _ => 0,
     };
-    inf.set_pointer(pos);
+    info.set_pointer(pos);
     Ok(())
 }
 
-pub fn ending_fn(inf: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+pub fn ending_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
     let name = match kwargs["name"] {
         ASVariable::String(c) => c,
         _ => "",
     };
-    (inf.get_io().show)(name)?;
-    inf.quit();
+    (info.get_io().show)(name)?;
+    info.quit();
     Ok(())
 }
 
@@ -137,6 +172,34 @@ pub fn test() -> Command {
         name: "test".to_string(),
         func: test_fn,
         args_to_kwargs: Vec::<String>::from([String::from("arg1"), String::from("arg2")]),
+        accepted_kwargs: accepted,
+        default_values: default,
+    }
+}
+
+pub fn choice() -> Command {
+    let mut accepted = HashMap::<String, ASType>::with_capacity(5);
+    accepted.insert(String::from("text"), ASType::String);
+    accepted.insert(String::from("ch1"), ASType::String);
+    accepted.insert(String::from("ch2"), ASType::String);
+    accepted.insert(String::from("go1"), ASType::Int);
+    accepted.insert(String::from("go2"), ASType::Int);
+    let mut default = HashMap::<String, ASVariable>::from_iter([
+        (
+            String::from("ch1"),
+            ASVariable::String("Choice 1".to_string()),
+        ),
+        (
+            String::from("ch2"),
+            ASVariable::String("Choice 2".to_string()),
+        ),
+        (String::from("go1"), ASVariable::Int(0)),
+        (String::from("go2"), ASVariable::Int(0)),
+    ]);
+    Command {
+        name: "test".to_string(),
+        func: test_fn,
+        args_to_kwargs: Vec::<String>::new(),
         accepted_kwargs: accepted,
         default_values: default,
     }
