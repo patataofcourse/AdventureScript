@@ -1,9 +1,9 @@
 use super::{commands, info::GameInfo, variables::ASVariable};
 use std::{collections::HashMap, iter::FromIterator};
 
-pub fn basic_script(info: &mut GameInfo, pos: i32) -> anyhow::Result<()> {
+pub fn basic_script(info: &mut GameInfo) -> anyhow::Result<()> {
     let choice = commands::choice();
-    match pos {
+    match info.script_data().1 {
         1 => (info.get_io().show)("hi"),
         2 => (info.get_io().show)("choice goes right after"),
         3 => choice.run(

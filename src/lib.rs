@@ -26,18 +26,17 @@ pub struct AdventureScriptGame {
 impl AdventureScriptGame {
     pub fn run(&mut self) {
         println!("AdventureScript v2.0.0-alpha.0\n");
-
-        let test = commands::test();
-        let var = ASVariable::String(String::from("hi"));
-        let args = Vec::<&ASVariable>::from([&var]);
-        let mut kwargs = HashMap::<String, &ASVariable>::new();
-        kwargs.insert(String::from("test"), &ASVariable::Int(3));
-        let result = test.run(&mut self.info, args, kwargs);
-        if let Err(e) = result {
-            println!("{}", e);
-        }
-
         //TODO: parser and stuff :D
+        while !self.info.quitting() {
+            match parsing::basic_script(&mut self.info) {
+                Ok(c) => (),
+                Err(c) => {
+                    println!("{}", c);
+                    break;
+                }
+            };
+            self.info.next_line();
+        }
     }
 }
 

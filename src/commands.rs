@@ -95,12 +95,14 @@ pub fn input_fn(info: &mut GameInfo, _kwargs: HashMap<String, &ASVariable>) -> a
 }
 
 pub fn choice_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
-    let mut a = 0;
+    let mut a = 1;
     let mut choices = Vec::<&str>::new();
     let mut gotos = Vec::<i32>::new();
     //get lists of the choices and gotos
-    while a < 9 {
-        a += 1;
+    while a <= 9 {
+        if a == 3 {
+            break;
+        } //Remove after proper choice command
         let choice = match kwargs[&format!("ch{}", a)] {
             ASVariable::String(c) => c,
             _ => "",
@@ -114,6 +116,7 @@ pub fn choice_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> a
         }
         choices.append(&mut Vec::<&str>::from([choice]));
         gotos.append(&mut Vec::<i32>::from([goto]));
+        a += 1;
     }
     //get text
     let text = match kwargs["text"] {
@@ -145,7 +148,7 @@ pub fn ending_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> a
         ASVariable::String(c) => c,
         _ => "",
     };
-    (info.get_io().show)(name)?;
+    (info.get_io().show)(&format!("Ending: {}", name))?;
     info.quit();
     Ok(())
 }
@@ -184,7 +187,7 @@ pub fn choice() -> Command {
     accepted.insert(String::from("ch2"), ASType::String);
     accepted.insert(String::from("go1"), ASType::Int);
     accepted.insert(String::from("go2"), ASType::Int);
-    let mut default = HashMap::<String, ASVariable>::from_iter([
+    let default = HashMap::<String, ASVariable>::from_iter([
         (
             String::from("ch1"),
             ASVariable::String("Choice 1".to_string()),
@@ -195,10 +198,11 @@ pub fn choice() -> Command {
         ),
         (String::from("go1"), ASVariable::Int(0)),
         (String::from("go2"), ASVariable::Int(0)),
+        (String::from("text"), ASVariable::String(String::from(""))),
     ]);
     Command {
         name: "test".to_string(),
-        func: test_fn,
+        func: choice_fn,
         args_to_kwargs: Vec::<String>::new(),
         accepted_kwargs: accepted,
         default_values: default,

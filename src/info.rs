@@ -25,7 +25,7 @@ impl GameInfo {
     }
 
     pub fn set_pointer(&mut self, pointer: i32) {
-        self.pointer = pointer - 1;
+        self.pointer = pointer - 2;
     }
 
     pub fn next_line(&mut self) {
@@ -38,5 +38,8 @@ impl GameInfo {
 
     pub fn quit(&mut self) {
         self.quitting = true;
+    }
+    pub fn quitting(&mut self) -> bool {
+        self.quitting
     }
 }
