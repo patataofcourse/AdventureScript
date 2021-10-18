@@ -4,7 +4,8 @@ pub struct GameInfo {
     io: AdventureIO,
     game_name: String,
     script_name: String,
-    pointer: u32,
+    pointer: i32,
+    quitting: bool,
 }
 
 impl GameInfo {
@@ -14,15 +15,16 @@ impl GameInfo {
             game_name: game,
             script_name: String::from("start"),
             pointer: 0,
+            quitting: false,
         }
     }
 
-    pub fn script_data(&self) -> (&str, u32) {
+    pub fn script_data(&self) -> (&str, i32) {
         //used for error messages
         (&self.script_name, self.pointer + 1)
     }
 
-    pub fn set_pointer(&mut self, pointer: u32) {
+    pub fn set_pointer(&mut self, pointer: i32) {
         self.pointer = pointer - 1;
     }
 
@@ -32,5 +34,9 @@ impl GameInfo {
 
     pub fn get_io(&self) -> &AdventureIO {
         &self.io
+    }
+
+    pub fn quit(&mut self) {
+        self.quitting = true;
     }
 }

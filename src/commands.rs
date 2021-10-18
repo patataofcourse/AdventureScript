@@ -9,7 +9,7 @@ use std::collections::HashMap;
 //TODO: figure out how this will work??
 pub struct Command {
     pub name: String,
-    func: fn(&GameInfo, HashMap<String, &ASVariable>) -> anyhow::Result<()>,
+    func: fn(&mut GameInfo, HashMap<String, &ASVariable>) -> anyhow::Result<()>,
     args_to_kwargs: Vec<String>,
     accepted_kwargs: HashMap<String, ASType>,
     default_values: HashMap<String, ASVariable>,
@@ -18,7 +18,7 @@ pub struct Command {
 impl Command {
     pub fn run<'a>(
         self,
-        info: &GameInfo,
+        info: &mut GameInfo,
         args: Vec<&'a ASVariable>,
         kwargs: HashMap<String, &'a ASVariable>,
     ) -> anyhow::Result<()> {
@@ -90,13 +90,32 @@ impl Command {
     }
 }
 
-pub fn input(inf: &GameInfo, _kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+pub fn input_fn(inf: &GameInfo, _kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
     (inf.get_io().wait)()
 }
 
 // pub fn choice(inf: &GameInfo, kwargs: HashMap<String, &ASVariable>) {}
 
-pub fn test_fn(_inf: &GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+pub fn goto_fn(inf: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+    let pos = match kwargs["pos"] {
+        ASVariable::Int(c) => *c,
+        _ => 0,
+    };
+    inf.set_pointer(pos);
+    Ok(())
+}
+
+pub fn ending_fn(inf: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+    let name = match kwargs["name"] {
+        ASVariable::String(c) => c,
+        _ => "",
+    };
+    (inf.get_io().show)(name)?;
+    inf.quit();
+    Ok(())
+}
+
+pub fn test_fn(_inf: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
     for (key, arg) in kwargs {
         println!("{}: {:?}", key, arg);
     }

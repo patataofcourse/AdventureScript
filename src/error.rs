@@ -5,7 +5,7 @@ use std::{error::Error, fmt};
 pub struct ASError {
     code: u32,
     script: String,
-    line: u32,
+    line: i32,
     name: String,
     message: String,
 }
@@ -30,7 +30,7 @@ pub trait ASErr {
 
 pub struct GenericCommandError {
     pub script: String,
-    pub line: u32,
+    pub line: i32,
     pub command: String,
     pub details: String,
 }
@@ -49,7 +49,7 @@ impl ASErr for GenericCommandError {
 
 pub struct NotImplementedError {
     pub script: String,
-    pub line: u32,
+    pub line: i32,
     pub details: String,
 }
 
@@ -67,7 +67,7 @@ impl ASErr for NotImplementedError {
 
 pub struct TooManyPositionalArguments {
     pub script: String,
-    pub line: u32,
+    pub line: i32,
     pub command: String,
     pub max_args: u32,
     pub given_args: u32,
@@ -90,7 +90,7 @@ impl ASErr for TooManyPositionalArguments {
 
 pub struct UndefinedArgument {
     pub script: String,
-    pub line: u32,
+    pub line: i32,
     pub command: String,
     pub argument_name: String,
     pub argument_type: ASType,
@@ -113,7 +113,7 @@ impl ASErr for UndefinedArgument {
 
 pub struct MissingRequiredArgument<'a> {
     pub script: String,
-    pub line: u32,
+    pub line: i32,
     pub command: String,
     pub argument_name: String,
     pub argument_type: &'a ASType,
@@ -136,7 +136,7 @@ impl ASErr for MissingRequiredArgument<'_> {
 
 pub struct ArgumentTypeError<'a> {
     pub script: String,
-    pub line: u32,
+    pub line: i32,
     pub command: String,
     pub argument_name: String,
     pub given_type: ASType,

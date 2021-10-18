@@ -24,7 +24,7 @@ pub struct AdventureScriptGame {
 }
 
 impl AdventureScriptGame {
-    pub fn run(&self) {
+    pub fn run(&mut self) {
         println!("AdventureScript v2.0.0-alpha.0\n");
 
         let test = commands::test();
@@ -32,7 +32,7 @@ impl AdventureScriptGame {
         let args = Vec::<&ASVariable>::from([&var]);
         let mut kwargs = HashMap::<String, &ASVariable>::new();
         kwargs.insert(String::from("test"), &ASVariable::Int(3));
-        let result = test.run(&self.info, args, kwargs);
+        let result = test.run(&mut self.info, args, kwargs);
         if let Err(e) = result {
             println!("{}", e);
         }
