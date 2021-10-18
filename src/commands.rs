@@ -17,7 +17,7 @@ pub struct Command {
 
 impl Command {
     pub fn run<'a>(
-        self,
+        &self,
         info: &mut GameInfo,
         args: Vec<&'a ASVariable>,
         kwargs: HashMap<String, &'a ASVariable>,
@@ -90,11 +90,11 @@ impl Command {
     }
 }
 
-pub fn input_fn(info: &mut GameInfo, _kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+fn input_fn(info: &mut GameInfo, _kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
     (info.get_io().wait)()
 }
 
-pub fn choice_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+fn choice_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
     let mut a = 1;
     let mut choices = Vec::<&str>::new();
     let mut gotos = Vec::<i32>::new();
@@ -134,7 +134,7 @@ pub fn choice_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> a
     Ok(())
 }
 
-pub fn goto_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+fn goto_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
     let pos = match kwargs["pos"] {
         ASVariable::Int(c) => *c,
         _ => 0,
@@ -143,7 +143,7 @@ pub fn goto_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> any
     Ok(())
 }
 
-pub fn ending_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+fn ending_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
     let name = match kwargs["name"] {
         ASVariable::String(c) => c,
         _ => "",
@@ -153,13 +153,12 @@ pub fn ending_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> a
     Ok(())
 }
 
-pub fn test_fn(_inf: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+fn test_fn(_inf: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
     for (key, arg) in kwargs {
         println!("{}: {:?}", key, arg);
     }
     Ok(())
 }
-//TODO: create command list and pass to the info
 
 pub fn test() -> Command {
     let mut accepted = HashMap::<String, ASType>::with_capacity(3);
@@ -180,31 +179,111 @@ pub fn test() -> Command {
     }
 }
 
-pub fn choice() -> Command {
-    let mut accepted = HashMap::<String, ASType>::with_capacity(5);
-    accepted.insert(String::from("text"), ASType::String);
-    accepted.insert(String::from("ch1"), ASType::String);
-    accepted.insert(String::from("ch2"), ASType::String);
-    accepted.insert(String::from("go1"), ASType::Int);
-    accepted.insert(String::from("go2"), ASType::Int);
-    let default = HashMap::<String, ASVariable>::from_iter([
-        (
-            String::from("ch1"),
-            ASVariable::String("Choice 1".to_string()),
-        ),
-        (
-            String::from("ch2"),
-            ASVariable::String("Choice 2".to_string()),
-        ),
-        (String::from("go1"), ASVariable::Int(0)),
-        (String::from("go2"), ASVariable::Int(0)),
-        (String::from("text"), ASVariable::String(String::from(""))),
-    ]);
-    Command {
-        name: "test".to_string(),
-        func: choice_fn,
-        args_to_kwargs: Vec::<String>::new(),
-        accepted_kwargs: accepted,
-        default_values: default,
-    }
+//TODO: *please* make this a macro
+pub fn main_commands() -> Vec<Command> {
+    Vec::<Command>::from([
+        Command {
+            name: String::from("input"),
+            func: input_fn,
+            args_to_kwargs: Vec::<String>::new(),
+            accepted_kwargs: HashMap::<String, ASType>::new(),
+            default_values: HashMap::<String, ASVariable>::new(),
+        },
+        Command {
+            name: String::from("choice"),
+            func: choice_fn,
+            args_to_kwargs: Vec::<String>::from([String::from("text")]),
+            accepted_kwargs: HashMap::<String, ASType>::from_iter([
+                (String::from("text"), ASType::String),
+                (String::from("ch1"), ASType::String),
+                (String::from("ch2"), ASType::String),
+                (String::from("ch3"), ASType::String),
+                (String::from("ch4"), ASType::String),
+                (String::from("ch5"), ASType::String),
+                (String::from("ch6"), ASType::String),
+                (String::from("ch7"), ASType::String),
+                (String::from("ch8"), ASType::String),
+                (String::from("ch9"), ASType::String),
+                (String::from("go1"), ASType::String),
+                (String::from("go2"), ASType::String),
+                (String::from("go3"), ASType::String),
+                (String::from("go4"), ASType::String),
+                (String::from("go5"), ASType::String),
+                (String::from("go6"), ASType::String),
+                (String::from("go7"), ASType::String),
+                (String::from("go8"), ASType::String),
+                (String::from("go9"), ASType::String),
+            ]),
+            default_values: HashMap::<String, ASVariable>::from_iter([
+                (String::from("text"), ASVariable::String(String::from(""))),
+                (
+                    String::from("ch1"),
+                    ASVariable::String(String::from("Choice 1")),
+                ),
+                (
+                    String::from("ch2"),
+                    ASVariable::String(String::from("Choice 2")),
+                ),
+                (
+                    String::from("ch3"),
+                    ASVariable::String(String::from("Choice 3")),
+                ),
+                (
+                    String::from("ch4"),
+                    ASVariable::String(String::from("Choice 4")),
+                ),
+                (
+                    String::from("ch5"),
+                    ASVariable::String(String::from("Choice 5")),
+                ),
+                (
+                    String::from("ch6"),
+                    ASVariable::String(String::from("Choice 6")),
+                ),
+                (
+                    String::from("ch7"),
+                    ASVariable::String(String::from("Choice 7")),
+                ),
+                (
+                    String::from("ch8"),
+                    ASVariable::String(String::from("Choice 8")),
+                ),
+                (
+                    String::from("ch9"),
+                    ASVariable::String(String::from("Choice 9")),
+                ),
+                (String::from("go2"), ASVariable::Int(0)),
+                (String::from("go3"), ASVariable::Int(0)),
+                (String::from("go4"), ASVariable::Int(0)),
+                (String::from("go5"), ASVariable::Int(0)),
+                (String::from("go6"), ASVariable::Int(0)),
+                (String::from("go7"), ASVariable::Int(0)),
+                (String::from("go8"), ASVariable::Int(0)),
+                (String::from("go9"), ASVariable::Int(0)),
+            ]),
+        },
+        Command {
+            name: String::from("goto"),
+            func: goto_fn,
+            args_to_kwargs: Vec::<String>::from([String::from("pos")]),
+            accepted_kwargs: HashMap::<String, ASType>::from_iter([(
+                String::from("pos"),
+                ASType::Int,
+            )]),
+            default_values: HashMap::<String, ASVariable>::new(),
+        },
+        Command {
+            name: String::from("ending"),
+            func: ending_fn,
+            args_to_kwargs: Vec::<String>::from([String::from("name")]),
+            accepted_kwargs: HashMap::<String, ASType>::from_iter([(
+                String::from("name"),
+                ASType::String,
+            )]),
+            default_values: HashMap::<String, ASVariable>::from_iter([(
+                String::from("name"),
+                ASVariable::String(String::from("")),
+            )]),
+        },
+    ])
 }

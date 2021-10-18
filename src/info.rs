@@ -1,4 +1,4 @@
-use super::io::AdventureIO;
+use super::{commands::Command, io::AdventureIO};
 
 pub struct GameInfo {
     io: AdventureIO,
@@ -6,6 +6,7 @@ pub struct GameInfo {
     script_name: String,
     pointer: i32,
     quitting: bool,
+    commands: Vec<Command>,
 }
 
 impl GameInfo {
@@ -16,6 +17,7 @@ impl GameInfo {
             script_name: String::from("start"),
             pointer: 0,
             quitting: false,
+            commands: Vec::<Command>::new(),
         }
     }
 
@@ -41,5 +43,12 @@ impl GameInfo {
     }
     pub fn quitting(&mut self) -> bool {
         self.quitting
+    }
+
+    pub fn add_commands(&mut self, commands: &mut Vec<Command>) {
+        self.commands.append(commands);
+    }
+    pub fn commands(&self) -> &Vec<Command> {
+        &self.commands
     }
 }

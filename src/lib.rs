@@ -16,9 +16,6 @@ pub mod variables;
 
 // TODO: public imports for stuff that might be used in the interface
 
-use std::collections::HashMap;
-use variables::ASVariable;
-
 pub struct AdventureScriptGame {
     info: info::GameInfo,
 }
@@ -26,10 +23,12 @@ pub struct AdventureScriptGame {
 impl AdventureScriptGame {
     pub fn run(&mut self) {
         println!("AdventureScript v2.0.0-alpha.0\n");
-        //TODO: parser and stuff :D
+        //add basic commands
+        self.info.add_commands(&mut commands::main_commands());
+        //parser and stuff
         while !self.info.quitting() {
             match parsing::basic_script(&mut self.info) {
-                Ok(c) => (),
+                Ok(_c) => (),
                 Err(c) => {
                     println!("{}", c);
                     break;
