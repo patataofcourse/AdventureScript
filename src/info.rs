@@ -44,11 +44,4 @@ impl GameInfo {
     pub fn quitting(&self) -> bool {
         self.quitting
     }
-
-    pub fn add_commands(&mut self, commands: &mut Vec<Command>) {
-        self.commands.append(commands);
-    }
-    pub fn commands(&self) -> &Vec<Command> {
-        &self.commands
-    }
 }

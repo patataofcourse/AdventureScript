@@ -18,16 +18,17 @@ pub mod variables;
 
 pub struct AdventureScriptGame {
     info: info::GameInfo,
+    commands: Vec<commands::Command>,
 }
 
 impl AdventureScriptGame {
     pub fn run(&mut self) {
         println!("AdventureScript v2.0.0-alpha.0\n");
         //add basic commands
-        self.info.add_commands(&mut commands::main_commands());
+        self.commands.extend(commands::main_commands());
         //parser and stuff
         while !self.info.quitting() {
-            match parsing::basic_script(&mut self.info) {
+            match parsing::basic_script(&mut self.info, &self.commands) {
                 Ok(_c) => (),
                 Err(c) => {
                     println!("{}", c);
@@ -46,5 +47,6 @@ pub fn create_game(game_name: String, io: Option<io::AdventureIO>) -> AdventureS
     };
     AdventureScriptGame {
         info: info::GameInfo::create(io, game_name),
+        commands: Vec::<commands::Command>::new(),
     }
 }
