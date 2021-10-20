@@ -5,7 +5,7 @@ pub fn basic_script(info: &mut GameInfo) -> anyhow::Result<()> {
     match info.script_data().1 {
         1 => (info.get_io().show)("hi"),
         2 => (info.get_io().show)("choice goes right after"),
-        3 => info.commands().get(1).unwrap().run(
+        /*3 => info.commands().get(1).unwrap().run(
             //choice
             info,
             Vec::<&ASVariable>::new(),
@@ -28,7 +28,7 @@ pub fn basic_script(info: &mut GameInfo) -> anyhow::Result<()> {
             info,
             Vec::<&ASVariable>::from([&ASVariable::String("buh bye".to_string())]),
             HashMap::<String, &ASVariable>::new(),
-        ),
+        ),*/
         _ => (info.get_io().show)("invalid line"),
     }
 }
