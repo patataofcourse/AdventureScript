@@ -41,7 +41,7 @@ impl GameInfo {
     pub fn quit(&mut self) {
         self.quitting = true;
     }
-    pub fn quitting(&mut self) -> bool {
+    pub fn quitting(&self) -> bool {
         self.quitting
     }
 

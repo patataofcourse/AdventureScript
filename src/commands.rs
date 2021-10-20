@@ -61,7 +61,7 @@ impl Command {
                 .generic_err())?;
             }
             let arg_type = value.get_type();
-            if self.accepted_kwargs[key] != arg_type {
+            if self.accepted_kwargs[key] != ASType::Any && self.accepted_kwargs[key] != arg_type {
                 Err(error::ArgumentTypeError {
                     script: String::from(script),
                     line: line,
