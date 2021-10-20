@@ -1,8 +1,0 @@
-// These are the current error codes, will be changed for a release
-// Why are error codes needed? They're cool B)
-GenericCommandError: 1
-NotImplementedError: 2
-TooManyPositionalArguments: 3
-UndefinedArgument: 4
-MissingRequiredArgument: 5
-ArgumentTypeError: 6

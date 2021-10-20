@@ -14,6 +14,9 @@ mod parsing;
 
 pub mod variables;
 
+#[cfg(test)]
+mod tests;
+
 // TODO: public imports for stuff that might be used in the interface
 
 pub struct AdventureScriptGame {
@@ -29,9 +32,21 @@ impl AdventureScriptGame {
         //parser and stuff
         while !self.info.quitting() {
             match parsing::basic_script(&mut self.info, &self.commands) {
-                Ok(_c) => (),
-                Err(c) => {
-                    println!("{}", c);
+                Ok(_) => (),
+                Err(err) => {
+                    print!("\nAdventureScript error - ");
+                    match err.downcast_ref() {
+                        Some(error::ASError { command, .. }) => {
+                            print!("{} on command {} ", "[errname]", command) //TODO: get error name
+                        }
+                        None => print!("uncaught internal error "),
+                    };
+                    println!(
+                        "({}.as2, line {})\n\t{}",
+                        self.info.script_name(),
+                        self.info.line(),
+                        err
+                    );
                     break;
                 }
             };

@@ -1,4 +1,4 @@
-use super::{commands::Command, io::AdventureIO};
+use super::io::AdventureIO;
 
 pub struct GameInfo {
     io: AdventureIO,
@@ -6,7 +6,6 @@ pub struct GameInfo {
     script_name: String,
     pointer: i32,
     quitting: bool,
-    commands: Vec<Command>,
 }
 
 impl GameInfo {
@@ -17,13 +16,15 @@ impl GameInfo {
             script_name: String::from("start"),
             pointer: 0,
             quitting: false,
-            commands: Vec::<Command>::new(),
         }
     }
 
-    pub fn script_data(&self) -> (&str, i32) {
-        //used for error messages
-        (&self.script_name, self.pointer + 1)
+    pub fn script_name(&self) -> &str {
+        &self.script_name
+    }
+
+    pub fn line(&self) -> i32 {
+        self.pointer + 1
     }
 
     pub fn set_pointer(&mut self, pointer: i32) {

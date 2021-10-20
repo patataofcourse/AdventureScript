@@ -2,7 +2,7 @@ use super::{commands::Command, info::GameInfo, variables::ASVariable};
 use std::{collections::HashMap, iter::FromIterator};
 
 pub fn basic_script(info: &mut GameInfo, commands: &Vec<Command>) -> anyhow::Result<()> {
-    match info.script_data().1 {
+    match info.line() {
         1 => (info.get_io().show)("hi"),
         2 => (info.get_io().show)("choice goes right after"),
         3 => commands.get(1).unwrap().run(

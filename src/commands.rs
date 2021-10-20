@@ -1,5 +1,5 @@
 use super::{
-    error::{self, ASErr},
+    error::{ASError, CommandErrors},
     info::GameInfo,
     variables::{ASType, ASVariable},
 };
@@ -22,20 +22,18 @@ impl Command {
         args: Vec<&'a ASVariable>,
         kwargs: HashMap<String, &'a ASVariable>,
     ) -> anyhow::Result<()> {
-        let (script, line) = info.script_data(); // This will be needed for errors
         let mut c = 0;
         let mut kwargs = kwargs;
         // Turn positional arguments into keyword arguments
         for arg in &args {
             let argname = match self.args_to_kwargs.get(c) {
-                None => Err(error::TooManyPositionalArguments {
-                    script: String::from(script),
-                    line: line,
+                None => Err(ASError {
                     command: String::from(&self.name),
-                    max_args: self.args_to_kwargs.len() as u32,
-                    given_args: (&args).len() as u32,
-                }
-                .generic_err()),
+                    details: CommandErrors::TooManyPosArgs {
+                        max_args: self.args_to_kwargs.len() as u32,
+                        given_args: (&args).len() as u32,
+                    },
+                }),
                 Some(c) => Ok(c),
             }?;
             kwargs.insert(String::from(argname), arg);
@@ -51,39 +49,38 @@ impl Command {
         // of the required type
         for (key, value) in &kwargs {
             if !self.accepted_kwargs.contains_key(key) {
-                Err(error::UndefinedArgument {
-                    script: String::from(script),
-                    line: line,
+                Err(ASError {
                     command: String::from(&self.name),
-                    argument_name: String::from(key),
-                    argument_type: value.get_type(),
-                }
-                .generic_err())?;
+                    details: CommandErrors::UndefinedArgument {
+                        argument_name: String::from(key),
+                        argument_type: value.get_type(),
+                    },
+                })?;
             }
             let arg_type = value.get_type();
             if self.accepted_kwargs[key] != ASType::Any && self.accepted_kwargs[key] != arg_type {
-                Err(error::ArgumentTypeError {
-                    script: String::from(script),
-                    line: line,
+                Err(ASError {
                     command: String::from(&self.name),
-                    argument_name: String::from(key),
-                    argument_type: &self.accepted_kwargs[key],
-                    given_type: value.get_type(),
-                }
-                .generic_err())?;
+                    details: CommandErrors::ArgumentTypeError {
+                        argument_name: String::from(key),
+                        required_type: self.accepted_kwargs[key].clone(),
+                        given_type: value.get_type(),
+                    },
+                })?;
             }
         }
         // Check that all arguments in the command have a value
         for (key, value) in &self.accepted_kwargs {
             if !kwargs.contains_key(key) {
-                Err(error::MissingRequiredArgument {
-                    script: String::from(script),
-                    line: line,
+                let mut value_ = ASType::Any;
+                value_.clone_from(value);
+                Err(ASError {
                     command: String::from(&self.name),
-                    argument_name: String::from(key),
-                    argument_type: value,
-                }
-                .generic_err())?;
+                    details: CommandErrors::MissingRequiredArgument {
+                        argument_name: String::from(key),
+                        argument_type: value_.clone(),
+                    },
+                })?;
             }
         }
         (self.func)(info, kwargs)
@@ -127,7 +124,7 @@ fn choice_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyho
     let pick = (info.get_io().query)(text, choices, true)?; //TODO: add allow_save
     if pick == 0 {
         // used in save/return/quit
-        info.set_pointer(info.script_data().1 - 1); //TODO: make it possible to get the pointer on its own
+        info.set_pointer(info.line() - 1);
         return Ok(());
     };
     info.set_pointer(*gotos.get((pick - 1) as usize).expect(""));

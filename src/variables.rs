@@ -1,9 +1,10 @@
 use std::{
     cmp::{Eq, PartialEq},
     collections::HashMap,
+    fmt::{Display, Formatter, Result},
 };
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ASType {
     Any,
     Bool,
@@ -11,6 +12,12 @@ pub enum ASType {
     String,
     List,
     Map,
+}
+
+impl Display for ASType {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 //TODO: add possibility for custom types???
