@@ -1,5 +1,5 @@
 use anyhow;
-use std::io::{stdin, Read};
+use std::io::{stdin, stdout, Read, Write};
 
 fn show(text: &str) -> anyhow::Result<()> {
     println!("{}", text);
@@ -24,7 +24,8 @@ fn query(text: &str, choices: Vec<&str>, allow_save: bool) -> anyhow::Result<u8>
 
     let mut result;
     loop {
-        //print!(">");
+        print!("> ");
+        stdout().flush()?;
         result = String::new();
         stdin().read_line(&mut result).expect("Failed to read line"); //TODO: move this to a separate function
         match result.trim() {
