@@ -34,19 +34,15 @@ impl AdventureScriptGame {
             match parsing::basic_script(&mut self.info, &self.commands) {
                 Ok(_) => (),
                 Err(err) => {
-                    print!("\nAdventureScript error - ");
-                    match err.downcast_ref() {
-                        Some(error::ASError { command, .. }) => {
-                            print!("{} on command {} ", "[errname]", command) //TODO: get error name
-                        }
-                        None => print!("uncaught internal error "),
-                    };
-                    println!(
-                        "({}.as2, line {})\n\t{}",
+                    print!(
+                        "\nAdventureScript error on script {}, line {} - ",
                         self.info.script_name(),
                         self.info.line(),
-                        err
                     );
+                    if let None = err.downcast_ref::<error::ASError>() {
+                        print!("uncaught internal error\n\t");
+                    };
+                    println!("{}", err);
                     break;
                 }
             };
