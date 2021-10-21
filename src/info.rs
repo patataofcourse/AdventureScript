@@ -23,7 +23,7 @@ impl GameInfo {
         &self.script_name
     }
 
-    pub fn line(&self) -> i32 {
+    pub fn pointer(&self) -> i32 {
         self.pointer + 1
     }
 

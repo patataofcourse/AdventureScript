@@ -37,7 +37,7 @@ impl AdventureScriptGame {
                     print!(
                         "\nAdventureScript error on script {}, line {} - ",
                         self.info.script_name(),
-                        self.info.line(),
+                        self.info.pointer(),
                     );
                     if let None = err.downcast_ref::<error::ASError>() {
                         print!("uncaught internal error\n\t");

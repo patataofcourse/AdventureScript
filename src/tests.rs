@@ -18,5 +18,5 @@ fn goto() {
         HashMap::<String, &ASVariable>::new(),
     )
     .expect("Error on run command");
-    assert_eq!(6, info.line());
+    assert_eq!(6, info.pointer());
 }

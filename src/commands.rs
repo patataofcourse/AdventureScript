@@ -124,7 +124,7 @@ fn choice_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyho
     let pick = (info.get_io().query)(text, choices, true)?; //TODO: add allow_save
     if pick == 0 {
         // used in save/return/quit
-        info.set_pointer(info.line() - 1);
+        info.set_pointer(info.pointer() - 1);
         return Ok(());
     };
     info.set_pointer(*gotos.get((pick - 1) as usize).expect(""));
