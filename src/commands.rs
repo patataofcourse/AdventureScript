@@ -121,7 +121,7 @@ fn choice_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyho
         _ => "",
     };
     //run io func and manage result
-    let pick = (info.get_io().query)(text, choices, true)?; //TODO: add allow_save
+    let pick = info.query(text, choices, true)?; //TODO: add allow_save
     if pick == 0 {
         // used in save/return/quit
         info.set_pointer(info.pointer() - 1);

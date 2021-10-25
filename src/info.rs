@@ -45,4 +45,40 @@ impl GameInfo {
     pub fn quitting(&self) -> bool {
         self.quitting
     }
+
+    //TODO: customization of choice text formatting
+    pub fn query(&self, text: &str, choices: Vec<&str>, allow_save: bool) -> anyhow::Result<u8> {
+        if !text.is_empty() {
+            (self.io.show)(&text)?;
+        }
+        let mut c = 1;
+        for ch in &choices {
+            (self.io.show)(&format!("{}. {}", c, ch))?;
+            c += 1;
+        }
+        loop {
+            let result = (self.io.input)()?;
+            match result.trim() {
+                "s" => {
+                    if allow_save {
+                        (self.io.show)("Would save here")?;
+                    }
+                }
+                "r" => {
+                    if allow_save {
+                        (self.io.show)("Would restore here")?;
+                    }
+                }
+                "q" => return Ok(0),
+                _ => (),
+            }
+            let num_result: u8 = match result.trim().parse() {
+                Ok(n) => n,
+                Err(_) => continue,
+            };
+            if (num_result as usize) <= choices.len() {
+                return Ok(num_result);
+            }
+        }
+    }
 }
