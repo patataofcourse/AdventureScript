@@ -28,8 +28,8 @@ fn input() -> anyhow::Result<String> {
 
 fn load_file(info: &GameInfo, filename: &str, mode: &str) -> anyhow::Result<File> {
     Ok(match mode {
-        "r" => File::open(format!("games/{}/{}", info.game_name(), filename))?,
-        "w" => File::create(format!("games/{}/{}", info.game_name(), filename))?,
+        "r" => File::open(format!("{}/{}", info.root_dir(), filename))?,
+        "w" => File::create(format!("{}/{}", info.root_dir(), filename))?,
         _ => Err(ASFileError {
             filename: filename.to_string(),
             mode: mode.to_string(),

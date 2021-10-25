@@ -54,13 +54,13 @@ impl AdventureScriptGame {
     }
 }
 
-pub fn create_game(game_name: String, io: Option<io::AdventureIO>) -> AdventureScriptGame {
+pub fn create_game(game_root: String, io: Option<io::AdventureIO>) -> AdventureScriptGame {
     let io = match io {
         None => io::AdventureIO::default(),
         Some(i) => i,
     };
     AdventureScriptGame {
-        info: info::GameInfo::create(io, game_name),
+        info: info::GameInfo::create(game_root, io),
         commands: Vec::<commands::Command>::new(),
     }
 }

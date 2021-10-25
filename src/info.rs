@@ -2,17 +2,17 @@ use super::io::AdventureIO;
 
 pub struct GameInfo {
     io: AdventureIO,
-    game_name: String,
+    game_root: String,
     script_name: String,
     pointer: i32,
     quitting: bool,
 }
 
 impl GameInfo {
-    pub fn create(io: AdventureIO, game: String) -> GameInfo {
+    pub fn create(game_root: String, io: AdventureIO) -> GameInfo {
         GameInfo {
             io: io,
-            game_name: game,
+            game_root: game_root,
             script_name: String::from("start"),
             pointer: 0,
             quitting: false,
@@ -29,8 +29,8 @@ impl GameInfo {
     pub fn quitting(&self) -> bool {
         self.quitting
     }
-    pub fn game_name(&self) -> &str {
-        &self.game_name
+    pub fn root_dir(&self) -> &str {
+        &self.game_root
     }
 
     pub fn set_pointer(&mut self, pointer: i32) {

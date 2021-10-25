@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 fn setup() -> (info::GameInfo, Vec<commands::Command>) {
     (
-        info::GameInfo::create(io::AdventureIO::default(), String::from("hello")),
+        info::GameInfo::create(String::from("hello"), io::AdventureIO::default()),
         commands::main_commands(),
     )
 }
