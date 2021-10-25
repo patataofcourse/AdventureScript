@@ -1,5 +1,5 @@
 use super::{
-    error::{ASError, CommandErrors},
+    error::{ASCmdError, CommandErrors},
     info::GameInfo,
     variables::{ASType, ASVariable},
 };
@@ -27,7 +27,7 @@ impl Command {
         // Turn positional arguments into keyword arguments
         for arg in &args {
             let argname = match self.args_to_kwargs.get(c) {
-                None => Err(ASError {
+                None => Err(ASCmdError {
                     command: String::from(&self.name),
                     details: CommandErrors::TooManyPosArgs {
                         max_args: self.args_to_kwargs.len() as u32,
@@ -49,7 +49,7 @@ impl Command {
         // of the required type
         for (key, value) in &kwargs {
             if !self.accepted_kwargs.contains_key(key) {
-                Err(ASError {
+                Err(ASCmdError {
                     command: String::from(&self.name),
                     details: CommandErrors::UndefinedArgument {
                         argument_name: String::from(key),
@@ -59,7 +59,7 @@ impl Command {
             }
             let arg_type = value.get_type();
             if self.accepted_kwargs[key] != ASType::Any && self.accepted_kwargs[key] != arg_type {
-                Err(ASError {
+                Err(ASCmdError {
                     command: String::from(&self.name),
                     details: CommandErrors::ArgumentTypeError {
                         argument_name: String::from(key),
@@ -74,7 +74,7 @@ impl Command {
             if !kwargs.contains_key(key) {
                 let mut value_ = ASType::Any;
                 value_.clone_from(value);
-                Err(ASError {
+                Err(ASCmdError {
                     command: String::from(&self.name),
                     details: CommandErrors::MissingRequiredArgument {
                         argument_name: String::from(key),

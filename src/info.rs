@@ -26,6 +26,12 @@ impl GameInfo {
     pub fn pointer(&self) -> i32 {
         self.pointer + 1
     }
+    pub fn quitting(&self) -> bool {
+        self.quitting
+    }
+    pub fn game_name(&self) -> &str {
+        &self.game_name
+    }
 
     pub fn set_pointer(&mut self, pointer: i32) {
         self.pointer = pointer - 2;
@@ -41,9 +47,6 @@ impl GameInfo {
 
     pub fn quit(&mut self) {
         self.quitting = true;
-    }
-    pub fn quitting(&self) -> bool {
-        self.quitting
     }
 
     //TODO: customization of choice text formatting

@@ -5,21 +5,22 @@ use std::{
 };
 use thiserror::Error;
 
+//Command error
+
 #[derive(Debug)]
-pub struct ASError {
+pub struct ASCmdError {
     pub command: String,
     pub details: CommandErrors,
 }
 
-impl Display for ASError {
+impl Display for ASCmdError {
     fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "on command {}:\n\t{}", self.command, self.details)
     }
 }
 
-impl Error for ASError {}
+impl Error for ASCmdError {}
 
-// Error definitions
 #[derive(Debug, Error)]
 pub enum CommandErrors {
     #[error("{details}")]
@@ -53,4 +54,27 @@ pub enum CommandErrors {
         required_type: ASType,
         given_type: ASType,
     },
+}
+
+//File error
+
+#[derive(Debug)]
+pub struct ASFileError {
+    pub filename: String,
+    pub mode: String,
+    pub details: FileErrors,
+}
+
+impl Display for ASFileError {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "on command {}:\n\t{}", self.filename, self.mode)
+    }
+}
+
+impl Error for ASFileError {}
+
+#[derive(Debug, Error)]
+pub enum FileErrors {
+    #[error("Mode given is invalid")]
+    InvalidMode {},
 }

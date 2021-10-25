@@ -1,5 +1,12 @@
+use super::{
+    error::{ASFileError, FileErrors},
+    info::GameInfo,
+};
 use anyhow;
-use std::io::{stdin, stdout, Read, Write};
+use std::{
+    fs::File,
+    io::{stdin, stdout, Read, Write},
+};
 
 fn show(text: &str) -> anyhow::Result<()> {
     println!("{}", text);
@@ -19,12 +26,23 @@ fn input() -> anyhow::Result<String> {
     Ok(result)
 }
 
-//TODO: add load_file function
+fn load_file(info: &GameInfo, filename: &str, mode: &str) -> anyhow::Result<File> {
+    Ok(match mode {
+        "r" => File::open(format!("games/{}/{}", info.game_name(), filename))?,
+        "w" => File::create(format!("games/{}/{}", info.game_name(), filename))?,
+        _ => Err(ASFileError {
+            filename: filename.to_string(),
+            mode: mode.to_string(),
+            details: FileErrors::InvalidMode {},
+        })?,
+    })
+}
 
 pub struct AdventureIO {
     pub show: fn(&str) -> anyhow::Result<()>,
     pub wait: fn() -> anyhow::Result<()>,
     pub input: fn() -> anyhow::Result<String>,
+    pub load_file: fn(&GameInfo, &str, &str) -> anyhow::Result<File>,
 }
 
 impl Default for AdventureIO {
@@ -33,6 +51,7 @@ impl Default for AdventureIO {
             show: show,
             wait: wait,
             input: input,
+            load_file: load_file,
         }
     }
 }

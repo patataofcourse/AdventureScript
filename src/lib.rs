@@ -39,7 +39,10 @@ impl AdventureScriptGame {
                         self.info.script_name(),
                         self.info.pointer(),
                     );
-                    if let None = err.downcast_ref::<error::ASError>() {
+                    //TODO: this sucks ass pls fix (ASError enum?)
+                    if let Some(_c) = err.downcast_ref::<error::ASFileError>() {
+                    } else if let Some(_c) = err.downcast_ref::<error::ASCmdError>() {
+                    } else {
                         print!("uncaught internal error\n\t");
                     };
                     println!("{}", err);
