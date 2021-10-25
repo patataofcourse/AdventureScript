@@ -1,9 +1,14 @@
-use super::io::AdventureIO;
+use super::{
+    error::{ASSyntaxError, SyntaxErrors},
+    io::AdventureIO,
+};
+use std::io::Read;
 
 pub struct GameInfo {
     io: AdventureIO,
     game_root: String,
     script_name: String,
+    script: Vec<String>,
     pointer: i32,
     quitting: bool,
 }
@@ -14,15 +19,16 @@ impl GameInfo {
             io: io,
             game_root: game_root,
             script_name: String::from("start"),
+            script: Vec::<String>::new(),
             pointer: 0,
             quitting: false,
         }
     }
 
+    // getting some of its items
     pub fn script_name(&self) -> &str {
         &self.script_name
     }
-
     pub fn pointer(&self) -> i32 {
         self.pointer + 1
     }
@@ -32,6 +38,18 @@ impl GameInfo {
     pub fn root_dir(&self) -> &str {
         &self.game_root
     }
+    pub fn get_line(&self) -> anyhow::Result<&str> {
+        //obtains the current line of the script
+        match self.script.get(self.pointer as usize) {
+            Some(c) => Ok(c),
+            None => Err(ASSyntaxError {
+                details: SyntaxErrors::EndOfScript {},
+            })?,
+        }
+    }
+    pub fn get_io(&self) -> &AdventureIO {
+        &self.io
+    }
 
     pub fn set_pointer(&mut self, pointer: i32) {
         self.pointer = pointer - 2;
@@ -39,10 +57,6 @@ impl GameInfo {
 
     pub fn next_line(&mut self) {
         self.pointer += 1;
-    }
-
-    pub fn get_io(&self) -> &AdventureIO {
-        &self.io
     }
 
     pub fn quit(&mut self) {
@@ -83,5 +97,13 @@ impl GameInfo {
                 return Ok(num_result);
             }
         }
+    }
+
+    pub fn load_script(&mut self, filename: &str) -> anyhow::Result<()> {
+        let mut file = String::from("");
+        (self.io.load_file)(self, filename, "r")?.read_to_string(&mut file)?;
+        println!("{}", file);
+        self.quit();
+        Ok(())
     }
 }

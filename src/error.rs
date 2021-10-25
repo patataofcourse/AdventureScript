@@ -1,11 +1,26 @@
-use super::variables::ASType;
+use super::{info::GameInfo, variables::ASType};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result},
 };
 use thiserror::Error;
 
-//Command error
+pub fn manage_error(info: &GameInfo, err: anyhow::Error) {
+    print!(
+        "\nAdventureScript error on script {}, line {} - ",
+        info.script_name(),
+        info.pointer(),
+    );
+    if let Some(_c) = err.downcast_ref::<ASFileError>() {
+    } else if let Some(_c) = err.downcast_ref::<ASCmdError>() {
+    } else if let Some(_c) = err.downcast_ref::<ASSyntaxError>() {
+    } else {
+        print!("uncaught internal error\n\t");
+    };
+    println!("{}", err);
+}
+
+// Command error
 
 #[derive(Debug)]
 pub struct ASCmdError {
@@ -56,7 +71,7 @@ pub enum CommandErrors {
     },
 }
 
-//File error
+// File error
 
 #[derive(Debug)]
 pub struct ASFileError {
@@ -67,7 +82,11 @@ pub struct ASFileError {
 
 impl Display for ASFileError {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "on command {}:\n\t{}", self.filename, self.mode)
+        write!(
+            f,
+            "error when opening file {} with mode '{}':\n\t{}",
+            self.filename, self.mode, self.details
+        )
     }
 }
 
@@ -77,4 +96,25 @@ impl Error for ASFileError {}
 pub enum FileErrors {
     #[error("Mode given is invalid")]
     InvalidMode {},
+}
+
+// Syntax/parsing error
+
+#[derive(Debug)]
+pub struct ASSyntaxError {
+    pub details: SyntaxErrors,
+}
+
+impl Display for ASSyntaxError {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "syntax error:\n\t{}", self.details)
+    }
+}
+
+impl Error for ASSyntaxError {}
+
+#[derive(Debug, Error)]
+pub enum SyntaxErrors {
+    #[error("Reached end of script! Add an !ending or !loadscript command")]
+    EndOfScript {},
 }

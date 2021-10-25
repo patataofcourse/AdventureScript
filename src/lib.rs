@@ -29,24 +29,18 @@ impl AdventureScriptGame {
         println!("AdventureScript v2.0.0-alpha.0\n");
         //add basic commands
         self.commands.extend(commands::main_commands());
+        //load script file
+        if let Err(err) = self.info.load_script("start.asf") {
+            error::manage_error(&self.info, err);
+            return;
+        };
         //parser and stuff
         while !self.info.quitting() {
             match parsing::basic_script(&mut self.info, &self.commands) {
                 Ok(_) => (),
                 Err(err) => {
-                    print!(
-                        "\nAdventureScript error on script {}, line {} - ",
-                        self.info.script_name(),
-                        self.info.pointer(),
-                    );
-                    //TODO: this sucks ass pls fix (ASError enum?)
-                    if let Some(_c) = err.downcast_ref::<error::ASFileError>() {
-                    } else if let Some(_c) = err.downcast_ref::<error::ASCmdError>() {
-                    } else {
-                        print!("uncaught internal error\n\t");
-                    };
-                    println!("{}", err);
-                    break;
+                    error::manage_error(&self.info, err);
+                    return;
                 }
             };
             self.info.next_line();

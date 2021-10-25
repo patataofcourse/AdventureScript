@@ -34,5 +34,6 @@ pub fn basic_script(info: &mut GameInfo, commands: &Vec<Command>) -> anyhow::Res
 }
 
 pub fn parse_line(info: &mut GameInfo, commands: &Vec<Command>) -> anyhow::Result<()> {
+    println!("{}", info.get_line()?);
     Ok(())
 }
