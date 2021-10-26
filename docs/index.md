@@ -1,0 +1,1 @@
+# AdventureScript documentation

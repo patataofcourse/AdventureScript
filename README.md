@@ -18,4 +18,5 @@ This repository is a WIP for version 2 of AdventureScript, written in Rust inste
 * **Future releases**: 2.1.0 won't be the end of life for AdventureScript. Both bugfix releases and feature releases will continue for an unspecified period of time. 
 
 ### Documentation
-* Currently, AdventureScript lacks documentation. It will be made for the stable 2.0 release.
+* Incomplete documentation for the AdventureScript language can be found at [adventurescript.readthedocs.io](https://adventurescript.readthedocs.io)
+* Documentation for the library's public interface will be added over time before the 2.0 release

@@ -1,0 +1,11 @@
+# Comment
+Some text here
+
+This is how you leave blank lines
+
+[choice text="choice text"; ch1="choice 1"; go1=7; ch2="choice2";go2=9]
+Choice 1
+[goto pos=11]
+Choice 2
+(which is better than Choice 1)
+[ending name=""]

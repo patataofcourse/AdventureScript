@@ -1,0 +1,14 @@
+# Comment
+Some text here\n
+Blank lines are ignored now so you have to add a backslash-n
+\n
+
+! choice "choice text"; {"choice 1": 8, "choice 2": 11}
+
+Choice 1
+! goto 14
+
+Choice 2
+(still better)
+
+!ending ""

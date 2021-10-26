@@ -1,0 +1,7 @@
+site_name: AdventureScript documentation
+site_url: https://adventurescript.readthedocs.io/
+nav:
+  - Home: index.md
+  - Getting Started: start.md
+  - Commands: commands.md
+theme: readthedocs
