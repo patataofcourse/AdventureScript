@@ -18,10 +18,11 @@ pub mod variables;
 mod tests;
 
 // TODO: public imports for stuff that might be used in the interface
+use std::collections::HashMap;
 
 pub struct AdventureScriptGame {
     info: info::GameInfo,
-    commands: Vec<commands::Command>,
+    commands: HashMap<String, commands::Command>,
 }
 
 impl AdventureScriptGame {
@@ -30,13 +31,13 @@ impl AdventureScriptGame {
         //add basic commands
         self.commands.extend(commands::main_commands());
         //load script file
-        if let Err(err) = self.info.load_script("start.asf") {
+        if let Err(err) = self.info.load_script("start") {
             error::manage_error(&self.info, err);
             return;
         };
         //parser and stuff
         while !self.info.quitting() {
-            match parsing::basic_script(&mut self.info, &self.commands) {
+            match parsing::parse_line(&mut self.info, &self.commands) {
                 Ok(_) => (),
                 Err(err) => {
                     error::manage_error(&self.info, err);
@@ -55,6 +56,6 @@ pub fn create_game(game_root: String, io: Option<io::AdventureIO>) -> AdventureS
     };
     AdventureScriptGame {
         info: info::GameInfo::create(game_root, io),
-        commands: Vec::<commands::Command>::new(),
+        commands: HashMap::<String, commands::Command>::new(),
     }
 }

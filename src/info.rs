@@ -47,7 +47,7 @@ impl GameInfo {
             })?,
         }
     }
-    pub fn get_io(&self) -> &AdventureIO {
+    pub fn io(&self) -> &AdventureIO {
         &self.io
     }
 
@@ -66,24 +66,24 @@ impl GameInfo {
     //TODO: customization of choice text formatting
     pub fn query(&self, text: &str, choices: Vec<&str>, allow_save: bool) -> anyhow::Result<u8> {
         if !text.is_empty() {
-            (self.io.show)(&text)?;
+            self.io.show(&text)?;
         }
         let mut c = 1;
         for ch in &choices {
-            (self.io.show)(&format!("{}. {}", c, ch))?;
+            self.io.show(&format!("{}. {}", c, ch))?;
             c += 1;
         }
         loop {
-            let result = (self.io.input)()?;
+            let result = self.io.input()?;
             match result.trim() {
                 "s" => {
                     if allow_save {
-                        (self.io.show)("Would save here")?;
+                        self.io.show("Would save here")?;
                     }
                 }
                 "r" => {
                     if allow_save {
-                        (self.io.show)("Would restore here")?;
+                        self.io.show("Would restore here")?;
                     }
                 }
                 "q" => return Ok(0),
@@ -101,9 +101,13 @@ impl GameInfo {
 
     pub fn load_script(&mut self, filename: &str) -> anyhow::Result<()> {
         let mut file = String::from("");
-        (self.io.load_file)(self, filename, "r")?.read_to_string(&mut file)?;
-        println!("{}", file);
-        self.quit();
+        self.io
+            .load_file(self, &format!("{}.as2", filename), "r")?
+            .read_to_string(&mut file)?;
+        let lines = file.split("\n");
+        for line in lines {
+            self.script.push(line.to_string());
+        }
         Ok(())
     }
 }

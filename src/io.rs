@@ -39,10 +39,25 @@ fn load_file(info: &GameInfo, filename: &str, mode: &str) -> anyhow::Result<File
 }
 
 pub struct AdventureIO {
-    pub show: fn(&str) -> anyhow::Result<()>,
-    pub wait: fn() -> anyhow::Result<()>,
-    pub input: fn() -> anyhow::Result<String>,
-    pub load_file: fn(&GameInfo, &str, &str) -> anyhow::Result<File>,
+    show: fn(&str) -> anyhow::Result<()>,
+    wait: fn() -> anyhow::Result<()>,
+    input: fn() -> anyhow::Result<String>,
+    load_file: fn(&GameInfo, &str, &str) -> anyhow::Result<File>,
+}
+
+impl AdventureIO {
+    pub fn show(&self, text: &str) -> anyhow::Result<()> {
+        (self.show)(text)
+    }
+    pub fn wait(&self) -> anyhow::Result<()> {
+        (self.wait)()
+    }
+    pub fn input(&self) -> anyhow::Result<String> {
+        (self.input)()
+    }
+    pub fn load_file(&self, info: &GameInfo, filename: &str, mode: &str) -> anyhow::Result<File> {
+        (self.load_file)(info, filename, mode)
+    }
 }
 
 impl Default for AdventureIO {

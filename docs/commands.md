@@ -18,17 +18,17 @@ This command acts as an equivalent to normally displaying text by using no comma
 **Arguments:**
 
 * `text: String`: the text to be displayed.
-### !input
+### !wait
 ```none
-!input
+!wait
 ```
-Waits until the user's input. On the standard console I/O, this waits until the user presses a key.
+Waits until the user's input. On the default I/O, this input is a keypress.
 
 *Introduced on AdventureScript 0.1*
 
-**Aliases:** `!i`, `!n` (deprecated)
+**Aliases:** `!w`, `!n` (deprecated)
 
-The `\i` escape code can be used as an equivalent, either on an empty line or at the end of a line with text in it.
+The `\w` escape code can be used as an equivalent, either on an empty line or at the end of a line with text in it.
 
 ### !choice
 ```none
