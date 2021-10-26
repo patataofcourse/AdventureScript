@@ -117,4 +117,8 @@ impl Error for ASSyntaxError {}
 pub enum SyntaxErrors {
     #[error("Reached end of script! Add an !ending or !loadscript command")]
     EndOfScript {},
+    #[error("Command is empty")]
+    NoCommand {},
+    #[error("Command !{command} does not exist")]
+    NonExistentCommand { command: String },
 }

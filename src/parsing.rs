@@ -1,55 +1,73 @@
-use super::{commands::Command, info::GameInfo, variables::ASVariable};
-use std::{collections::HashMap, iter::FromIterator};
-
-/* pub fn basic_script(info: &mut GameInfo, commands: &Vec<Command>) -> anyhow::Result<()> {
-    match info.pointer() {
-        1 => info.io().show("hi"),
-        2 => info.io().show("choice goes right after"),
-        3 => commands.get(1).unwrap().run(
-            //choice
-            info,
-            Vec::<&ASVariable>::new(),
-            HashMap::<String, &ASVariable>::from_iter([
-                (String::from("go1"), &ASVariable::Int(4)),
-                (String::from("go2"), &ASVariable::Int(6)),
-            ]),
-        ),
-        4 => info.io().show("ch1"),
-        5 => commands.get(2).unwrap().run(
-            //goto
-            info,
-            Vec::<&ASVariable>::from([&ASVariable::Int(7)]),
-            HashMap::new(),
-        ),
-        6 => info.io().show("ch2"),
-        7 => info.io().show("bye"),
-        8 => commands.get(3).unwrap().run(
-            //ending
-            info,
-            Vec::<&ASVariable>::from([&ASVariable::String("buh bye".to_string())]),
-            HashMap::<String, &ASVariable>::new(),
-        ),
-        _ => info.io().show("invalid line"),
-    }
-} */
+use super::{
+    commands::Command,
+    error::{ASSyntaxError, SyntaxErrors},
+    info::GameInfo,
+    variables::ASVariable,
+};
+use std::collections::HashMap;
 
 pub fn parse_line(info: &mut GameInfo, commands: &HashMap<String, Command>) -> anyhow::Result<()> {
-    let ln = info.get_line()?.trim_end();
+    let ln = info.get_line()?;
     if ln.starts_with("#") {
         return Ok(());
     } else if ln.starts_with("!") {
-        println!("is a command");
+        //Since ln[0] is always one byte long, we can use slices
+        parse_command(info, commands, ln[1..].trim_start())?;
     } else {
-        match ln {
+        match ln.as_ref() {
             "\\n" => info.io().show("")?,
             "\\w" => info.io().wait()?,
             "" => return Ok(()),
-            _ => info.io().show(ln)?,
+            _ => {
+                let ln = parse_text(info, ln)?;
+                info.io().show(&ln)?
+            }
         };
     }
     Ok(())
 }
 
-pub fn parse_text(info: &mut GameInfo, text: &str) -> anyhow::Result<String> {
-    Ok(text.to_string())
+pub fn parse_text(info: &mut GameInfo, text: String) -> anyhow::Result<String> {
+    //TODO: add proper control code stuff
+    Ok(text.replace("\\n", "\n"))
+}
+
+pub fn parse_command(
+    info: &mut GameInfo,
+    commands: &HashMap<String, Command>,
+    text: &str,
+) -> anyhow::Result<()> {
+    // Get the command from the name
+    let split = text.split(" ");
+    let mut split_vec = Vec::<String>::new();
+
+    for word in split {
+        split_vec.push(word.to_string());
+    }
+
+    let name = match split_vec.get(0) {
+        Some(c) => c,
+        None => Err(ASSyntaxError {
+            details: SyntaxErrors::NoCommand {},
+        })?,
+    };
+
+    let command = match commands.get(name) {
+        Some(c) => c,
+        None => Err(ASSyntaxError {
+            details: SyntaxErrors::NonExistentCommand {
+                command: name.to_string(),
+            },
+        })?,
+    };
+
+    // Get the arguments
+    let args = Vec::<&ASVariable>::new();
+    let kwargs = HashMap::<String, &ASVariable>::new();
+    if split_vec.len() > 1 {
+        let text = split_vec[1..].join(" ");
+        //TODO: actually parse the argument text
+    }
+
+    command.run(info, args, kwargs)
 }

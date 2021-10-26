@@ -38,10 +38,10 @@ impl GameInfo {
     pub fn root_dir(&self) -> &str {
         &self.game_root
     }
-    pub fn get_line(&self) -> anyhow::Result<&str> {
+    pub fn get_line(&self) -> anyhow::Result<String> {
         //obtains the current line of the script
         match self.script.get(self.pointer as usize) {
-            Some(c) => Ok(c),
+            Some(c) => Ok(c.trim_end().to_string()),
             None => Err(ASSyntaxError {
                 details: SyntaxErrors::EndOfScript {},
             })?,
