@@ -1,10 +1,10 @@
 use super::{
     commands::Command,
-    error::{ASSyntaxError, SyntaxErrors},
+    error::{ASCmdError, ASSyntaxError, CommandErrors, SyntaxErrors},
     info::GameInfo,
     variables::ASVariable,
 };
-use regex::Regex;
+use fancy_regex::Regex;
 use std::collections::HashMap;
 
 pub fn parse_line(info: &mut GameInfo, commands: &HashMap<String, Command>) -> anyhow::Result<()> {
@@ -70,25 +70,28 @@ fn parse_command(
         // and it's honestly just easier to check that the char to the left is a space
         // or proper variable name char, and the one to the right is that or an opening
         // bracket (since those are gonna be evaluated too)
-        let is_kwarg = Regex::new(r"(?<=[A-Za-z0-9-_ ])=(?=[A-za-z0-9-_ {[(])")?;
+        let is_kwarg = Regex::new(r"(?<=[A-Za-z0-9-_ ])=(?=[A-za-z0-9-_ {\[(])")?;
 
         for arg in text.split(";") {
             let mut must_be_kwarg = false; //args can only be before kwargs
             let mut arg_num = 0; //position for positional args
 
             let arg = arg.trim();
-            match is_kwarg.find(arg) {
+            match is_kwarg.find(arg)? {
                 Some(c) => {
+                    must_be_kwarg = true;
+
                     // Split kwarg into argument name (key) and argument body (value)
                     let pos = c.start();
-                    let name = String::from_iter(vec![arg.chars().collect::<Vec<char>>()[..pos]])
-                        .trim_start(); //separate into chars -> collect vector -> get slice
-                    let body =
-                        String::from_iter(vec![arg.chars().collect::<Vec<char>>()[pos + 1..]])
-                            .trim_end();
+                    let (name, body) = arg.split_at(c.start());
+                    let body = body[1..].to_string();
+
+                    //TODO: manage this
                 }
                 None => {
                     if !must_be_kwarg {
+                        //TODO: manage this
+                        arg_num += 1;
                     } else {
                         Err(ASSyntaxError {
                             details: SyntaxErrors::ArgAfterKwarg {
@@ -111,11 +114,37 @@ enum SimplifyMode {
 
 // TODO: name better :D
 // This function was ported from python lmao
-/*fn simplify(text: String, mode: SimplifyMode) -> anyhow::Result<(String, Vec<String>)> {
-    // Get the start and end of every string
-    let mut quotepos = Vec::<usize>::new(); //here we'll store the index of every quote that's not been escaped
-    for quote in ("'", "\""):
-        allpos = [i for i in range(len(text)) if text.startswith(quote, i)] #gets all instances of each type of quotes
+fn simplify(text: String, mode: SimplifyMode) -> anyhow::Result<(String, Vec<String>)> {
+    //TODO: implement Brackets mode
+    match mode {
+        SimplifyMode::Strings => (),
+        SimplifyMode::Brackets => Err(ASCmdError {
+            command: "none/parser".to_string(),
+            details: CommandErrors::NotImplementedError {
+                feature: "bracket simplifying".to_string(),
+                details: "didnt feel like it ngl".to_string(),
+            },
+        })?,
+    }
+
+    // Step 1: Get the start and end of every string
+
+    // Get all quotes, both single and double
+    let mut quotepos = Vec::<usize>::new(); // here we'll store the index of every quote that's not been escaped
+    for quote in ['\'', '\"'] {
+        let mut pos = 0;
+        let mut prev_char = '\x00';
+        for chr in text.chars() {
+            // If the current character is a quote and the character before it isn't a backslash
+            // because, well, escaping quotes in strings is A Thing tm
+            if (chr == '"' || chr == '\'') && prev_char != '\\' {
+                quotepos.push(pos);
+            }
+        }
+    }
+
+    Ok(("".to_string(), vec!["".to_string()]))
+    /*    allpos = [i for i in range(len(text)) if text.startswith(quote, i)] #gets all instances of each type of quotes
         for index in allpos:
             if text[index-1] != "\\":
                 quotepos.append(index) #only pass to quotepos the strings that weren't escaped
@@ -140,8 +169,8 @@ enum SimplifyMode {
         text = text[:quote[0]] + f'"{len(quotes)-c}"' + text[quote[1]+1:] #"0", "1", etc.
         c += 1
     outquotes = [i.replace("\\'", "'").replace('\\"', '"') for i in quotetext] #gets all instances of each type of quotes
-    return text, outquotes
-}*/
+    return text, outquotes*/
+}
 
 fn parse_argument() {}
 
