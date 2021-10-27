@@ -123,4 +123,6 @@ pub enum SyntaxErrors {
     NonExistentCommand { command: String },
     #[error("A positional argument ({arg}) was placed after one or more keyword arguments")]
     ArgAfterKwarg { arg: String },
+    #[error("Unclosed string")]
+    UnclosedString {},
 }

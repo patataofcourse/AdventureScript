@@ -72,17 +72,18 @@ fn parse_command(
         // bracket (since those are gonna be evaluated too)
         let is_kwarg = Regex::new(r"(?<=[A-Za-z0-9-_ ])=(?=[A-za-z0-9-_ {\[(])")?;
 
+        //TODO: replacing quotes and brackets
+
         for arg in text.split(";") {
             let mut must_be_kwarg = false; //args can only be before kwargs
             let mut arg_num = 0; //position for positional args
 
-            let arg = arg.trim();
-            match is_kwarg.find(arg)? {
+            let (arg, strings) = simplify(arg.trim().to_string(), SimplifyMode::Strings)?;
+            match is_kwarg.find(&arg)? {
                 Some(c) => {
                     must_be_kwarg = true;
 
                     // Split kwarg into argument name (key) and argument body (value)
-                    let pos = c.start();
                     let (name, body) = arg.split_at(c.start());
                     let body = body[1..].to_string();
 
@@ -129,28 +130,57 @@ fn simplify(text: String, mode: SimplifyMode) -> anyhow::Result<(String, Vec<Str
 
     // Step 1: Get the start and end of every string
 
-    // Get all quotes, both single and double
+    // 1.1: Get all quotes, both single and double
     let mut quotepos = Vec::<usize>::new(); // here we'll store the index of every quote that's not been escaped
-    for quote in ['\'', '\"'] {
-        let mut pos = 0;
-        let mut prev_char = '\x00';
-        for chr in text.chars() {
-            // If the current character is a quote and the character before it isn't a backslash
-            // because, well, escaping quotes in strings is A Thing tm
-            if (chr == '"' || chr == '\'') && prev_char != '\\' {
-                quotepos.push(pos);
+    let mut pos = 0;
+    let mut prev_char = '\x00';
+    for chr in text.chars() {
+        // If the current character is a quote and the character before it isn't a backslash
+        // because, well, escaping quotes in strings is A Thing tm
+        if (chr == '"' || chr == '\'') && prev_char != '\\' {
+            quotepos.push(pos);
+        }
+
+        pos += 1;
+        prev_char = chr;
+    }
+
+    // 1.2: Scan the code looking for actual strings: opened and closed with the same
+    //      type of quote
+    let mut prev_char = '\x00'; // reusing variable for storing the currently open
+                                // quote type
+    let mut quotes = Vec::<(usize, usize)>::new();
+
+    for index in quotepos {
+        let chr = *text.chars().collect::<Vec<char>>().get(index).unwrap();
+        match prev_char {
+            // If no string is open right now, open a new string
+            '\x00' => {
+                prev_char = chr;
+                quotes.push((index, 0));
+            }
+            c => {
+                // If this char's the same quote type as the opening quote, this is
+                // a closing quote
+                if c == chr {
+                    prev_char = '\x00';
+                    let prev_index = quotes.pop().unwrap().0;
+                    quotes.push((prev_index, index));
+                }
+                // Otherwise, treat it as any other character
             }
         }
     }
 
-    Ok(("".to_string(), vec!["".to_string()]))
-    /*    allpos = [i for i in range(len(text)) if text.startswith(quote, i)] #gets all instances of each type of quotes
-        for index in allpos:
-            if text[index-1] != "\\":
-                quotepos.append(index) #only pass to quotepos the strings that weren't escaped
-    opened_quote = ""
-    quotes = []
+    // If the string was left unclosed, that's a syntax error
+    if prev_char != '\x00' {
+        Err(ASSyntaxError {
+            details: SyntaxErrors::UnclosedString {},
+        })?;
+    }
 
+    Ok(("".to_string(), vec!["".to_string()]))
+    /*
     for index in sorted(quotepos):
         if opened_quote == "": #no open quotes
             opened_quote = text[index]
