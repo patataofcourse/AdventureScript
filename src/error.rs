@@ -121,4 +121,6 @@ pub enum SyntaxErrors {
     NoCommand {},
     #[error("Command !{command} does not exist")]
     NonExistentCommand { command: String },
+    #[error("A positional argument ({arg}) was placed after one or more keyword arguments")]
+    ArgAfterKwarg { arg: String },
 }
