@@ -74,6 +74,7 @@ fn parse_command(
 
         //TODO: replacing quotes and brackets
 
+        //TODO: comment this
         for arg in text.split(";") {
             let mut must_be_kwarg = false; //args can only be before kwargs
             let mut arg_num = 0; //position for positional args
@@ -113,9 +114,16 @@ enum SimplifyMode {
     Brackets,
 }
 
-// TODO: name better :D
-// This function was ported from python lmao
-fn simplify(text: String, mode: SimplifyMode) -> anyhow::Result<(String, Vec<String>)> {
+#[test]
+fn simplify_test() {
+    let text = "'hel\"lo' \"hel'lo\" 'hel\\'lo' \"hel\\\"lo\"".to_string();
+    let (s, q) = simplify(text, SimplifyMode::Strings).unwrap();
+    assert_eq!(s, "\"0\" \"1\" \"2\" \"3\"");
+    assert_eq!(q, vec!["hel\"lo", "hel'lo", "hel\\'lo", "hel\\\"lo"]);
+}
+
+// TODO: name better
+fn simplify(mut text: String, mode: SimplifyMode) -> anyhow::Result<(String, Vec<String>)> {
     //TODO: implement Brackets mode
     match mode {
         SimplifyMode::Strings => (),
@@ -128,9 +136,11 @@ fn simplify(text: String, mode: SimplifyMode) -> anyhow::Result<(String, Vec<Str
         })?,
     }
 
-    // Step 1: Get the start and end of every string
+    // yes this doesn't use regex shut up
 
-    // 1.1: Get all quotes, both single and double
+    // Step 1:   Get the start and end of every string
+
+    // 1.1:   Get all quotes, both single and double
     let mut quotepos = Vec::<usize>::new(); // here we'll store the index of every quote that's not been escaped
     let mut pos = 0;
     let mut prev_char = '\x00';
@@ -145,11 +155,11 @@ fn simplify(text: String, mode: SimplifyMode) -> anyhow::Result<(String, Vec<Str
         prev_char = chr;
     }
 
-    // 1.2: Scan the code looking for actual strings: opened and closed with the same
+    // 1.2:   Scan the code looking for actual strings: opened and closed with the same
     //      type of quote
     let mut prev_char = '\x00'; // reusing variable for storing the currently open
                                 // quote type
-    let mut quotes = Vec::<(usize, usize)>::new();
+    let mut quotes = Vec::<(usize, usize)>::new(); // start and end index for the quote
 
     for index in quotepos {
         let chr = *text.chars().collect::<Vec<char>>().get(index).unwrap();
@@ -179,27 +189,30 @@ fn simplify(text: String, mode: SimplifyMode) -> anyhow::Result<(String, Vec<Str
         })?;
     }
 
-    Ok(("".to_string(), vec!["".to_string()]))
-    /*
-    for index in sorted(quotepos):
-        if opened_quote == "": #no open quotes
-            opened_quote = text[index]
-            quotes.append(index)
-        else if opened_quote == text[index]:       #current quote is the same as the open quote -> it closes, and
-            quotes[-1] = (quotes[-1], index)    #otherwise it just gets ignored and treated as any other character
-            opened_quote = ""
-    if opened_quote != "":
-        raise SyntaxError(f"AdventureScript syntax: unclosed {opened_quote}")
-    #now, replace them with things that won't be screwed up by the rest of input_format
-    quotes.reverse() #this way the index numbers don't get fucked up
-    c = 1
-    quotetext = []
-    for quote in quotes:
-        quotetext = [text[quote[0]+1:quote[1]]] + quotetext
-        text = text[:quote[0]] + f'"{len(quotes)-c}"' + text[quote[1]+1:] #"0", "1", etc.
-        c += 1
-    outquotes = [i.replace("\\'", "'").replace('\\"', '"') for i in quotetext] #gets all instances of each type of quotes
-    return text, outquotes*/
+    // Step 2:   Replace the strings with something the parser won't fuck up.
+    //         The issue with strings on the AS parser is that they might have symbols that,
+    //         unless managed properly, could be interpreted as tokens (+, -, *, /, ;, ...).
+    //           So they're replaced with a number (signifying its index in the string Vec)
+    //         surrounded by double quotes.
+
+    quotes.reverse(); // Doing this so it won't mess with the other index values
+
+    let mut quotetext = Vec::<String>::new();
+    let mut c = 0;
+    for quote in &quotes {
+        quotetext.push(((text.split_at(quote.1).0).split_at(quote.0 + 1).1).to_string());
+        text = format!(
+            "{}\"{}\"{}",
+            text.split_at(quote.0).0,
+            quotes.len() - c - 1, // this makes the indexes be in the right order
+            text.split_at(quote.1 + 1).1
+        );
+        c += 1;
+    }
+
+    quotetext.reverse();
+
+    Ok((text, quotetext))
 }
 
 fn parse_argument() {}
