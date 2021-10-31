@@ -6,7 +6,7 @@ use std::{
 use thiserror::Error;
 
 pub fn manage_error(info: &GameInfo, err: anyhow::Error) {
-    print!(
+    eprint!(
         "\nAdventureScript error on script {}, line {} - ",
         info.script_name(),
         info.pointer(),
@@ -15,9 +15,9 @@ pub fn manage_error(info: &GameInfo, err: anyhow::Error) {
     } else if let Some(_c) = err.downcast_ref::<ASCmdError>() {
     } else if let Some(_c) = err.downcast_ref::<ASSyntaxError>() {
     } else {
-        print!("uncaught internal error\n\t");
+        eprint!("uncaught internal error\n\t");
     };
-    println!("{}", err);
+    eprintln!("{}", err);
 }
 
 // Command error
