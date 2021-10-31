@@ -72,15 +72,16 @@ fn parse_command(
         // bracket (since those are gonna be evaluated too)
         let is_kwarg = Regex::new(r"(?<=[A-Za-z0-9-_ ])=(?=[A-za-z0-9-_ {\[(])")?;
 
-        //TODO: replacing quotes and brackets
+        let (text, strings) = simplify(text, SimplifyMode::Strings)?;
+        let (text, tokens) = simplify(text, SimplifyMode::Brackets)?;
 
         //TODO: comment this
         for arg in text.split(";") {
+            let arg = arg.trim();
             let mut must_be_kwarg = false; //args can only be before kwargs
             let mut arg_num = 0; //position for positional args
 
-            let (arg, strings) = simplify(arg.trim().to_string(), SimplifyMode::Strings)?;
-            match is_kwarg.find(&arg)? {
+            match is_kwarg.find(arg)? {
                 Some(c) => {
                     must_be_kwarg = true;
 
