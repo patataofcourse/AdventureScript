@@ -127,4 +127,6 @@ pub enum SyntaxErrors {
     ArgAfterKwarg { arg: String },
     #[error("Unclosed string")]
     UnclosedString {},
+    #[error("Unclosed bracket: {bracket}")]
+    UnclosedBracket { bracket: char },
 }

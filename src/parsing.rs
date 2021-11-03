@@ -73,7 +73,8 @@ fn parse_command(
         let is_kwarg = Regex::new(r"(?<=[A-Za-z0-9-_ ])=(?=[A-za-z0-9-_ {\[(])")?;
 
         let (text, strings) = simplify(text, SimplifyMode::Strings)?;
-        let (text, tokens) = simplify(text, SimplifyMode::Brackets)?;
+        let (text, brackets) = simplify(text, SimplifyMode::Brackets)?;
+        println!("{}, {:?}, {:?}", text, strings, brackets);
 
         //TODO: comment this
         for arg in text.split(";") {
@@ -215,7 +216,7 @@ fn merge_this_into_simplify(mut text: String) -> anyhow::Result<(String, Vec<Str
     // yes this doesn't use regex shut up
 
     // Step 1:   Get the start and end of every bracketed expression
-    let mut brackets = Vec::<(usize, usize, char)>::new(); // start and end index for the bracket + bracket type
+    let mut brackets = Vec::<(usize, usize)>::new(); // start and end index for the bracket + bracket type
     let mut pos = 0;
     let mut prev_char = '\x00'; // currently open bracket type
     for chr in text.chars() {
@@ -224,7 +225,7 @@ fn merge_this_into_simplify(mut text: String) -> anyhow::Result<(String, Vec<Str
             '\x00' => {
                 if chr == '[' || chr == '{' || chr == '(' {
                     prev_char = chr;
-                    brackets.push((pos, 0, chr));
+                    brackets.push((pos, 0));
                 }
             }
             _ => {
@@ -242,75 +243,41 @@ fn merge_this_into_simplify(mut text: String) -> anyhow::Result<(String, Vec<Str
                 if chr == needed_char {
                     prev_char = '\x00';
                     let current = brackets.pop().unwrap();
-                    brackets.push((current.0, pos, current.2))
+                    brackets.push((current.0, pos))
                 }
             }
         }
 
         pos += 1;
     }
-    println!("{:?}", brackets);
 
-    // from here downwards it's unedited
-
-    // 1.2:   Scan the code looking for actual strings: opened and closed with the same
-    //      type of quote
-    let mut prev_char = '\x00';
-    let quotepos = Vec::<usize>::new();
-    let mut quotes = Vec::<(usize, usize)>::new(); // start and end index for the quote
-
-    for index in quotepos {
-        let chr = *text.chars().collect::<Vec<char>>().get(index).unwrap();
-        match prev_char {
-            // If no string is open right now, open a new string
-            '\x00' => {
-                prev_char = chr;
-                quotes.push((index, 0));
-            }
-            c => {
-                // If this char's the same quote type as the opening quote, this is
-                // a closing quote
-                if c == chr {
-                    prev_char = '\x00';
-                    let prev_index = quotes.pop().unwrap().0;
-                    quotes.push((prev_index, index));
-                }
-                // Otherwise, treat it as any other character
-            }
-        }
-    }
-
-    // If the string was left unclosed, that's a syntax error
+    // If the bracket was left unclosed, that's a syntax error
     if prev_char != '\x00' {
         Err(ASSyntaxError {
-            details: SyntaxErrors::UnclosedString {},
+            details: SyntaxErrors::UnclosedBracket { bracket: prev_char },
         })?;
     }
 
-    // Step 2:   Replace the strings with something the parser won't fuck up.
-    //         The issue with strings on the AS parser is that they might have symbols that,
-    //         unless managed properly, could be interpreted as tokens (+, -, *, /, ;, ...).
-    //           So they're replaced with a number (signifying its index in the string Vec)
-    //         surrounded by double quotes.
+    // Step 2:   Replace the brackets with something the parser won't interpret.
 
-    quotes.reverse(); // Doing this so it won't mess with the other index values
+    brackets.reverse(); // Doing this so it won't mess with the other index values
 
-    let mut quotetext = Vec::<String>::new();
+    let mut brackettext = Vec::<String>::new();
     let mut c = 0;
-    for quote in &quotes {
-        quotetext.push(((text.split_at(quote.1).0).split_at(quote.0 + 1).1).to_string());
+    for bracket in &brackets {
+        brackettext.push(((text.split_at(bracket.1).0).split_at(bracket.0 + 1).1).to_string());
         text = format!(
-            "{}\"{}\"{}",
-            text.split_at(quote.0).0,
-            quotes.len() - c - 1, // this makes the indexes be in the right order
-            text.split_at(quote.1 + 1).1
+            "{}{}{}",
+            text.split_at(bracket.0 + 1).0,
+            brackets.len() - c - 1, // this makes the indexes be in the right order
+            text.split_at(bracket.1).1
         );
         c += 1;
     }
 
-    quotetext.reverse();
+    brackettext.reverse();
 
-    Ok((text, quotetext))
+    Ok((text, brackettext))
 }
 
 fn parse_argument() {}
