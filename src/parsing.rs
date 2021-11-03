@@ -282,5 +282,66 @@ pub fn evaluate(
     strings: &Vec<String>,
     brackets: &Vec<String>,
 ) -> anyhow::Result<ASVariable> {
+    let operator_regex = Regex::new(r"{0}+|-|*|/|^{1}")?;
+    let operators = operator_regex.find_iter(&text);
+    let raw_vals = operator_regex.captures_iter(&text);
+    /*
+    operators = re.findall("\+|\-|\*|\/|\^", text)
+    raw_values = re.split("\+|\-|\*|\/|\^", text)
+
+    operators = ["**" if i=="^" else i for i in operators]
+    operators = ["//" if i=="/" else i for i in operators]
+
+    values = []
+    for value in raw_values:
+        value, *ops = value.strip().split(".")
+        #literals
+        if value.isdecimal(): #int literal
+            value = int(value)
+        elif value.lower() == "true": #bool literal: true
+            value = True
+        elif value.lower() == "false": #bool literal: false
+            value = False
+        elif value.startswith('"') and value.endswith('"'): #string literal
+            value = outquotes[int(value.strip('"'))]
+        elif value.startswith("{") and value.endswith("}"): #label literal
+            value = outlabels[int(value.strip("{}"))]
+        #saved variables
+        elif value.startswith("$"): #list
+            value = info.list(value[1:])
+        elif value.startswith("%"): #flag
+            val = info.flags.get(value[1:], None)
+            if val == None:
+                val = False
+                info.flags[value[1:]] = False
+            value = val
+        elif value.startswith("&"): #inventory
+            if value.startswith("&&"): #default inventory
+                try:
+                    value = info.inventory
+                except AttributeError:
+                    raise exceptions.NoDefaultInventoryError(info.scriptname, info.pointer)
+            else:
+                value = info.inv(value[1:])
+        else: #values
+            value = info.var(value)
+        values.append(repr(await operations.manage_operations(value, ops)))
+
+    for op_groups in ["**"], ["*", "//"], ["+", "-"]:
+        c = 0
+        while c < len(operators):
+            if operators[c] in op_groups:
+                op = operators[c]
+                operators.pop(c)
+                //unary operator should be included here
+                values[c] = repr(eval(values[c]+op+values[c+1]))
+                values.pop(c+1)
+            else:
+                c += 1
+    if flip_result:
+        return -eval(values[0])
+    else:
+        return eval(values[0])
+     */
     Ok(ASVariable::Bool(true))
 }
