@@ -1,6 +1,6 @@
 use super::{
     commands::Command,
-    error::{ASCmdError, ASSyntaxError, CommandErrors, SyntaxErrors},
+    error::{ASSyntaxError, SyntaxErrors},
     info::GameInfo,
     variables::ASVariable,
 };
@@ -59,8 +59,8 @@ fn parse_command(
     };
 
     // Get the arguments
-    let args = Vec::<&ASVariable>::new();
-    let kwargs = HashMap::<String, &ASVariable>::new();
+    let mut args = Vec::<ASVariable>::new();
+    let mut kwargs = HashMap::<String, ASVariable>::new();
     if split.len() > 1 {
         let text = split[1..].join(" ");
 
@@ -70,17 +70,15 @@ fn parse_command(
         // and it's honestly just easier to check that the char to the left is a space
         // or proper variable name char, and the one to the right is that or an opening
         // bracket (since those are gonna be evaluated too)
-        let is_kwarg = Regex::new(r"(?<=[A-Za-z0-9-_ ])=(?=[A-za-z0-9-_ {\[(])")?;
+        let is_kwarg = Regex::new("(?<=[A-Za-z0-9-_ ])=(?=[A-za-z0-9-_ {\\\"\\[(])")?;
 
         let (text, strings) = simplify(text, SimplifyMode::Strings)?;
         let (text, brackets) = simplify(text, SimplifyMode::Brackets)?;
-        println!("{}, {:?}, {:?}", text, strings, brackets);
 
         //TODO: comment this
+        let mut must_be_kwarg = false; //args can only be before kwargs
         for arg in text.split(";") {
             let arg = arg.trim();
-            let mut must_be_kwarg = false; //args can only be before kwargs
-            let mut arg_num = 0; //position for positional args
 
             match is_kwarg.find(arg)? {
                 Some(c) => {
@@ -88,19 +86,16 @@ fn parse_command(
 
                     // Split kwarg into argument name (key) and argument body (value)
                     let (name, body) = arg.split_at(c.start());
-                    let body = body[1..].to_string();
+                    let body = evaluate(info, body[1..].to_string(), &strings, &brackets)?;
 
-                    //TODO: manage this
+                    kwargs.insert(name.to_string(), body);
                 }
                 None => {
                     if !must_be_kwarg {
                         //TODO: manage this
-                        arg_num += 1;
                     } else {
                         Err(ASSyntaxError {
-                            details: SyntaxErrors::ArgAfterKwarg {
-                                arg: arg.to_string(),
-                            },
+                            details: SyntaxErrors::ArgAfterKwarg {},
                         })?;
                     }
                 }
@@ -280,6 +275,11 @@ fn merge_this_into_simplify(mut text: String) -> anyhow::Result<(String, Vec<Str
     Ok((text, brackettext))
 }
 
-fn parse_argument() {}
-
-pub fn evaluate() {}
+pub fn evaluate(
+    info: &mut GameInfo,
+    text: String,
+    strings: &Vec<String>,
+    brackets: &Vec<String>,
+) -> anyhow::Result<ASVariable> {
+    Ok(ASVariable::Bool(true))
+}

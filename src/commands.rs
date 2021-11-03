@@ -9,18 +9,18 @@ use std::{collections::HashMap, iter::FromIterator};
 //TODO: figure out how this will work??
 pub struct Command {
     pub name: String,
-    func: fn(&mut GameInfo, HashMap<String, &ASVariable>) -> anyhow::Result<()>,
+    func: fn(&mut GameInfo, HashMap<String, ASVariable>) -> anyhow::Result<()>,
     args_to_kwargs: Vec<String>,
     accepted_kwargs: HashMap<String, ASType>,
     default_values: HashMap<String, ASVariable>,
 }
 
 impl Command {
-    pub fn run<'a>(
+    pub fn run(
         &self,
         info: &mut GameInfo,
-        args: Vec<&'a ASVariable>,
-        kwargs: HashMap<String, &'a ASVariable>,
+        args: Vec<ASVariable>,
+        kwargs: HashMap<String, ASVariable>,
     ) -> anyhow::Result<()> {
         let mut c = 0;
         let mut kwargs = kwargs;
@@ -36,13 +36,13 @@ impl Command {
                 }),
                 Some(c) => Ok(c),
             }?;
-            kwargs.insert(String::from(argname), arg);
+            kwargs.insert(String::from(argname), arg.to_owned());
             c += 1;
         }
         // Pass default argument values
         for (key, value) in &self.default_values {
             if !kwargs.contains_key(key) {
-                kwargs.insert(String::from(key), value);
+                kwargs.insert(String::from(key), value.to_owned());
             }
         }
         // Check that all given arguments are taken by the command and
@@ -87,11 +87,11 @@ impl Command {
     }
 }
 
-fn wait_fn(info: &mut GameInfo, _kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+fn wait_fn(info: &mut GameInfo, _kwargs: HashMap<String, ASVariable>) -> anyhow::Result<()> {
     info.io().wait()
 }
 
-fn choice_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+fn choice_fn(info: &mut GameInfo, kwargs: HashMap<String, ASVariable>) -> anyhow::Result<()> {
     let mut a = 1;
     let mut choices = Vec::<&str>::new();
     let mut gotos = Vec::<i32>::new();
@@ -100,11 +100,11 @@ fn choice_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyho
         if a == 3 {
             break;
         } //Remove after proper choice command
-        let choice = match kwargs[&format!("ch{}", a)] {
-            ASVariable::String(c) => c,
+        let choice = match &kwargs[&format!("ch{}", a)] {
+            ASVariable::String(c) => &c,
             _ => "",
         };
-        let goto = match kwargs[&format!("go{}", a)] {
+        let goto = match &kwargs[&format!("go{}", a)] {
             ASVariable::Int(c) => *c,
             _ => 0,
         };
@@ -116,7 +116,7 @@ fn choice_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyho
         a += 1;
     }
     //get text
-    let text = match kwargs["text"] {
+    let text = match &kwargs["text"] {
         ASVariable::String(c) => c,
         _ => "",
     };
@@ -131,8 +131,8 @@ fn choice_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyho
     Ok(())
 }
 
-fn goto_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
-    let pos = match kwargs["pos"] {
+fn goto_fn(info: &mut GameInfo, kwargs: HashMap<String, ASVariable>) -> anyhow::Result<()> {
+    let pos = match &kwargs["pos"] {
         ASVariable::Int(c) => *c,
         _ => 0,
     };
@@ -140,8 +140,8 @@ fn goto_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow:
     Ok(())
 }
 
-fn ending_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
-    let name = match kwargs["name"] {
+fn ending_fn(info: &mut GameInfo, kwargs: HashMap<String, ASVariable>) -> anyhow::Result<()> {
+    let name = match &kwargs["name"] {
         ASVariable::String(c) => c,
         _ => "",
     };
@@ -150,7 +150,7 @@ fn ending_fn(info: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyho
     Ok(())
 }
 
-fn test_fn(_inf: &mut GameInfo, kwargs: HashMap<String, &ASVariable>) -> anyhow::Result<()> {
+fn test_fn(_inf: &mut GameInfo, kwargs: HashMap<String, ASVariable>) -> anyhow::Result<()> {
     for (key, arg) in kwargs {
         println!("{}: {:?}", key, arg);
     }
