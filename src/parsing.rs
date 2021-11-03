@@ -128,13 +128,7 @@ fn simplify(mut text: String, mode: SimplifyMode) -> anyhow::Result<(String, Vec
     //TODO: implement Brackets mode
     match mode {
         SimplifyMode::Strings => (),
-        SimplifyMode::Brackets => Err(ASCmdError {
-            command: "none/parser".to_string(),
-            details: CommandErrors::NotImplementedError {
-                feature: "bracket simplifying".to_string(),
-                details: "didnt feel like it ngl".to_string(),
-            },
-        })?,
+        SimplifyMode::Brackets => return merge_this_into_simplify(text),
     }
 
     // yes this doesn't use regex shut up
@@ -160,6 +154,97 @@ fn simplify(mut text: String, mode: SimplifyMode) -> anyhow::Result<(String, Vec
     //      type of quote
     let mut prev_char = '\x00'; // reusing variable for storing the currently open
                                 // quote type
+    let mut quotes = Vec::<(usize, usize)>::new(); // start and end index for the quote
+
+    for index in quotepos {
+        let chr = *text.chars().collect::<Vec<char>>().get(index).unwrap();
+        match prev_char {
+            // If no string is open right now, open a new string
+            '\x00' => {
+                prev_char = chr;
+                quotes.push((index, 0));
+            }
+            c => {
+                // If this char's the same quote type as the opening quote, this is
+                // a closing quote
+                if c == chr {
+                    prev_char = '\x00';
+                    let prev_index = quotes.pop().unwrap().0;
+                    quotes.push((prev_index, index));
+                }
+                // Otherwise, treat it as any other character
+            }
+        }
+    }
+
+    // If the string was left unclosed, that's a syntax error
+    if prev_char != '\x00' {
+        Err(ASSyntaxError {
+            details: SyntaxErrors::UnclosedString {},
+        })?;
+    }
+
+    // Step 2:   Replace the strings with something the parser won't fuck up.
+    //         The issue with strings on the AS parser is that they might have symbols that,
+    //         unless managed properly, could be interpreted as tokens (+, -, *, /, ;, ...).
+    //           So they're replaced with a number (signifying its index in the string Vec)
+    //         surrounded by double quotes.
+
+    quotes.reverse(); // Doing this so it won't mess with the other index values
+
+    let mut quotetext = Vec::<String>::new();
+    let mut c = 0;
+    for quote in &quotes {
+        quotetext.push(((text.split_at(quote.1).0).split_at(quote.0 + 1).1).to_string());
+        text = format!(
+            "{}\"{}\"{}",
+            text.split_at(quote.0).0,
+            quotes.len() - c - 1, // this makes the indexes be in the right order
+            text.split_at(quote.1 + 1).1
+        );
+        c += 1;
+    }
+
+    quotetext.reverse();
+
+    Ok((text, quotetext))
+}
+
+//TODO: merge this into simplify!!! there's a lot of repeated code here
+fn merge_this_into_simplify(mut text: String) -> anyhow::Result<(String, Vec<String>)> {
+    // yes this doesn't use regex shut up
+
+    // Step 1:   Get the start and end of every bracketed expression
+    let mut brackets = Vec::<(usize, usize, char)>::new(); // start and end index for the bracket + bracket type
+    let mut pos = 0;
+    let mut prev_char = '\x00'; // currently open bracket type
+    for chr in text.chars() {
+        match prev_char {
+            '\x00' /*no opened brackets*/ => {
+                if chr == '[' || chr == '{' || chr == '(' {
+                    prev_char = chr;
+                    brackets.push((pos, 0, chr));
+                }
+            },
+            '[' => {},
+            c => {
+                Err( ASSyntaxError {
+                    details: SyntaxErrors::Generic{
+                        details: format!("Bracket type opened unknown: {}", c)
+                    }
+                })?
+            }, 
+        }
+
+        pos += 1;
+    }
+
+    // from here downwards it's unedited
+
+    // 1.2:   Scan the code looking for actual strings: opened and closed with the same
+    //      type of quote
+    let mut prev_char = '\x00';
+    let quotepos = Vec::<usize>::new();
     let mut quotes = Vec::<(usize, usize)>::new(); // start and end index for the quote
 
     for index in quotepos {

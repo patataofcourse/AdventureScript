@@ -39,7 +39,7 @@ impl Error for ASCmdError {}
 #[derive(Debug, Error)]
 pub enum CommandErrors {
     #[error("{details}")]
-    OtherCommandError { details: String },
+    Generic { details: String },
     #[error(
         "Tried to use {feature}, which is unimplemented or a work-in-progress\nDetails: {details}"
     )]
@@ -115,6 +115,8 @@ impl Error for ASSyntaxError {}
 
 #[derive(Debug, Error)]
 pub enum SyntaxErrors {
+    #[error("Syntax error: {details}")]
+    Generic { details: String },
     #[error("Reached end of script! Add an !ending or !loadscript command")]
     EndOfScript {},
     #[error("Command is empty")]
