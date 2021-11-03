@@ -32,9 +32,9 @@ The `\w` escape code can be used as an equivalent, either on an empty line or at
 
 ### !choice
 ```none
-!choice text; choices; ...
+!choice choice1; choice2; choice3; ...; choice9; ...
 
-!choice "choice text"; {"Do this": {label1}, "Do that": {label2}}
+!choice ["Do this": {label1}]; ["Do that": {label2}]; text="Choose a thing"
 ```
 
 Ask the player a choice and lead to a different label depending on their answer.
@@ -45,9 +45,11 @@ Ask the player a choice and lead to a different label depending on their answer.
 
 **Arguments:**
 
+* `choice1 - choice9: List`: Lists containing the information of the choices to give:
+    - Choice text (`String`)
+    - Label to go to (`Label`, optional, defaults to `None`)
+    - Flag that determines whether to show the choice or not (`Bool`, optional, defaults to `true`)
 * `text: String`: the text to be shown right before the choice. In some I/O implementations it might have different formatting. *(Default: *`""`*)*
-* `choices: Map`: a map containing each choice's text and labels.
-    * This map must follow the pattern `{choice1: goto1, choice2: goto2, ...}`, where `choiceX` are `String`s and `gotoX` are `Label`s, up to a maximum of 9 choices.
 
 Choices are the only place where players can save or restore their saves - although you can turn this off, too (using `!save false`).
 
