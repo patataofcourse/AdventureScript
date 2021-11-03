@@ -220,24 +220,36 @@ fn merge_this_into_simplify(mut text: String) -> anyhow::Result<(String, Vec<Str
     let mut prev_char = '\x00'; // currently open bracket type
     for chr in text.chars() {
         match prev_char {
-            '\x00' /*no opened brackets*/ => {
+            //no opened brackets
+            '\x00' => {
                 if chr == '[' || chr == '{' || chr == '(' {
                     prev_char = chr;
                     brackets.push((pos, 0, chr));
                 }
-            },
-            '[' => {},
-            c => {
-                Err( ASSyntaxError {
-                    details: SyntaxErrors::Generic{
-                        details: format!("Bracket type opened unknown: {}", c)
-                    }
-                })?
-            }, 
+            }
+            _ => {
+                let needed_char = match prev_char {
+                    '[' => ']',
+                    '(' => ')',
+                    '{' => '}',
+                    //Maybe this should panic?
+                    c => Err(ASSyntaxError {
+                        details: SyntaxErrors::Generic {
+                            details: format!("Bracket type opened unknown: {}", c),
+                        },
+                    })?,
+                };
+                if chr == needed_char {
+                    prev_char = '\x00';
+                    let current = brackets.pop().unwrap();
+                    brackets.push((current.0, pos, current.2))
+                }
+            }
         }
 
         pos += 1;
     }
+    println!("{:?}", brackets);
 
     // from here downwards it's unedited
 

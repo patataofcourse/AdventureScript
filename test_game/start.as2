@@ -3,7 +3,7 @@ Some text here\n
 Blank lines are ignored now so you have to add a backslash-n
 \n
 
-! choice "choice text"; ch1="choice 1"; go1=8; ch2="choice 2"; go2=11
+! choice "choice text"; ch1="choice 1"; go1=8; ch2="choice 2"; go2=(11)
 
 Choice 1
 ! goto 14
