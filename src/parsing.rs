@@ -92,7 +92,8 @@ fn parse_command(
                 }
                 None => {
                     if !must_be_kwarg {
-                        //TODO: manage this
+                        let arg = evaluate(info, arg.to_string(), &strings, &brackets)?;
+                        args.push(arg);
                     } else {
                         Err(ASSyntaxError {
                             details: SyntaxErrors::ArgAfterKwarg {},
