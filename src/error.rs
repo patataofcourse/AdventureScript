@@ -123,12 +123,14 @@ pub enum SyntaxErrors {
     UnclosedString {},
     #[error("Unclosed bracket: {bracket}")]
     UnclosedBracket { bracket: char },
-    #[error("Can't {op} values of types {type1} and {type2}")]
+    #[error("Can't {op} values of type {type1} to values of type {type2}")]
     OperationNotDefined {
         op: String,
         type1: ASType,
         type2: ASType,
     },
+    #[error("Can't {op} value of type {type1}")]
+    UnaryOperationNotDefined { op: String, type1: ASType },
 }
 
 #[derive(Debug)]

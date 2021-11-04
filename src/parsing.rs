@@ -345,6 +345,25 @@ pub fn evaluate(
         }
         values.push(manage_methods(info, parsed, methods, strings, brackets)?)
     }
+    //unary operations (currently only Neg)
+    for operation in vec!["-"] {
+        let mut c = 0;
+        while c < operators.len() {
+            // It's a unary operator if the first value is None
+            // Yes this is a dumb way to add it shush
+            if operators[c].as_str() == operation && values[c] == ASVariable::None {
+                operators.remove(c);
+                values[c] = match operation {
+                    "-" => (-values[c + 1].clone()),
+                    _ => panic!("unrecognized unary operator"),
+                }?;
+                values.remove(c + 1);
+            } else {
+                c += 1;
+            }
+        }
+    }
+    //binary operations
     for operation in vec!["^", "*", "/", "+", "-"] {
         let mut c = 0;
         while c < operators.len() {
@@ -358,6 +377,7 @@ pub fn evaluate(
                     "^" => values[c].clone().pow(values[c + 1].clone()),
                     _ => panic!("unrecognized operator"),
                 }?;
+                values.remove(c + 1);
             } else {
                 c += 1;
             }
@@ -381,7 +401,7 @@ pub fn evaluate(
     else:
         return eval(values[0])
      */
-    Ok(ASVariable::None)
+    Ok(values[0].clone())
 }
 
 //TODO: methods

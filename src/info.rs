@@ -64,7 +64,12 @@ impl GameInfo {
     }
 
     //TODO: customization of choice text formatting
-    pub fn query(&self, text: &str, choices: Vec<&str>, allow_save: bool) -> anyhow::Result<u8> {
+    pub fn query(
+        &mut self,
+        text: &str,
+        choices: Vec<&str>,
+        allow_save: bool,
+    ) -> anyhow::Result<u8> {
         if !text.is_empty() {
             self.io.show(&text)?;
         }
@@ -86,7 +91,10 @@ impl GameInfo {
                         self.io.show("Would restore here")?;
                     }
                 }
-                "q" => return Ok(0),
+                "q" => {
+                    self.quit();
+                    return Ok(0);
+                }
                 _ => (),
             }
             let num_result: u8 = match result.trim().parse() {
