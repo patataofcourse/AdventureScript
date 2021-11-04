@@ -1,6 +1,6 @@
 use super::{
     commands::Command,
-    error::{ASSyntaxError, SyntaxErrors},
+    error::{ASNotImplemented, ASSyntaxError, SyntaxErrors},
     info::GameInfo,
     variables::ASVariable,
 };
@@ -286,23 +286,44 @@ pub fn evaluate(
     let operator_regex = Regex::new(r"\+|-|\*|/|\^")?;
     let operators = operator_regex.find_iter(&text);
     let raw_vals = operator_regex.split(&text);
+
+    let values = Vec::<ASVariable>::new();
+    for v in raw_vals {
+        let mut val: Option<String> = None;
+        let mut methods = vec![];
+        for expr in v.split(".") {
+            match val {
+                None => val = Some(expr.trim().to_string()),
+                Some(_) => methods.push(expr.trim().to_string()),
+            }
+        }
+        let val = val.unwrap();
+        let parsed: ASVariable;
+        // Literals
+        if val.parse::<i32>().is_ok() {
+            parsed = ASVariable::Int(val.parse::<i32>().unwrap());
+        } else if val == "true" || val == "True" {
+            parsed = ASVariable::Bool(true);
+        } else if val == "false" || val == "False" {
+            parsed = ASVariable::Bool(false);
+        } else if val.starts_with("{") && val.ends_with("}") {
+            //TODO: manage labels and maps
+            Err(ASNotImplemented {
+                details: "Label and Map type literals".to_string(),
+            })?;
+        } else if val.starts_with("[") && val.ends_with("]") {
+            //TODO: manage lists
+            Err(ASNotImplemented {
+                details: "List type literals".to_string(),
+            })?;
+        } else if val.starts_with("(") && val.ends_with(")") {
+            //TODO: manage things inside brackets
+            Err(ASNotImplemented {
+                details: "Expressions inside parenthesis".to_string(),
+            })?;
+        }
+    }
     /*
-    operators = re.findall("\+|\-|\*|\/|\^", text)
-    raw_values = re.split("\+|\-|\*|\/|\^", text)
-
-    operators = ["**" if i=="^" else i for i in operators]
-    operators = ["//" if i=="/" else i for i in operators]
-
-    values = []
-    for value in raw_values:
-        value, *ops = value.strip().split(".")
-        #literals
-        if value.isdecimal(): #int literal
-            value = int(value)
-        elif value.lower() == "true": #bool literal: true
-            value = True
-        elif value.lower() == "false": #bool literal: false
-            value = False
         elif value.startswith('"') and value.endswith('"'): #string literal
             value = outquotes[int(value.strip('"'))]
         elif value.startswith("{") and value.endswith("}"): #label literal
@@ -335,6 +356,7 @@ pub fn evaluate(
                 op = operators[c]
                 operators.pop(c)
                 //unary operator should be included here
+                //dont do eval pls
                 values[c] = repr(eval(values[c]+op+values[c+1]))
                 values.pop(c+1)
             else:

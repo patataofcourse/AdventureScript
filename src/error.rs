@@ -14,6 +14,7 @@ pub fn manage_error(info: &GameInfo, err: anyhow::Error) {
     if let Some(_c) = err.downcast_ref::<ASFileError>() {
     } else if let Some(_c) = err.downcast_ref::<ASCmdError>() {
     } else if let Some(_c) = err.downcast_ref::<ASSyntaxError>() {
+    } else if let Some(_c) = err.downcast_ref::<ASNotImplemented>() {
     } else {
         eprint!("uncaught internal error\n\t");
     };
@@ -40,13 +41,6 @@ impl Error for ASCmdError {}
 pub enum CommandErrors {
     #[error("{details}")]
     Generic { details: String },
-    #[error(
-        "Tried to use {feature}, which is unimplemented or a work-in-progress\nDetails: {details}"
-    )]
-    NotImplementedError {
-        feature: String, // Name of the WIP or not implemented feature the user was trying to use
-        details: String, // Any extra details, eg: "This will be added for version X"
-    },
     #[error("Command can only take {max_args} positional arguments, but was given {given_args}")]
     TooManyPosArgs { max_args: u32, given_args: u32 },
     #[error("Command was given argument {argument_name} (type {argument_type}), which it doesn't recognize")]
@@ -130,3 +124,16 @@ pub enum SyntaxErrors {
     #[error("Unclosed bracket: {bracket}")]
     UnclosedBracket { bracket: char },
 }
+
+#[derive(Debug)]
+pub struct ASNotImplemented {
+    pub details: String,
+}
+
+impl Display for ASNotImplemented {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "feature not implemented:\n\t{}", self.details)
+    }
+}
+
+impl Error for ASNotImplemented {}
