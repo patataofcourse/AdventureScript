@@ -351,8 +351,13 @@ pub fn evaluate(
             if operators[c].as_str() == operation {
                 operators.remove(c);
                 values[c] = match operation {
-                    _ => panic!(), //TODO: implement these
-                };
+                    "+" => (values[c].clone() + values[c + 1].clone()),
+                    "-" => (values[c].clone() - values[c + 1].clone()),
+                    "*" => (values[c].clone() * values[c + 1].clone()),
+                    "/" => (values[c].clone() / values[c + 1].clone()),
+                    "^" => values[c].clone().pow(values[c + 1].clone()),
+                    _ => panic!("unrecognized operator"),
+                }?;
             } else {
                 c += 1;
             }
