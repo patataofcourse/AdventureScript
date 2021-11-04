@@ -284,10 +284,12 @@ pub fn evaluate(
     brackets: &Vec<String>,
 ) -> anyhow::Result<ASVariable> {
     let operator_regex = Regex::new(r"\+|-|\*|/|\^")?;
-    let operators = operator_regex.find_iter(&text);
+    let mut operators = operator_regex
+        .find_iter(&text)
+        .collect::<Vec<regex::Match>>();
     let raw_vals = operator_regex.split(&text);
 
-    let values = Vec::<ASVariable>::new();
+    let mut values = Vec::<ASVariable>::new();
     for v in raw_vals {
         let mut val: Option<String> = None;
         let mut methods = vec![];
@@ -308,47 +310,55 @@ pub fn evaluate(
             parsed = ASVariable::Bool(false);
         } else if val.starts_with("{") && val.ends_with("}") {
             //TODO: manage labels and maps
+            parsed = ASVariable::None;
             Err(ASNotImplemented {
                 details: "Label and Map type literals".to_string(),
             })?;
         } else if val.starts_with("[") && val.ends_with("]") {
             //TODO: manage lists
+            parsed = ASVariable::None;
             Err(ASNotImplemented {
                 details: "List type literals".to_string(),
             })?;
         } else if val.starts_with("(") && val.ends_with(")") {
-            //TODO: manage things inside brackets
+            let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
+                .parse::<usize>()
+                .unwrap();
+            let value = parse_text(info, brackets[index].clone())?;
+            let (value, strs) = simplify(value, SimplifyMode::Strings)?;
+            let (value, brcks) = simplify(value, SimplifyMode::Brackets)?;
+            parsed = evaluate(info, value, &strs, &brcks)?;
+        } else if val.starts_with("\"") && val.ends_with("\"") {
+            let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
+                .parse::<usize>()
+                .unwrap();
+            parsed = ASVariable::String(parse_text(info, strings[index].clone())?);
+        } else if val == "None" || val == "" {
+            parsed = ASVariable::None;
+        }
+        //TODO: Variables
+        else {
+            parsed = ASVariable::None;
             Err(ASNotImplemented {
-                details: "Expressions inside parenthesis".to_string(),
+                details: "Variables".to_string(),
             })?;
+        }
+        values.push(manage_methods(info, parsed, methods, strings, brackets)?)
+    }
+    for operation in vec!["^", "*", "/", "+", "-"] {
+        let mut c = 0;
+        while c < operators.len() {
+            if operators[c].as_str() == operation {
+                operators.remove(c);
+                values[c] = match operation {
+                    _ => panic!(), //TODO: implement these
+                };
+            } else {
+                c += 1;
+            }
         }
     }
     /*
-        elif value.startswith('"') and value.endswith('"'): #string literal
-            value = outquotes[int(value.strip('"'))]
-        elif value.startswith("{") and value.endswith("}"): #label literal
-            value = outlabels[int(value.strip("{}"))]
-        #saved variables
-        elif value.startswith("$"): #list
-            value = info.list(value[1:])
-        elif value.startswith("%"): #flag
-            val = info.flags.get(value[1:], None)
-            if val == None:
-                val = False
-                info.flags[value[1:]] = False
-            value = val
-        elif value.startswith("&"): #inventory
-            if value.startswith("&&"): #default inventory
-                try:
-                    value = info.inventory
-                except AttributeError:
-                    raise exceptions.NoDefaultInventoryError(info.scriptname, info.pointer)
-            else:
-                value = info.inv(value[1:])
-        else: #values
-            value = info.var(value)
-        values.append(repr(await operations.manage_operations(value, ops)))
-
     for op_groups in ["**"], ["*", "//"], ["+", "-"]:
         c = 0
         while c < len(operators):
@@ -366,5 +376,16 @@ pub fn evaluate(
     else:
         return eval(values[0])
      */
-    Ok(ASVariable::Bool(true))
+    Ok(ASVariable::None)
+}
+
+//TODO: methods
+fn manage_methods(
+    info: &GameInfo,
+    value: ASVariable,
+    methods: Vec<String>,
+    strings: &Vec<String>,
+    brackets: &Vec<String>,
+) -> anyhow::Result<ASVariable> {
+    Ok(value)
 }

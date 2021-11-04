@@ -12,6 +12,7 @@ pub enum ASType {
     String,
     List,
     Map,
+    None,
 }
 
 impl Display for ASType {
@@ -28,6 +29,7 @@ pub enum ASVariable {
     String(String),
     List(Vec<ASVariable>),
     Map(HashMap<String, ASVariable>),
+    None,
 }
 
 impl ASVariable {
@@ -38,6 +40,7 @@ impl ASVariable {
             Self::String(_c) => ASType::String,
             Self::List(_c) => ASType::List,
             Self::Map(_c) => ASType::Map,
+            Self::None => ASType::None,
             //keep adding whenever you add more types
         }
     }
