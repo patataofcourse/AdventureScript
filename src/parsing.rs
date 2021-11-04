@@ -18,7 +18,6 @@ pub fn parse_line(info: &mut GameInfo, commands: &HashMap<String, Command>) -> a
     } else {
         match ln.as_ref() {
             "\\n" => info.io().show("")?,
-            "\\w" => info.io().wait()?,
             "" => return Ok(()),
             _ => {
                 let ln = parse_text(info, ln)?;
@@ -30,8 +29,10 @@ pub fn parse_line(info: &mut GameInfo, commands: &HashMap<String, Command>) -> a
 }
 
 fn parse_text(info: &mut GameInfo, text: String) -> anyhow::Result<String> {
-    //TODO: add proper control code stuff
-    Ok(text.replace("\\n", "\n"))
+    //TODO: - use regex and a match
+    //      - manage \v[...]
+    //      - error if unknown code
+    Ok(text.replace("\\n", "\n").replace("\\\\", "\\"))
 }
 
 // part 1 of the proper parser code - spoiler alert it's bad
