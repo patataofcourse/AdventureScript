@@ -20,6 +20,8 @@ mod tests;
 // TODO: public imports for stuff that might be used in the interface
 use std::collections::HashMap;
 
+static VERSION: &str = "2.0.0-alpha.0";
+
 pub struct AdventureScriptGame {
     info: info::GameInfo,
     commands: HashMap<String, commands::Command>,
@@ -27,7 +29,7 @@ pub struct AdventureScriptGame {
 
 impl AdventureScriptGame {
     pub fn run(&mut self) {
-        println!("AdventureScript v2.0.0-alpha.0\n");
+        println!("AdventureScript v{version}\n", version = VERSION);
         //add basic commands
         self.commands.extend(commands::main_commands());
         //load script file
