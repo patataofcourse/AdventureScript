@@ -4,7 +4,8 @@ use super::{
     info::GameInfo,
     variables::ASVariable,
 };
-use fancy_regex::Regex;
+use fancy_regex::Regex as FancyRegex;
+use regex::Regex;
 use std::collections::HashMap;
 
 pub fn parse_line(info: &mut GameInfo, commands: &HashMap<String, Command>) -> anyhow::Result<()> {
@@ -70,7 +71,7 @@ fn parse_command(
         // and it's honestly just easier to check that the char to the left is a space
         // or proper variable name char, and the one to the right is that or an opening
         // bracket (since those are gonna be evaluated too)
-        let is_kwarg = Regex::new("(?<=[A-Za-z0-9-_ ])=(?=[A-za-z0-9-_ {\\\"\\[(])")?;
+        let is_kwarg = FancyRegex::new("(?<=[A-Za-z0-9-_ ])=(?=[A-za-z0-9-_ {\\\"\\[(])")?;
 
         let (text, strings) = simplify(text, SimplifyMode::Strings)?;
         let (text, brackets) = simplify(text, SimplifyMode::Brackets)?;
@@ -282,9 +283,9 @@ pub fn evaluate(
     strings: &Vec<String>,
     brackets: &Vec<String>,
 ) -> anyhow::Result<ASVariable> {
-    let operator_regex = Regex::new(r"{0}+|-|*|/|^{1}")?;
+    let operator_regex = Regex::new(r"\+|-|\*|/|\^")?;
     let operators = operator_regex.find_iter(&text);
-    let raw_vals = operator_regex.captures_iter(&text);
+    let raw_vals = operator_regex.split(&text);
     /*
     operators = re.findall("\+|\-|\*|\/|\^", text)
     raw_values = re.split("\+|\-|\*|\/|\^", text)
