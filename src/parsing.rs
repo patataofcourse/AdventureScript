@@ -383,24 +383,6 @@ pub fn evaluate(
             }
         }
     }
-    /*
-    for op_groups in ["**"], ["*", "//"], ["+", "-"]:
-        c = 0
-        while c < len(operators):
-            if operators[c] in op_groups:
-                op = operators[c]
-                operators.pop(c)
-                //unary operator should be included here
-                //dont do eval pls
-                values[c] = repr(eval(values[c]+op+values[c+1]))
-                values.pop(c+1)
-            else:
-                c += 1
-    if flip_result:
-        return -eval(values[0])
-    else:
-        return eval(values[0])
-     */
     Ok(values[0].clone())
 }
 
