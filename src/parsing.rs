@@ -29,7 +29,7 @@ pub fn parse_line(info: &mut GameInfo, commands: &HashMap<String, Command>) -> a
 }
 
 fn parse_text(info: &mut GameInfo, text: String) -> anyhow::Result<String> {
-    let control_code_regex = Regex::new(r"\\(.)(\(([^\(]*|\(.*\))\))?")?;
+    let control_code_regex = Regex::new(r"\\(.)(\[([^\[]*|\[.*\])\])?")?;
     let control_codes = control_code_regex.captures_iter(&text);
 
     let mut text = text.clone();

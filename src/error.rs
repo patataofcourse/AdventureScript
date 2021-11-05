@@ -122,7 +122,7 @@ pub enum ASSyntaxError {
     #[error("Escape code {code} does not exist!")]
     InvalidEscapeCode { code: String },
     #[error(
-        "Escape code {code} wasn't supplied an argument, which it requires.\nTry using '\\{code}(...)'"
+        "Escape code {code} wasn't supplied an argument, which it requires.\nTry using '\\{code}[...]'"
     )]
     EmptyControlCode { code: String },
 }
