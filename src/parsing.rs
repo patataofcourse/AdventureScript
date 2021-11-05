@@ -77,13 +77,13 @@ fn parse_command(
         let (text, strings) = simplify(text, SimplifyMode::Strings)?;
         let (text, brackets) = simplify(text, SimplifyMode::Brackets)?;
 
-        //TODO: comment this
         let mut must_be_kwarg = false; //args can only be before kwargs
         for arg in text.split(";") {
             let arg = arg.trim();
 
             match is_kwarg.find(arg)? {
                 Some(c) => {
+                    // Is a keyword argument
                     must_be_kwarg = true;
 
                     // Split kwarg into argument name (key) and argument body (value)
@@ -93,10 +93,12 @@ fn parse_command(
                     kwargs.insert(name.to_string(), body);
                 }
                 None => {
+                    // Is a positional argument
                     if !must_be_kwarg {
                         let arg = evaluate(info, arg.to_string(), &strings, &brackets)?;
                         args.push(arg);
                     } else {
+                        // Positional arguments can't be placed after keyword arguments
                         Err(ASSyntaxError {
                             details: SyntaxErrors::ArgAfterKwarg {},
                         })?;

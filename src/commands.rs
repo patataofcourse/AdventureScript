@@ -6,7 +6,6 @@ use super::{
 use anyhow;
 use std::{collections::HashMap, iter::FromIterator};
 
-//TODO: figure out how this will work??
 pub struct Command {
     pub name: String,
     func: fn(&mut GameInfo, HashMap<String, ASVariable>) -> anyhow::Result<()>,

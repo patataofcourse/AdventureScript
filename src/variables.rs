@@ -23,7 +23,6 @@ impl Display for ASType {
     }
 }
 
-//TODO: add possibility for custom types???
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ASVariable {
     Bool(bool),
