@@ -310,6 +310,7 @@ pub fn evaluate(
     strings: &Vec<String>,
     brackets: &Vec<String>,
 ) -> anyhow::Result<ASVariable> {
+    let text = text.trim();
     let operator_regex = Regex::new(r"\+|-|\*|/|\^")?;
     let mut operators = operator_regex.find_iter(&text).collect::<Vec<Match>>();
     let raw_vals = operator_regex.split(&text);
@@ -333,26 +334,26 @@ pub fn evaluate(
             parsed = ASVariable::Bool(true);
         } else if val == "false" || val == "False" {
             parsed = ASVariable::Bool(false);
+        } else if val.starts_with("[") && val.ends_with("]") {
+            println!("{:?}", val);
+            let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
+                .parse::<usize>()
+                .unwrap();
+            let value = parse_text(info, brackets[index].clone())?;
+            parsed = eval_list(info, value.to_string(), strings)?;
         } else if val.starts_with("{") && val.ends_with("}") {
             //TODO: manage labels and maps
             parsed = ASVariable::None;
             Err(ASNotImplemented {
                 details: "Label and Map type literals".to_string(),
             })?;
-        } else if val.starts_with("[") && val.ends_with("]") {
-            //TODO: manage lists
-            parsed = ASVariable::None;
-            Err(ASNotImplemented {
-                details: "List type literals".to_string(),
-            })?;
         } else if val.starts_with("(") && val.ends_with(")") {
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
                 .parse::<usize>()
                 .unwrap();
             let value = parse_text(info, brackets[index].clone())?;
-            let (value, strs) = simplify(value, SimplifyMode::Strings)?;
             let (value, brcks) = simplify(value, SimplifyMode::Brackets)?;
-            parsed = evaluate(info, value, &strs, &brcks)?;
+            parsed = evaluate(info, value, &strings, &brcks)?;
         } else if val.starts_with("\"") && val.ends_with("\"") {
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
                 .parse::<usize>()
@@ -413,11 +414,26 @@ pub fn evaluate(
 
 //TODO: methods
 fn manage_methods(
-    info: &GameInfo,
+    _info: &GameInfo,
     value: ASVariable,
-    methods: Vec<String>,
-    strings: &Vec<String>,
-    brackets: &Vec<String>,
+    _methods: Vec<String>,
+    _strings: &Vec<String>,
+    _brackets: &Vec<String>,
 ) -> anyhow::Result<ASVariable> {
     Ok(value)
+}
+
+fn eval_list(
+    info: &mut GameInfo,
+    text: String,
+    strings: &Vec<String>,
+) -> anyhow::Result<ASVariable> {
+    let mut list = vec![];
+    let (text, brackets) = simplify(text, SimplifyMode::Brackets)?;
+
+    for elmt in text.split(",") {
+        list.push(evaluate(info, elmt.to_string(), strings, &brackets)?);
+    }
+
+    Ok(ASVariable::List(list))
 }
