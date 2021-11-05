@@ -14,9 +14,10 @@ pub fn manage_error(info: &GameInfo, err: anyhow::Error) {
     if let Some(_c) = err.downcast_ref::<ASFileError>() {
     } else if let Some(_c) = err.downcast_ref::<ASCmdError>() {
     } else if let Some(_c) = err.downcast_ref::<ASSyntaxError>() {
+        eprint!("syntax error:\n\t")
     } else if let Some(_c) = err.downcast_ref::<ASNotImplemented>() {
     } else {
-        eprint!("uncaught internal error\n\t");
+        eprint!("uncaught internal error:\n\t");
     };
     eprintln!("{}", err);
 }
@@ -94,22 +95,9 @@ pub enum FileErrors {
 
 // Syntax/parsing error
 
-#[derive(Debug)]
-pub struct ASSyntaxError {
-    pub details: SyntaxErrors,
-}
-
-impl Display for ASSyntaxError {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "syntax error:\n\t{}", self.details)
-    }
-}
-
-impl Error for ASSyntaxError {}
-
 #[derive(Debug, Error)]
-pub enum SyntaxErrors {
-    #[error("Syntax error: {details}")]
+pub enum ASSyntaxError {
+    #[error("{details}")]
     Generic { details: String },
     #[error("Reached end of script! Add an !ending or !loadscript command")]
     EndOfScript {},
@@ -131,6 +119,12 @@ pub enum SyntaxErrors {
     },
     #[error("Can't {op} value of type {type1}")]
     UnaryOperationNotDefined { op: String, type1: ASType },
+    #[error("Escape code {code} does not exist!")]
+    InvalidEscapeCode { code: String },
+    #[error(
+        "Escape code {code} wasn't supplied an argument, which it requires.\nTry using '\\{code}(...)'"
+    )]
+    EmptyControlCode { code: String },
 }
 
 #[derive(Debug)]

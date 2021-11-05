@@ -1,4 +1,4 @@
-use super::error::{ASSyntaxError, SyntaxErrors};
+use super::error::ASSyntaxError;
 use std::{
     cmp::{Eq, PartialEq},
     collections::HashMap,
@@ -134,6 +134,47 @@ impl Neg for ASVariable {
     }
 }
 
+impl Display for ASVariable {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::None => "None".to_string(),
+                Self::Bool(c) => if *c { "true" } else { "false" }.to_string(),
+                Self::Int(c) => c.to_string(),
+                Self::String(c) => c.clone(),
+                Self::List(c) => format!("[{}]", {
+                    let mut out = String::new();
+                    let mut first_elem = true;
+                    for element in c {
+                        if first_elem {
+                            first_elem = false;
+                        } else {
+                            out += ", ";
+                        }
+                        out += &element.to_string();
+                    }
+                    out
+                }),
+                Self::Map(c) => format!("{{{}}}", {
+                    let mut out = String::new();
+                    let mut first_elem = true;
+                    for (key, value) in c {
+                        if first_elem {
+                            first_elem = false;
+                        } else {
+                            out += ", "
+                        }
+                        out += &format!("{}: {}", key, value);
+                    }
+                    out
+                }),
+            }
+        )
+    }
+}
+
 impl ASVariable {
     pub fn pow(self, exponent: Self) -> anyhow::Result<Self> {
         if let Self::Int(c) = self {
@@ -146,20 +187,16 @@ impl ASVariable {
 }
 
 fn op_err(op: String, v1: ASVariable, v2: ASVariable) -> anyhow::Result<ASVariable> {
-    Err(ASSyntaxError {
-        details: SyntaxErrors::OperationNotDefined {
-            op: op,
-            type1: v1.get_type(),
-            type2: v2.get_type(),
-        },
+    Err(ASSyntaxError::OperationNotDefined {
+        op: op,
+        type1: v1.get_type(),
+        type2: v2.get_type(),
     })?
 }
 
 fn unary_op_err(op: String, v: ASVariable) -> anyhow::Result<ASVariable> {
-    Err(ASSyntaxError {
-        details: SyntaxErrors::UnaryOperationNotDefined {
-            op: op,
-            type1: v.get_type(),
-        },
+    Err(ASSyntaxError::UnaryOperationNotDefined {
+        op: op,
+        type1: v.get_type(),
     })?
 }

@@ -1,7 +1,4 @@
-use super::{
-    error::{ASSyntaxError, SyntaxErrors},
-    io::AdventureIO,
-};
+use super::{error::ASSyntaxError, io::AdventureIO};
 use std::io::Read;
 
 pub struct GameInfo {
@@ -42,9 +39,7 @@ impl GameInfo {
         //obtains the current line of the script
         match self.script.get(self.pointer as usize) {
             Some(c) => Ok(c.trim_end().to_string()),
-            None => Err(ASSyntaxError {
-                details: SyntaxErrors::EndOfScript {},
-            })?,
+            None => Err(ASSyntaxError::EndOfScript {})?,
         }
     }
     pub fn io(&self) -> &AdventureIO {

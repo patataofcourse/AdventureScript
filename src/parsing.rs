@@ -1,11 +1,11 @@
 use super::{
     commands::Command,
-    error::{ASNotImplemented, ASSyntaxError, SyntaxErrors},
+    error::{ASNotImplemented, ASSyntaxError},
     info::GameInfo,
     variables::ASVariable,
 };
 use fancy_regex::Regex as FancyRegex;
-use regex::Regex;
+use regex::{Match, Regex};
 use std::collections::HashMap;
 
 pub fn parse_line(info: &mut GameInfo, commands: &HashMap<String, Command>) -> anyhow::Result<()> {
@@ -29,10 +29,46 @@ pub fn parse_line(info: &mut GameInfo, commands: &HashMap<String, Command>) -> a
 }
 
 fn parse_text(info: &mut GameInfo, text: String) -> anyhow::Result<String> {
+    let control_code_regex = Regex::new(r"\\(.)(\(([^\(]*|\(.*\))\))?")?;
+    let control_codes = control_code_regex.captures_iter(&text);
+
+    let mut text = text.clone();
+    for capture in control_codes {
+        let code = capture.get(1).unwrap().as_str();
+        text = control_code_regex
+            .replace(
+                &text,
+                match code {
+                    "n" => "\n".to_string(),
+                    r"\" => r"\".to_string(),
+                    "v" => {
+                        let (tx, strings) = simplify(
+                            match capture.get(3) {
+                                Some(c) => c,
+                                None => Err(ASSyntaxError::EmptyControlCode {
+                                    code: code.to_string(),
+                                })?,
+                            }
+                            .as_str()
+                            .to_string(),
+                            SimplifyMode::Strings,
+                        )?;
+                        let (tx, brackets) = simplify(tx, SimplifyMode::Brackets)?;
+                        evaluate(info, tx, &strings, &brackets)?.to_string()
+                    }
+                    c => Err(ASSyntaxError::InvalidEscapeCode {
+                        code: c.to_string(),
+                    })?,
+                },
+            )
+            .to_string();
+    }
+
+    Ok(text)
+
     //TODO: - use regex and a match
-    //      - manage \v[...]
+    //      - manage \v(...)
     //      - error if unknown code
-    Ok(text.replace("\\n", "\n").replace("\\\\", "\\"))
 }
 
 // part 1 of the proper parser code - spoiler alert it's bad
@@ -46,17 +82,13 @@ fn parse_command(
 
     let name = match split.get(0) {
         Some(c) => c,
-        None => Err(ASSyntaxError {
-            details: SyntaxErrors::NoCommand {},
-        })?,
+        None => Err(ASSyntaxError::NoCommand {})?,
     };
 
     let command = match commands.get(*name) {
         Some(c) => c,
-        None => Err(ASSyntaxError {
-            details: SyntaxErrors::NonExistentCommand {
-                command: name.to_string(),
-            },
+        None => Err(ASSyntaxError::NonExistentCommand {
+            command: name.to_string(),
         })?,
     };
 
@@ -99,9 +131,7 @@ fn parse_command(
                         args.push(arg);
                     } else {
                         // Positional arguments can't be placed after keyword arguments
-                        Err(ASSyntaxError {
-                            details: SyntaxErrors::ArgAfterKwarg {},
-                        })?;
+                        Err(ASSyntaxError::ArgAfterKwarg {})?;
                     }
                 }
             }
@@ -180,9 +210,7 @@ fn simplify(mut text: String, mode: SimplifyMode) -> anyhow::Result<(String, Vec
 
     // If the string was left unclosed, that's a syntax error
     if prev_char != '\x00' {
-        Err(ASSyntaxError {
-            details: SyntaxErrors::UnclosedString {},
-        })?;
+        Err(ASSyntaxError::UnclosedString {})?;
     }
 
     // Step 2:   Replace the strings with something the parser won't fuck up.
@@ -234,10 +262,8 @@ fn merge_this_into_simplify(mut text: String) -> anyhow::Result<(String, Vec<Str
                     '(' => ')',
                     '{' => '}',
                     //Maybe this should panic?
-                    c => Err(ASSyntaxError {
-                        details: SyntaxErrors::Generic {
-                            details: format!("Bracket type opened unknown: {}", c),
-                        },
+                    c => Err(ASSyntaxError::Generic {
+                        details: format!("Bracket type opened unknown: {}", c),
                     })?,
                 };
                 if chr == needed_char {
@@ -253,9 +279,7 @@ fn merge_this_into_simplify(mut text: String) -> anyhow::Result<(String, Vec<Str
 
     // If the bracket was left unclosed, that's a syntax error
     if prev_char != '\x00' {
-        Err(ASSyntaxError {
-            details: SyntaxErrors::UnclosedBracket { bracket: prev_char },
-        })?;
+        Err(ASSyntaxError::UnclosedBracket { bracket: prev_char })?;
     }
 
     // Step 2:   Replace the brackets with something the parser won't interpret.
@@ -287,9 +311,7 @@ pub fn evaluate(
     brackets: &Vec<String>,
 ) -> anyhow::Result<ASVariable> {
     let operator_regex = Regex::new(r"\+|-|\*|/|\^")?;
-    let mut operators = operator_regex
-        .find_iter(&text)
-        .collect::<Vec<regex::Match>>();
+    let mut operators = operator_regex.find_iter(&text).collect::<Vec<Match>>();
     let raw_vals = operator_regex.split(&text);
 
     let mut values = Vec::<ASVariable>::new();
