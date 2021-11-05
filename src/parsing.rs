@@ -247,6 +247,7 @@ fn merge_this_into_simplify(mut text: String) -> anyhow::Result<(String, Vec<Str
     let mut brackets = Vec::<(usize, usize)>::new(); // start and end index for the bracket + bracket type
     let mut pos = 0;
     let mut prev_char = '\x00'; // currently open bracket type
+    let mut nesting = 0;
     for chr in text.chars() {
         match prev_char {
             //no opened brackets
@@ -257,6 +258,11 @@ fn merge_this_into_simplify(mut text: String) -> anyhow::Result<(String, Vec<Str
                 }
             }
             _ => {
+                if chr == prev_char {
+                    nesting += 1;
+                    pos += 1;
+                    continue;
+                }
                 let needed_char = match prev_char {
                     '[' => ']',
                     '(' => ')',
@@ -267,9 +273,13 @@ fn merge_this_into_simplify(mut text: String) -> anyhow::Result<(String, Vec<Str
                     })?,
                 };
                 if chr == needed_char {
-                    prev_char = '\x00';
-                    let current = brackets.pop().unwrap();
-                    brackets.push((current.0, pos))
+                    if nesting > 0 {
+                        nesting -= 1;
+                    } else {
+                        prev_char = '\x00';
+                        let current = brackets.pop().unwrap();
+                        brackets.push((current.0, pos))
+                    }
                 }
             }
         }
@@ -335,7 +345,6 @@ pub fn evaluate(
         } else if val == "false" || val == "False" {
             parsed = ASVariable::Bool(false);
         } else if val.starts_with("[") && val.ends_with("]") {
-            println!("{:?}", val);
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
                 .parse::<usize>()
                 .unwrap();

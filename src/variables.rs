@@ -134,6 +134,32 @@ impl Neg for ASVariable {
     }
 }
 
+impl ASVariable {
+    pub fn pow(self, exponent: Self) -> anyhow::Result<Self> {
+        if let Self::Int(c) = self {
+            if let Self::Int(c2) = exponent {
+                return Ok(ASVariable::Int(c.pow(c2 as u32)));
+            }
+        };
+        op_err("calculate the power of".to_string(), self, exponent)
+    }
+}
+
+fn op_err(op: String, v1: ASVariable, v2: ASVariable) -> anyhow::Result<ASVariable> {
+    Err(ASSyntaxError::OperationNotDefined {
+        op: op,
+        type1: v1.get_type(),
+        type2: v2.get_type(),
+    })?
+}
+
+fn unary_op_err(op: String, v: ASVariable) -> anyhow::Result<ASVariable> {
+    Err(ASSyntaxError::UnaryOperationNotDefined {
+        op: op,
+        type1: v.get_type(),
+    })?
+}
+
 impl Display for ASVariable {
     fn fmt(&self, f: &mut Formatter) -> Result {
         write!(
@@ -143,7 +169,7 @@ impl Display for ASVariable {
                 Self::None => "None".to_string(),
                 Self::Bool(c) => if *c { "true" } else { "false" }.to_string(),
                 Self::Int(c) => c.to_string(),
-                Self::String(c) => c.clone(),
+                Self::String(c) => format!("\"{}\"", c),
                 Self::List(c) => format!("[{}]", {
                     let mut out = String::new();
                     let mut first_elem = true;
@@ -173,30 +199,4 @@ impl Display for ASVariable {
             }
         )
     }
-}
-
-impl ASVariable {
-    pub fn pow(self, exponent: Self) -> anyhow::Result<Self> {
-        if let Self::Int(c) = self {
-            if let Self::Int(c2) = exponent {
-                return Ok(ASVariable::Int(c.pow(c2 as u32)));
-            }
-        };
-        op_err("calculate the power of".to_string(), self, exponent)
-    }
-}
-
-fn op_err(op: String, v1: ASVariable, v2: ASVariable) -> anyhow::Result<ASVariable> {
-    Err(ASSyntaxError::OperationNotDefined {
-        op: op,
-        type1: v1.get_type(),
-        type2: v2.get_type(),
-    })?
-}
-
-fn unary_op_err(op: String, v: ASVariable) -> anyhow::Result<ASVariable> {
-    Err(ASSyntaxError::UnaryOperationNotDefined {
-        op: op,
-        type1: v.get_type(),
-    })?
 }
