@@ -216,13 +216,19 @@ impl KeyVar {
         Ok(match val {
             ASVariable::None => Self::None,
             ASVariable::Bool(c) => Self::Bool(c),
+            ASVariable::Int(c) => Self::Int(c),
+            ASVariable::String(c) => Self::String(c),
+            _ => Err(ASSyntaxError::InvalidMapKey {
+                key_type: val.get_type(),
+            })?,
         })
     }
-    pub fn get(self) -> ASVariable {
+    pub fn get(&self) -> ASVariable {
         match self {
             Self::None => ASVariable::None,
-            Self::Int(c) => ASVariable::Int(c),
-            Self::String(c) => ASVariable::String(c),
+            Self::Int(c) => ASVariable::Int(*c),
+            Self::String(c) => ASVariable::String(c.to_string()),
+            Self::Bool(c) => ASVariable::Bool(*c),
         }
     }
 }

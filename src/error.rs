@@ -127,6 +127,8 @@ pub enum ASSyntaxError {
     EmptyControlCode { code: String },
     #[error("Failed to parse a map. Likely because of a missing :")]
     MapError,
+    #[error("Values of type {key_type} can't be keys in Maps.")]
+    InvalidMapKey { key_type: ASType },
 }
 
 #[derive(Debug)]

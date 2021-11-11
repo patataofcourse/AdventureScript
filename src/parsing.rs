@@ -104,7 +104,7 @@ fn parse_command(
         // and it's honestly just easier to check that the char to the left is a space
         // or proper variable name char, and the one to the right is that or an opening
         // bracket (since those are gonna be evaluated too)
-        let is_kwarg = FancyRegex::new("(?<=[A-Za-z0-9-_ ])=(?=[A-za-z0-9-_ {\\\"\\[(])")?;
+        let is_kwarg = FancyRegex::new("(?<=[A-Za-z0-9-_ ])=(?=[A-za-z0-9-_ {\\\"'\\[(])")?;
 
         let (text, strings) = simplify(text, SimplifyMode::Strings)?;
         let (text, brackets) = simplify(text, SimplifyMode::Brackets)?;
@@ -459,11 +459,11 @@ fn eval_map(
     let mut map = HashMap::<KeyVar, ASVariable>::new();
     let (text, brackets) = simplify(text, SimplifyMode::Brackets)?;
 
-    let is_map = FancyRegex::new("(?=[A-za-z0-9-_ {\\\"\\[(]):(?=[A-za-z0-9-_ {\\\"\\[(])")?;
+    let is_map = FancyRegex::new("(?<=[A-za-z0-9-_ }\\\"'\\]\\)]):(?=[A-za-z0-9-_ {\\\"'\\[(])")?;
     for elmt in text.split(",") {
         match is_map.find(&elmt)? {
             Some(c) => {
-                let (key, value) = text.split_at(c.start());
+                let (key, value) = elmt.split_at(c.start());
                 let key = evaluate(info, key.to_string(), strings, &brackets)?;
                 let value = evaluate(info, value[1..].to_string(), strings, &brackets)?;
 

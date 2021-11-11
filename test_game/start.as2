@@ -3,10 +3,11 @@ Some text here\n
 Blank lines are ignored now so you have to add a backslash-n
 \n
 \v["this is a " + "test"] \v[2] \v[]
-! choice "test lists?"; ch1="yes"; go1=2-2*-3; ch2="no"; go2=(11)
+! choice "test lists?"; ch1="yes"; go1=2-2*-3; ch2="no"; go2=(13)
 
 Choice 1
 \v[[2, 9, "test", ["nested", 2, None]]]
+\v[{1:2, "3":4, true:6}]
 ! goto 14
 
 Choice 2
