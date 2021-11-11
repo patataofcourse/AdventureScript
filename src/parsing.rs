@@ -2,7 +2,7 @@ use super::{
     commands::Command,
     error::{ASNotImplemented, ASSyntaxError},
     info::GameInfo,
-    variables::ASVariable,
+    variables::{ASVariable, KeyVar},
 };
 use fancy_regex::Regex as FancyRegex;
 use regex::{Match, Regex};
@@ -456,19 +456,20 @@ fn eval_map(
     text: String,
     strings: &Vec<String>,
 ) -> anyhow::Result<ASVariable> {
-    let mut map = HashMap::<String, ASVariable>::new();
+    let mut map = HashMap::<KeyVar, ASVariable>::new();
     let (text, brackets) = simplify(text, SimplifyMode::Brackets)?;
 
-    let is_map = FancyRegex::new("(?<=[A-Za-z0-9-_ ]):(?=[A-za-z0-9-_ {\\\"\\[(])")?;
+    let is_map = FancyRegex::new("(?=[A-za-z0-9-_ {\\\"\\[(]):(?=[A-za-z0-9-_ {\\\"\\[(])")?;
     for elmt in text.split(",") {
         match is_map.find(&elmt)? {
             Some(c) => {
                 let (key, value) = text.split_at(c.start());
+                let key = evaluate(info, key.to_string(), strings, &brackets)?;
                 let value = evaluate(info, value[1..].to_string(), strings, &brackets)?;
 
-                map.insert(key.to_string(), value);
+                map.insert(key.as_key()?, value);
             }
-            None => (),
+            None => Err(ASSyntaxError::MapError)?,
         };
     }
 

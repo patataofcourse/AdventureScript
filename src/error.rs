@@ -125,6 +125,8 @@ pub enum ASSyntaxError {
         "Escape code {code} wasn't supplied an argument, which it requires.\nTry using '\\{code}[...]'"
     )]
     EmptyControlCode { code: String },
+    #[error("Failed to parse a map. Likely because of a missing :")]
+    MapError,
 }
 
 #[derive(Debug)]

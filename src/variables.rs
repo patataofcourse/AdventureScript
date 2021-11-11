@@ -3,6 +3,7 @@ use std::{
     cmp::{Eq, PartialEq},
     collections::HashMap,
     fmt::{Display, Formatter, Result},
+    hash::Hash,
     ops::{Add, Div, Mul, Neg, Sub},
 };
 
@@ -29,7 +30,7 @@ pub enum ASVariable {
     Int(i32),
     String(String),
     List(Vec<ASVariable>),
-    Map(HashMap<String, ASVariable>),
+    Map(HashMap<KeyVar, ASVariable>),
     None,
 }
 
@@ -198,5 +199,42 @@ impl Display for ASVariable {
                 }),
             }
         )
+    }
+}
+
+// Struct for ASVariable values that can be used as keys in a Map
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+pub enum KeyVar {
+    Bool(bool),
+    Int(i32),
+    String(String),
+    None,
+}
+
+impl KeyVar {
+    pub fn new(val: ASVariable) -> anyhow::Result<Self> {
+        Ok(match val {
+            ASVariable::None => Self::None,
+            ASVariable::Bool(c) => Self::Bool(c),
+        })
+    }
+    pub fn get(self) -> ASVariable {
+        match self {
+            Self::None => ASVariable::None,
+            Self::Int(c) => ASVariable::Int(c),
+            Self::String(c) => ASVariable::String(c),
+        }
+    }
+}
+
+impl ASVariable {
+    pub fn as_key(self) -> anyhow::Result<KeyVar> {
+        KeyVar::new(self)
+    }
+}
+
+impl Display for KeyVar {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{}", self.get())
     }
 }
