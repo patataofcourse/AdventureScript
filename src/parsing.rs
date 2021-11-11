@@ -351,11 +351,17 @@ pub fn evaluate(
             let value = parse_text(info, brackets[index].clone())?;
             parsed = eval_list(info, value.to_string(), strings)?;
         } else if val.starts_with("{") && val.ends_with("}") {
-            //TODO: manage labels and maps
-            parsed = ASVariable::None;
-            Err(ASNotImplemented {
-                details: "Label and Map type literals".to_string(),
-            })?;
+            let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
+                .parse::<usize>()
+                .unwrap();
+            let value = parse_text(info, brackets[index].clone())?;
+            parsed = if value.contains(":") {
+                eval_map(info, value.to_string(), strings)?
+            } else {
+                Err(ASNotImplemented(
+                    "labels (will be implemented for alpha.2)".to_string(),
+                ))?
+            };
         } else if val.starts_with("(") && val.ends_with(")") {
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
                 .parse::<usize>()
@@ -374,9 +380,7 @@ pub fn evaluate(
         //TODO: Variables
         else {
             parsed = ASVariable::None;
-            Err(ASNotImplemented {
-                details: "Variables".to_string(),
-            })?;
+            Err(ASNotImplemented("Variables".to_string()))?;
         }
         values.push(manage_methods(info, parsed, methods, strings, brackets)?)
     }
@@ -445,4 +449,28 @@ fn eval_list(
     }
 
     Ok(ASVariable::List(list))
+}
+
+fn eval_map(
+    info: &mut GameInfo,
+    text: String,
+    strings: &Vec<String>,
+) -> anyhow::Result<ASVariable> {
+    let mut map = HashMap::<String, ASVariable>::new();
+    let (text, brackets) = simplify(text, SimplifyMode::Brackets)?;
+
+    let is_map = FancyRegex::new("(?<=[A-Za-z0-9-_ ]):(?=[A-za-z0-9-_ {\\\"\\[(])")?;
+    for elmt in text.split(",") {
+        match is_map.find(&elmt)? {
+            Some(c) => {
+                let (key, value) = text.split_at(c.start());
+                let value = evaluate(info, value[1..].to_string(), strings, &brackets)?;
+
+                map.insert(key.to_string(), value);
+            }
+            None => (),
+        };
+    }
+
+    Ok(ASVariable::Map(map))
 }

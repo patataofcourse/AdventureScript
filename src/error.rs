@@ -128,13 +128,11 @@ pub enum ASSyntaxError {
 }
 
 #[derive(Debug)]
-pub struct ASNotImplemented {
-    pub details: String,
-}
+pub struct ASNotImplemented(pub String);
 
 impl Display for ASNotImplemented {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "feature not implemented:\n\t{}", self.details)
+        write!(f, "feature not implemented:\n\t{}", self.0)
     }
 }
 
