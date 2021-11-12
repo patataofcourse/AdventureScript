@@ -1,6 +1,6 @@
 use super::error::ASSyntaxError;
 use std::{
-    cmp::{Ord, Ordering, PartialOrd},
+    cmp::{Ordering, PartialOrd},
     collections::HashMap,
     fmt::{Display, Formatter, Result},
     hash::Hash,

@@ -20,7 +20,7 @@ mod tests;
 // TODO: public imports for stuff that might be used in the interface
 use std::collections::HashMap;
 
-static VERSION: &str = "2.0.0-alpha.0";
+static VERSION: &str = "2.0.0-alpha.1";
 
 pub struct AdventureScriptGame {
     info: info::GameInfo,
