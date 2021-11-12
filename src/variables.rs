@@ -1,10 +1,10 @@
 use super::error::ASSyntaxError;
 use std::{
-    cmp::{Eq, PartialEq},
+    cmp::{Ord, Ordering, PartialOrd},
     collections::HashMap,
     fmt::{Display, Formatter, Result},
     hash::Hash,
-    ops::{Add, Div, Mul, Neg, Sub},
+    ops::{Add, Div, Mul, Neg, Not, Sub},
 };
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -131,9 +131,18 @@ impl Neg for ASVariable {
     type Output = anyhow::Result<Self>;
     fn neg(self) -> Self::Output {
         match self {
-            Self::Bool(c) => Ok(Self::Bool(!c)),
             Self::Int(c) => Ok(Self::Int(-c)),
             _ => unary_op_err("negate".to_string(), self),
+        }
+    }
+}
+
+impl Not for ASVariable {
+    type Output = anyhow::Result<Self>;
+    fn not(self) -> Self::Output {
+        match self {
+            Self::Bool(c) => Ok(Self::Bool(!c)),
+            _ => unary_op_err("bool-negate".to_string(), self),
         }
     }
 }
@@ -146,6 +155,21 @@ impl ASVariable {
             }
         };
         op_err("calculate the power of".to_string(), self, exponent)
+    }
+}
+
+impl PartialOrd for ASVariable {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        match self {
+            ASVariable::Int(c) => {
+                if let ASVariable::Int(d) = other {
+                    c.partial_cmp(d)
+                } else {
+                    None
+                }
+            }
+            _ => None,
+        }
     }
 }
 

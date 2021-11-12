@@ -290,10 +290,15 @@ pub fn main_commands() -> HashMap<String, Command> {
             Command {
                 name: "flag".to_string(),
                 func: |info, kwargs| {
-                    info.set_var(
-                        kwargs.get("flag").unwrap(),
-                        kwargs.get("value").unwrap().clone(),
-                    )
+                    let flag = match kwargs.get("flag").unwrap() {
+                        //Make sure you're getting a flag, not a variable
+                        ASVariable::VarRef { name, .. } => ASVariable::VarRef {
+                            name: name.to_string(),
+                            flag: true,
+                        },
+                        _ => panic!(""),
+                    };
+                    info.set_var(&flag, kwargs.get("value").unwrap().clone())
                 },
                 accepted_kwargs: HashMap::<String, ASType>::from_iter([
                     (String::from("flag"), ASType::VarRef),

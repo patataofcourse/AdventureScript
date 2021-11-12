@@ -15,6 +15,6 @@ Choice 2
 
 
 Gonna move to flag testing then
-!flag ?test
+!flag test
 \v[ ?test ]
 !ending ""

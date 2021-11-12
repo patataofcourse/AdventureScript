@@ -1,6 +1,6 @@
 use super::{
     commands::Command,
-    error::{ASNotImplemented, ASSyntaxError, ASVarError},
+    error::{ASNotImplemented, ASSyntaxError},
     info::GameInfo,
     variables::{ASVariable, KeyVar},
 };
@@ -322,7 +322,7 @@ pub fn evaluate(
     brackets: &Vec<String>,
 ) -> anyhow::Result<ASVariable> {
     let text = text.trim();
-    let operator_regex = Regex::new(r"\+|-|\*|/|\^")?;
+    let operator_regex = Regex::new(r"\+|-|\*|/|\^|!=|!|==|>=|<=|<|>")?;
     let mut operators = operator_regex.find_iter(&text).collect::<Vec<Match>>();
     let raw_vals = operator_regex.split(&text);
 
@@ -378,7 +378,7 @@ pub fn evaluate(
         } else if val == "None" || val == "" {
             parsed = ASVariable::None;
         }
-        //TODO: Variables
+        //Flags
         else if val.starts_with("?") {
             if !Regex::new(r"[A-Za-z0-9-_]")?.is_match(&val[1..]) {
                 Err(ASSyntaxError::InvalidVariableName(val[1..].to_string()))?
@@ -387,14 +387,21 @@ pub fn evaluate(
                 name: val[1..].to_string(),
                 flag: true,
             }
-        } else {
-            parsed = ASVariable::None;
-            Err(ASNotImplemented("Variables".to_string()))?;
+        }
+        //TODO: Variables
+        else {
+            if !Regex::new(r"[A-Za-z0-9-_]")?.is_match(&val) {
+                Err(ASSyntaxError::InvalidVariableName(val.to_string()))?
+            }
+            parsed = ASVariable::VarRef {
+                name: val.to_string(),
+                flag: false,
+            }
         }
         values.push(manage_methods(info, parsed, methods, strings, brackets)?)
     }
-    //unary operations (currently only Neg)
-    for operation in vec!["-"] {
+    //unary operations
+    for operation in vec!["-", "!"] {
         let mut c = 0;
         while c < operators.len() {
             // It's a unary operator if the first value is None
@@ -403,6 +410,7 @@ pub fn evaluate(
                 operators.remove(c);
                 values[c] = match operation {
                     "-" => (-values[c + 1].clone()),
+                    "!" => (!values[c + 1].clone()),
                     _ => panic!("unrecognized unary operator"),
                 }?;
                 values.remove(c + 1);
@@ -412,17 +420,23 @@ pub fn evaluate(
         }
     }
     //binary operations
-    for operation in vec!["^", "*", "/", "+", "-"] {
+    for operation in vec!["^", "*", "/", "+", "-", "==", ">", "<", "!=", ">=", "<="] {
         let mut c = 0;
         while c < operators.len() {
             if operators[c].as_str() == operation {
                 operators.remove(c);
                 values[c] = match operation {
-                    "+" => (values[c].clone() + values[c + 1].clone()),
-                    "-" => (values[c].clone() - values[c + 1].clone()),
-                    "*" => (values[c].clone() * values[c + 1].clone()),
-                    "/" => (values[c].clone() / values[c + 1].clone()),
+                    "+" => values[c].clone() + values[c + 1].clone(),
+                    "-" => values[c].clone() - values[c + 1].clone(),
+                    "*" => values[c].clone() * values[c + 1].clone(),
+                    "/" => values[c].clone() / values[c + 1].clone(),
                     "^" => values[c].clone().pow(values[c + 1].clone()),
+                    "==" => Ok(ASVariable::Bool(values[c].clone() == values[c + 1].clone())),
+                    ">" => Ok(ASVariable::Bool(values[c].clone() > values[c + 1].clone())),
+                    "<" => Ok(ASVariable::Bool(values[c].clone() < values[c + 1].clone())),
+                    "!=" => Ok(ASVariable::Bool(values[c].clone() != values[c + 1].clone())),
+                    ">=" => Ok(ASVariable::Bool(values[c].clone() >= values[c + 1].clone())),
+                    "<=" => Ok(ASVariable::Bool(values[c].clone() <= values[c + 1].clone())),
                     _ => panic!("unrecognized operator"),
                 }?;
                 values.remove(c + 1);
