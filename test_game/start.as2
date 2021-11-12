@@ -13,4 +13,8 @@ Choice 1
 Choice 2
 (still better)
 
+
+Gonna move to flag testing then
+!flag ?test
+\v[ ?test ]
 !ending ""

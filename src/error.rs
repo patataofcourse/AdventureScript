@@ -150,4 +150,6 @@ impl Error for ASNotImplemented {}
 pub enum ASVarError {
     #[error("Tried to set flag {0} to a non-boolean value")]
     FlagNotBool(String),
+    #[error("Tried to access variable {0}, which doesn't exist.\nTip: use !set {0}; [some value]")]
+    VarNotFound(String),
 }

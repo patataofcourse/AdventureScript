@@ -285,5 +285,26 @@ pub fn main_commands() -> HashMap<String, Command> {
                 )]),
             },
         ),
+        (
+            "flag".to_string(),
+            Command {
+                name: "flag".to_string(),
+                func: |info, kwargs| {
+                    info.set_var(
+                        kwargs.get("flag").unwrap(),
+                        kwargs.get("value").unwrap().clone(),
+                    )
+                },
+                accepted_kwargs: HashMap::<String, ASType>::from_iter([
+                    (String::from("flag"), ASType::VarRef),
+                    (String::from("value"), ASType::Bool),
+                ]),
+                default_values: HashMap::<String, ASVariable>::from_iter([(
+                    String::from("value"),
+                    ASVariable::Bool(true),
+                )]),
+                args_to_kwargs: vec![String::from("flag"), String::from("value")],
+            },
+        ),
     ])
 }

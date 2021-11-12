@@ -1,6 +1,6 @@
 use super::{
     commands::Command,
-    error::{ASNotImplemented, ASSyntaxError},
+    error::{ASNotImplemented, ASSyntaxError, ASVarError},
     info::GameInfo,
     variables::{ASVariable, KeyVar},
 };
@@ -54,7 +54,12 @@ fn parse_text(info: &mut GameInfo, text: String) -> anyhow::Result<String> {
                             SimplifyMode::Strings,
                         )?;
                         let (tx, brackets) = simplify(tx, SimplifyMode::Brackets)?;
-                        evaluate(info, tx, &strings, &brackets)?.to_string()
+                        let result = evaluate(info, tx, &strings, &brackets)?;
+                        if let ASVariable::VarRef { .. } = result.clone() {
+                            info.get_var(&result)?.to_string()
+                        } else {
+                            result.to_string()
+                        }
                     }
                     c => Err(ASSyntaxError::InvalidEscapeCode {
                         code: c.to_string(),
@@ -65,10 +70,6 @@ fn parse_text(info: &mut GameInfo, text: String) -> anyhow::Result<String> {
     }
 
     Ok(text)
-
-    //TODO: - use regex and a match
-    //      - manage \v(...)
-    //      - error if unknown code
 }
 
 // part 1 of the proper parser code - spoiler alert it's bad
@@ -104,7 +105,7 @@ fn parse_command(
         // and it's honestly just easier to check that the char to the left is a space
         // or proper variable name char, and the one to the right is that or an opening
         // bracket (since those are gonna be evaluated too)
-        let is_kwarg = FancyRegex::new("(?<=[A-Za-z0-9-_ ])=(?=[A-za-z0-9-_ {\\\"'\\[(])")?;
+        let is_kwarg = FancyRegex::new("(?<=[A-Za-z0-9-_ ])=(?=[A-za-z0-9-_ {\\\"'\\[(?])")?;
 
         let (text, strings) = simplify(text, SimplifyMode::Strings)?;
         let (text, brackets) = simplify(text, SimplifyMode::Brackets)?;
@@ -378,7 +379,7 @@ pub fn evaluate(
             parsed = ASVariable::None;
         }
         //TODO: Variables
-        else if val.starts_with("%") {
+        else if val.starts_with("?") {
             if !Regex::new(r"[A-Za-z0-9-_]")?.is_match(&val[1..]) {
                 Err(ASSyntaxError::InvalidVariableName(val[1..].to_string()))?
             }

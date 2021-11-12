@@ -201,7 +201,6 @@ impl Display for ASVariable {
                     out
                 }),
                 Self::VarRef { name, flag } => {
-                    //TODO: if variable is defined, show value
                     format!("{} {}", if *flag { "Flag" } else { "Variable" }, name)
                 }
             }
