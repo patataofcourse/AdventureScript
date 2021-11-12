@@ -1,5 +1,9 @@
-use super::{error::ASSyntaxError, io::AdventureIO};
-use std::io::Read;
+use super::{
+    error::{ASNotImplemented, ASSyntaxError, ASVarError},
+    io::AdventureIO,
+    variables::ASVariable,
+};
+use std::{collections::HashMap, io::Read};
 
 pub struct GameInfo {
     io: AdventureIO,
@@ -8,6 +12,7 @@ pub struct GameInfo {
     script: Vec<String>,
     pointer: i32,
     quitting: bool,
+    flags: HashMap<String, ASVariable>,
 }
 
 impl GameInfo {
@@ -19,6 +24,7 @@ impl GameInfo {
             script: Vec::<String>::new(),
             pointer: 0,
             quitting: false,
+            flags: HashMap::<String, ASVariable>::new(),
         }
     }
 
@@ -56,6 +62,52 @@ impl GameInfo {
 
     pub fn quit(&mut self) {
         self.quitting = true;
+    }
+
+    pub fn get_var(&mut self, var: &ASVariable) -> anyhow::Result<&ASVariable> {
+        Ok(match var {
+            ASVariable::VarRef { name, flag } => {
+                if *flag {
+                    if let None = self.flags.get(name) {
+                        self.flags.insert(name.to_string(), ASVariable::Bool(true));
+                    }
+                    self.flags.get(name).unwrap()
+                } else {
+                    Err(ASNotImplemented("variables".to_string()))?
+                }
+            }
+            _ => panic!("Tried to get the variable value of a non-VarRef value"),
+        })
+    }
+
+    pub fn set_var(&mut self, var: &ASVariable, value: ASVariable) -> anyhow::Result<()> {
+        if let ASVariable::VarRef { name, flag } = var {
+            if *flag {
+                if let ASVariable::Bool(_) = value {
+                    self.flags.insert(name.to_string(), value);
+                } else {
+                    Err(ASVarError::FlagNotBool(name.to_string()))?;
+                }
+            } else {
+                Err(ASNotImplemented("variables".to_string()))?
+            }
+        } else {
+            panic!("Tried to set the variable value of a non-VarRef value")
+        }
+        Ok(())
+    }
+
+    pub fn del_var(&mut self, var: &ASVariable) -> anyhow::Result<()> {
+        if let ASVariable::VarRef { name, flag } = var {
+            if *flag {
+                self.flags.remove(&name.to_string());
+            } else {
+                Err(ASNotImplemented("variables".to_string()))?
+            }
+        } else {
+            panic!("Tried to delete the variable value of a non-VarRef value")
+        }
+        Ok(())
     }
 
     //TODO: customization of choice text formatting

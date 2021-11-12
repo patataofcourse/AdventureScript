@@ -46,7 +46,7 @@ impl Command {
         }
         // Check that all given arguments are taken by the command and
         // of the required type
-        for (key, value) in &kwargs {
+        for (key, value) in &kwargs.clone() {
             if !self.accepted_kwargs.contains_key(key) {
                 Err(ASCmdError {
                     command: String::from(&self.name),
@@ -58,26 +58,28 @@ impl Command {
             }
             let arg_type = value.get_type();
             if self.accepted_kwargs[key] != ASType::Any && self.accepted_kwargs[key] != arg_type {
-                Err(ASCmdError {
-                    command: String::from(&self.name),
-                    details: CommandErrors::ArgumentTypeError {
-                        argument_name: String::from(key),
-                        required_type: self.accepted_kwargs[key].clone(),
-                        given_type: value.get_type(),
-                    },
-                })?;
+                if arg_type == ASType::VarRef {
+                    kwargs.insert(key.to_string(), info.get_var(value)?.clone());
+                } else {
+                    Err(ASCmdError {
+                        command: String::from(&self.name),
+                        details: CommandErrors::ArgumentTypeError {
+                            argument_name: String::from(key),
+                            required_type: self.accepted_kwargs[key].clone(),
+                            given_type: value.get_type(),
+                        },
+                    })?;
+                }
             }
         }
         // Check that all arguments in the command have a value
         for (key, value) in &self.accepted_kwargs {
             if !kwargs.contains_key(key) {
-                let mut value_ = ASType::Any;
-                value_.clone_from(value);
                 Err(ASCmdError {
                     command: String::from(&self.name),
                     details: CommandErrors::MissingRequiredArgument {
                         argument_name: String::from(key),
-                        argument_type: value_.clone(),
+                        argument_type: value.clone(),
                     },
                 })?;
             }
@@ -85,6 +87,8 @@ impl Command {
         (self.func)(info, kwargs)
     }
 }
+
+// Core commands
 
 fn wait_fn(info: &mut GameInfo, _kwargs: HashMap<String, ASVariable>) -> anyhow::Result<()> {
     info.io().wait()
@@ -148,6 +152,8 @@ fn ending_fn(info: &mut GameInfo, kwargs: HashMap<String, ASVariable>) -> anyhow
     info.quit();
     Ok(())
 }
+
+//test command
 
 fn test_fn(_inf: &mut GameInfo, kwargs: HashMap<String, ASVariable>) -> anyhow::Result<()> {
     for (key, arg) in kwargs {

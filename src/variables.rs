@@ -15,6 +15,7 @@ pub enum ASType {
     String,
     List,
     Map,
+    VarRef,
     None,
 }
 
@@ -31,6 +32,7 @@ pub enum ASVariable {
     String(String),
     List(Vec<ASVariable>),
     Map(HashMap<KeyVar, ASVariable>),
+    VarRef { name: String, flag: bool },
     None,
 }
 
@@ -42,6 +44,7 @@ impl ASVariable {
             Self::String(_c) => ASType::String,
             Self::List(_c) => ASType::List,
             Self::Map(_c) => ASType::Map,
+            Self::VarRef { .. } => ASType::VarRef, // Variable name, for defining new variables
             Self::None => ASType::None,
             //keep adding whenever you add more types
         }
@@ -197,6 +200,10 @@ impl Display for ASVariable {
                     }
                     out
                 }),
+                Self::VarRef { name, flag } => {
+                    //TODO: if variable is defined, show value
+                    format!("{} {}", if *flag { "Flag" } else { "Variable" }, name)
+                }
             }
         )
     }

@@ -378,7 +378,15 @@ pub fn evaluate(
             parsed = ASVariable::None;
         }
         //TODO: Variables
-        else {
+        else if val.starts_with("%") {
+            if !Regex::new(r"[A-Za-z0-9-_]")?.is_match(&val[1..]) {
+                Err(ASSyntaxError::InvalidVariableName(val[1..].to_string()))?
+            }
+            parsed = ASVariable::VarRef {
+                name: val[1..].to_string(),
+                flag: true,
+            }
+        } else {
             parsed = ASVariable::None;
             Err(ASNotImplemented("Variables".to_string()))?;
         }

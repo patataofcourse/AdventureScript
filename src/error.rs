@@ -129,6 +129,10 @@ pub enum ASSyntaxError {
     MapError,
     #[error("Values of type {key_type} can't be keys in Maps.")]
     InvalidMapKey { key_type: ASType },
+    #[error(
+        "Invalid token {0}\nIf you were trying to name a variable, keep in mind variable names must be made of either alphanumeric characters, dashes, or underscores"
+    )]
+    InvalidVariableName(String),
 }
 
 #[derive(Debug)]
@@ -141,3 +145,9 @@ impl Display for ASNotImplemented {
 }
 
 impl Error for ASNotImplemented {}
+
+#[derive(Debug, Error)]
+pub enum ASVarError {
+    #[error("Tried to set flag {0} to a non-boolean value")]
+    FlagNotBool(String),
+}
