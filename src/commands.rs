@@ -88,79 +88,7 @@ impl Command {
     }
 }
 
-// Core commands
-
-fn wait_fn(info: &mut GameInfo, _kwargs: HashMap<String, ASVariable>) -> anyhow::Result<()> {
-    info.io().wait()
-}
-
-fn choice_fn(info: &mut GameInfo, kwargs: HashMap<String, ASVariable>) -> anyhow::Result<()> {
-    let mut a = 1;
-    let mut choices = Vec::<&str>::new();
-    let mut gotos = Vec::<i32>::new();
-    //get lists of the choices and gotos
-    while a <= 9 {
-        if a == 3 {
-            break;
-        } //Remove after proper choice command
-        let choice = match &kwargs[&format!("ch{}", a)] {
-            ASVariable::String(c) => &c,
-            _ => "",
-        };
-        let goto = match &kwargs[&format!("go{}", a)] {
-            ASVariable::Int(c) => *c,
-            _ => 0,
-        };
-        if goto == 0 {
-            break;
-        }
-        choices.append(&mut Vec::<&str>::from([choice]));
-        gotos.append(&mut Vec::<i32>::from([goto]));
-        a += 1;
-    }
-    //get text
-    let text = match &kwargs["text"] {
-        ASVariable::String(c) => c,
-        _ => "",
-    };
-    //run io func and manage result
-    let pick = info.query(text, choices, true)?; //TODO: add allow_save
-    if pick == 0 {
-        // used in save/return/quit
-        info.set_pointer(info.pointer() - 1);
-        return Ok(());
-    };
-    info.set_pointer(*gotos.get((pick - 1) as usize).expect(""));
-    Ok(())
-}
-
-fn goto_fn(info: &mut GameInfo, kwargs: HashMap<String, ASVariable>) -> anyhow::Result<()> {
-    let pos = match &kwargs["pos"] {
-        ASVariable::Int(c) => *c,
-        _ => 0,
-    };
-    info.set_pointer(pos);
-    Ok(())
-}
-
-fn ending_fn(info: &mut GameInfo, kwargs: HashMap<String, ASVariable>) -> anyhow::Result<()> {
-    let name = match &kwargs["name"] {
-        ASVariable::String(c) => c,
-        _ => "",
-    };
-    info.io().show(&format!("Ending: {}", name))?;
-    info.quit();
-    Ok(())
-}
-
-//test command
-
-fn test_fn(_inf: &mut GameInfo, kwargs: HashMap<String, ASVariable>) -> anyhow::Result<()> {
-    for (key, arg) in kwargs {
-        println!("{}: {:?}", key, arg);
-    }
-    Ok(())
-}
+// Test command: shows all kwargs and their values
 
 pub fn test() -> Command {
     let mut accepted = HashMap::<String, ASType>::with_capacity(3);
@@ -174,7 +102,12 @@ pub fn test() -> Command {
     );
     Command {
         name: "test".to_string(),
-        func: test_fn,
+        func: |_info, kwargs| {
+            for (key, arg) in kwargs {
+                println!("{}: {:?}", key, arg);
+            }
+            Ok(())
+        },
         args_to_kwargs: Vec::<String>::from([String::from("arg1"), String::from("arg2")]),
         accepted_kwargs: accepted,
         default_values: default,
@@ -188,7 +121,7 @@ pub fn main_commands() -> HashMap<String, Command> {
             "wait".to_string(),
             Command {
                 name: String::from("wait"),
-                func: wait_fn,
+                func: |info, _kwargs| info.io().wait(),
                 args_to_kwargs: Vec::<String>::new(),
                 accepted_kwargs: HashMap::<String, ASType>::new(),
                 default_values: HashMap::<String, ASVariable>::new(),
@@ -198,7 +131,45 @@ pub fn main_commands() -> HashMap<String, Command> {
             "choice".to_string(),
             Command {
                 name: String::from("choice"),
-                func: choice_fn,
+                func: |info, kwargs| {
+                    let mut c = 1;
+                    let mut choices = Vec::<&str>::new();
+                    let mut gotos = Vec::<i32>::new();
+                    //get lists of the choices and gotos
+                    while c <= 9 {
+                        if c == 3 {
+                            break;
+                        } //Remove after proper choice command
+                        let choice = match &kwargs[&format!("ch{}", c)] {
+                            ASVariable::String(c) => &c,
+                            _ => "",
+                        };
+                        let goto = match &kwargs[&format!("go{}", c)] {
+                            ASVariable::Int(c) => *c,
+                            _ => 0,
+                        };
+                        if goto == 0 {
+                            break;
+                        }
+                        choices.append(&mut Vec::<&str>::from([choice]));
+                        gotos.append(&mut Vec::<i32>::from([goto]));
+                        c += 1;
+                    }
+                    //get text
+                    let text = match &kwargs["text"] {
+                        ASVariable::String(c) => c,
+                        _ => "",
+                    };
+                    //run io func and manage result
+                    let pick = info.query(text, choices, true)?; //TODO: add allow_save
+                    if pick == 0 {
+                        // used in save/return/quit
+                        info.set_pointer(info.pointer() - 1);
+                        return Ok(());
+                    };
+                    info.set_pointer(*gotos.get((pick - 1) as usize).expect(""));
+                    Ok(())
+                },
                 args_to_kwargs: Vec::<String>::from([String::from("text")]),
                 accepted_kwargs: HashMap::<String, ASType>::from_iter([
                     (String::from("text"), ASType::String),
@@ -274,7 +245,14 @@ pub fn main_commands() -> HashMap<String, Command> {
             "goto".to_string(),
             Command {
                 name: String::from("goto"),
-                func: goto_fn,
+                func: |info, kwargs| {
+                    let pos = match &kwargs["pos"] {
+                        ASVariable::Int(c) => *c,
+                        _ => 0,
+                    };
+                    info.set_pointer(pos);
+                    Ok(())
+                },
                 args_to_kwargs: Vec::<String>::from([String::from("pos")]),
                 accepted_kwargs: HashMap::<String, ASType>::from_iter([(
                     String::from("pos"),
@@ -287,7 +265,15 @@ pub fn main_commands() -> HashMap<String, Command> {
             "ending".to_string(),
             Command {
                 name: String::from("ending"),
-                func: ending_fn,
+                func: |info, kwargs| {
+                    let name = match &kwargs["name"] {
+                        ASVariable::String(c) => c,
+                        _ => "",
+                    };
+                    info.io().show(&format!("Ending: {}", name))?;
+                    info.quit();
+                    Ok(())
+                },
                 args_to_kwargs: Vec::<String>::from([String::from("name")]),
                 accepted_kwargs: HashMap::<String, ASType>::from_iter([(
                     String::from("name"),
