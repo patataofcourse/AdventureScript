@@ -1,5 +1,5 @@
 use super::{
-    error::{ASNotImplemented, ASSyntaxError, ASVarError},
+    error::{ASSyntaxError, ASVarError},
     io::AdventureIO,
     variables::ASVariable,
 };
@@ -13,6 +13,7 @@ pub struct GameInfo {
     pointer: i32,
     quitting: bool,
     flags: HashMap<String, ASVariable>,
+    variables: HashMap<String, ASVariable>,
 }
 
 impl GameInfo {
@@ -25,6 +26,7 @@ impl GameInfo {
             pointer: 0,
             quitting: false,
             flags: HashMap::<String, ASVariable>::new(),
+            variables: HashMap::<String, ASVariable>::new(),
         }
     }
 
@@ -69,11 +71,14 @@ impl GameInfo {
             ASVariable::VarRef { name, flag } => {
                 if *flag {
                     if let None = self.flags.get(name) {
-                        self.flags.insert(name.to_string(), ASVariable::Bool(true));
+                        self.flags.insert(name.to_string(), ASVariable::Bool(false));
                     }
                     self.flags.get(name).unwrap()
                 } else {
-                    Err(ASNotImplemented("variables".to_string()))?
+                    match self.variables.get(name) {
+                        Some(c) => c,
+                        None => Err(ASVarError::VarNotFound(name.to_string()))?,
+                    }
                 }
             }
             _ => panic!("Tried to get the variable value of a non-VarRef value"),
@@ -89,7 +94,7 @@ impl GameInfo {
                     Err(ASVarError::FlagNotBool(name.to_string()))?;
                 }
             } else {
-                Err(ASNotImplemented("variables".to_string()))?
+                self.variables.insert(name.to_string(), value);
             }
         } else {
             panic!("Tried to set the variable value of a non-VarRef value")
@@ -102,7 +107,9 @@ impl GameInfo {
             if *flag {
                 self.flags.remove(&name.to_string());
             } else {
-                Err(ASNotImplemented("variables".to_string()))?
+                if let None = self.variables.remove(name) {
+                    Err(ASVarError::VarNotFound(name.to_string()))?
+                }
             }
         } else {
             panic!("Tried to delete the variable value of a non-VarRef value")

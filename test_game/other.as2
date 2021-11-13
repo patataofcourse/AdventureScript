@@ -1,0 +1,16 @@
+#some more testing shit
+
+Gonna move to flag testing then
+!flag test
+\v[ ?test ]
+!wait
+
+Now variables!
+!set varname; 2
+\v[varname]
+!add varname; 1
+\v[varname]
+!set var2; varname
+\v[var2]
+
+!ending "script loaded"

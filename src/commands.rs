@@ -57,7 +57,9 @@ impl Command {
                 })?;
             }
             let arg_type = value.get_type();
-            if self.accepted_kwargs[key] != ASType::Any && self.accepted_kwargs[key] != arg_type {
+            if !(self.accepted_kwargs[key] == ASType::Any && arg_type != ASType::VarRef)
+                && self.accepted_kwargs[key] != arg_type
+            {
                 if arg_type == ASType::VarRef {
                     kwargs.insert(key.to_string(), info.get_var(value)?.clone());
                 } else {
@@ -309,6 +311,41 @@ pub fn main_commands() -> HashMap<String, Command> {
                     ASVariable::Bool(true),
                 )]),
                 args_to_kwargs: vec![String::from("flag"), String::from("value")],
+            },
+        ),
+        (
+            "set".to_string(),
+            Command {
+                name: "set".to_string(),
+                func: |info, kwargs| {
+                    info.set_var(
+                        kwargs.get("var").unwrap(),
+                        kwargs.get("value").unwrap().clone(),
+                    )
+                },
+                accepted_kwargs: HashMap::<String, ASType>::from_iter([
+                    (String::from("var"), ASType::VarRef),
+                    (String::from("value"), ASType::Any),
+                ]),
+                default_values: HashMap::<String, ASVariable>::new(),
+                args_to_kwargs: vec![String::from("var"), String::from("value")],
+            },
+        ),
+        (
+            "add".to_string(),
+            Command {
+                name: "add".to_string(),
+                func: |info, kwargs| {
+                    let var = kwargs.get("var").unwrap();
+                    let val = info.get_var(var)?.clone();
+                    info.set_var(var, (val + kwargs.get("value").unwrap().clone())?)
+                },
+                accepted_kwargs: HashMap::<String, ASType>::from_iter([
+                    (String::from("var"), ASType::VarRef),
+                    (String::from("value"), ASType::Any),
+                ]),
+                default_values: HashMap::<String, ASVariable>::new(),
+                args_to_kwargs: vec![String::from("var"), String::from("value")],
             },
         ),
     ])
