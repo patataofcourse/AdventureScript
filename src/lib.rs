@@ -14,13 +14,8 @@ mod parsing;
 
 pub mod variables;
 
-#[cfg(test)]
-mod tests;
-
 // TODO: public imports for stuff that might be used in the interface
 use std::collections::HashMap;
-
-static VERSION: &str = "2.0.0-alpha.1";
 
 pub struct AdventureScriptGame {
     info: info::GameInfo,
@@ -28,8 +23,17 @@ pub struct AdventureScriptGame {
 }
 
 impl AdventureScriptGame {
+    /// document this better later, me
+    /// however, root_dir is basically the root folder of the game
+    pub fn new(root_dir: String, io: Option<io::AdventureIO>) -> AdventureScriptGame {
+        AdventureScriptGame {
+            info: info::GameInfo::create(root_dir, io.unwrap_or_default()),
+            commands: HashMap::<String, commands::Command>::new(),
+        }
+    }
+
     pub fn run(&mut self) {
-        println!("AdventureScript v{version}\n", version = VERSION);
+        println!("AdventureScript v{}\n", env!("CARGO_PKG_VERSION"));
         //add basic commands
         self.commands.extend(commands::main_commands());
         //load script file
@@ -48,16 +52,5 @@ impl AdventureScriptGame {
             };
             self.info.next_line();
         }
-    }
-}
-
-pub fn create_game(game_root: String, io: Option<io::AdventureIO>) -> AdventureScriptGame {
-    let io = match io {
-        None => io::AdventureIO::default(),
-        Some(i) => i,
-    };
-    AdventureScriptGame {
-        info: info::GameInfo::create(game_root, io),
-        commands: HashMap::<String, commands::Command>::new(),
     }
 }

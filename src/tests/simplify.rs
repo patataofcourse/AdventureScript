@@ -1,16 +1,11 @@
 use super::{variables::ASVariable, *};
 use std::collections::HashMap;
 
-fn setup() -> (info::GameInfo, HashMap<String, commands::Command>) {
-    (
-        info::GameInfo::create(String::from("hello"), io::AdventureIO::default()),
-        commands::main_commands(),
-    )
-}
+mod setup;
 
 #[test]
 fn goto() {
-    let (mut info, commands) = setup();
+    let (mut info, commands) = setup::setup();
     let goto = commands.get("goto").expect("No command goto");
     goto.run(
         &mut info,

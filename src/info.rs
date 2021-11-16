@@ -7,7 +7,7 @@ use std::{collections::HashMap, io::Read};
 
 pub struct GameInfo {
     io: AdventureIO,
-    game_root: String,
+    root_dir: String,
     script_name: String,
     script: Vec<String>,
     pub pointer: i32,
@@ -17,10 +17,10 @@ pub struct GameInfo {
 }
 
 impl GameInfo {
-    pub fn create(game_root: String, io: AdventureIO) -> GameInfo {
+    pub fn create(root_dir: String, io: AdventureIO) -> GameInfo {
         GameInfo {
             io: io,
-            game_root: game_root,
+            root_dir: root_dir,
             script_name: String::from("start"),
             script: Vec::<String>::new(),
             pointer: 0,
@@ -38,7 +38,7 @@ impl GameInfo {
         self.pointer + 1
     }
     pub fn root_dir(&self) -> &str {
-        &self.game_root
+        &self.root_dir
     }
     pub fn get_line(&self) -> anyhow::Result<String> {
         //obtains the current line of the script

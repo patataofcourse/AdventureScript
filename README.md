@@ -3,7 +3,7 @@
 
 AdventureScript is an engine and scripting language for text-based games, made with adventure games in mind, which offers a set amount of options from which the player has to choose.
 
-This repository is a WIP for version 2 of AdventureScript, written in Rust instead of Python (which was used for 0.x and 1.x releases). Currently, it is still unable to read from a script file, and uses a hardcoded "script", however, the alpha.1 version is planned to offer simple parsing code as well.
+This repository is a WIP for version 2 of AdventureScript, written in Rust instead of Python (which was used for 0.x and 1.x releases).
 
 You can see the changelog [here](Changelog.md).
 
@@ -25,3 +25,7 @@ You can see the changelog [here](Changelog.md).
 ### Documentation
 * Incomplete documentation for the AdventureScript language can be found at [adventurescript.readthedocs.io](https://adventurescript.readthedocs.io)
 * Documentation for the library's public interface will be added over time before the 2.0 release
+
+### Special thanks
+* aleok for helping me learn Rust and giving me input on how to improve the code
+* Villa/DuelPyro for a lot of input regarding the language and a LOT of support (and hugs)
