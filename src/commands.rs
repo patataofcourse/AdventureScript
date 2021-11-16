@@ -348,5 +348,24 @@ pub fn main_commands() -> HashMap<String, Command> {
                 args_to_kwargs: vec![String::from("var"), String::from("value")],
             },
         ),
+        (
+            "loadscript".to_string(),
+            Command {
+                name: "loadscript".to_string(),
+                func: |info, kwargs| {
+                    let script_name: &str = match kwargs.get("name").unwrap() {
+                        ASVariable::String(c) => c,
+                        _ => panic!(),
+                    };
+                    info.load_script(Some(script_name))
+                },
+                accepted_kwargs: HashMap::<String, ASType>::from_iter([(
+                    String::from("name"),
+                    ASType::String,
+                )]),
+                default_values: HashMap::<String, ASVariable>::new(),
+                args_to_kwargs: vec![String::from("name")],
+            },
+        ),
     ])
 }

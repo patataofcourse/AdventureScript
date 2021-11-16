@@ -161,8 +161,16 @@ impl GameInfo {
         }
     }
 
-    pub fn load_script(&mut self, filename: &str) -> anyhow::Result<()> {
+    pub fn load_script(&mut self, filename: Option<&str>) -> anyhow::Result<()> {
+        let filename = match filename {
+            Some(c) => {
+                self.script_name = c.to_string();
+                c
+            }
+            None => &self.script_name,
+        };
         let mut file = String::from("");
+        self.script = vec![];
         self.io
             .load_file(self, &format!("{}.as2", filename), "r")?
             .read_to_string(&mut file)?;
@@ -170,6 +178,7 @@ impl GameInfo {
         for line in lines {
             self.script.push(line.to_string());
         }
+        self.pointer = 0;
         Ok(())
     }
 }

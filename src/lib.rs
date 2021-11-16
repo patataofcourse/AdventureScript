@@ -33,7 +33,7 @@ impl AdventureScriptGame {
         //add basic commands
         self.commands.extend(commands::main_commands());
         //load script file
-        if let Err(err) = self.info.load_script("start") {
+        if let Err(err) = self.info.load_script(None) {
             error::manage_error(&self.info, err);
             return;
         };
