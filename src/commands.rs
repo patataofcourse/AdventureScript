@@ -367,5 +367,29 @@ pub fn main_commands() -> HashMap<String, Command> {
                 args_to_kwargs: vec![String::from("name")],
             },
         ),
+        (
+            "if".to_string(),
+            Command {
+                name: "if".to_string(),
+                func: |info, kwargs| {
+                    let condition = match kwargs.get("condition").unwrap() {
+                        ASVariable::Bool(c) => *c,
+                        _ => panic!(),
+                    };
+                    if condition {
+                        info.goto_label(kwargs.get("gotrue").unwrap())
+                    } else {
+                        info.goto_label(kwargs.get("gofalse").unwrap())
+                    }
+                },
+                accepted_kwargs: HashMap::<String, ASType>::from_iter([
+                    (String::from("condition"), ASType::Bool),
+                    (String::from("gotrue"), ASType::Label),
+                    (String::from("gofalse"), ASType::Label),
+                ]),
+                default_values: HashMap::<String, ASVariable>::new(),
+                args_to_kwargs: vec![String::from("name")],
+            },
+        ),
     ])
 }

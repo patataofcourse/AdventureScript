@@ -54,8 +54,14 @@ impl GameInfo {
         &self.io
     }
 
+    //TODO: remove whenever you add labels
     pub fn set_pointer(&mut self, pointer: i32) {
         self.pointer = pointer - 2;
+    }
+
+    //TODO: implement
+    pub fn goto_label(&mut self, var: &ASVariable) -> anyhow::Result<()> {
+        Ok(())
     }
 
     pub fn next_line(&mut self) {
