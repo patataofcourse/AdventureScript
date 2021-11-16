@@ -61,7 +61,37 @@ impl GameInfo {
 
     //TODO: implement
     pub fn goto_label(&mut self, var: &ASVariable) -> anyhow::Result<()> {
-        Ok(())
+        let lname = match var {
+            ASVariable::Label(c) => c,
+            _ => panic!("Used goto_label function with a non-label ASVariable"),
+        };
+
+        let mut c = 0; //loop counter
+        let mut instances = Vec::<i32>::new(); //lines where there's been a match
+        for line in &self.script {
+            if line.trim() == format!("{{{}}}", lname) {
+                instances.push(c);
+            }
+            c += 1;
+        }
+        match instances.len() {
+            0 => Err(ASSyntaxError::NonExistentLabel(lname.to_string()))?,
+            1 => {
+                self.pointer = *instances.get(0).unwrap();
+                Ok(())
+            }
+            _ => Err(ASSyntaxError::RepeatedLabel(lname.to_string(), instances))?,
+        }
+
+        /*
+        for ch in info.forbidden_characters:
+            if ch in label[1:-1]:
+                raise exceptions.InvalidNameCharacter(info.scriptname, info.pointer, "label", ch)
+        for line in info.script:
+            if line.strip().startswith("{" + label + "}"):
+                return info.script.index(line)+1
+        raise exceptions.UndefinedLabelError(info.scriptname, info.pointer, label)
+        */
     }
 
     pub fn next_line(&mut self) {

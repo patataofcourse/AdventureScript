@@ -1,6 +1,6 @@
 use super::{
     commands::Command,
-    error::{ASNotImplemented, ASSyntaxError},
+    error::ASSyntaxError,
     info::GameInfo,
     variables::{ASVariable, KeyVar},
 };
@@ -359,10 +359,11 @@ pub fn evaluate(
             parsed = if value.contains(":") {
                 eval_map(info, value.to_string(), strings)?
             } else {
-                Err(ASNotImplemented(
-                    "labels (will be implemented for alpha.2)".to_string(),
-                ))?
-            };
+                if !Regex::new(r"[A-Za-z0-9-_]")?.is_match(&val[1..val.len() - 1]) {
+                    Err(ASSyntaxError::InvalidLabelName(val.clone()))?;
+                }
+                ASVariable::Label(val[1..val.len() - 1].to_string())
+            }
         } else if val.starts_with("(") && val.ends_with(")") {
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
                 .parse::<usize>()
@@ -380,7 +381,7 @@ pub fn evaluate(
         }
         //Flags
         else if val.starts_with("?") {
-            if !Regex::new(r"[A-Za-z0-9-_]")?.is_match(&val[1..]) {
+            if !Regex::new(r"[A-Za-z0-9-_]*")?.is_match(&val[1..]) {
                 Err(ASSyntaxError::InvalidVariableName(val[1..].to_string()))?
             }
             parsed = ASVariable::VarRef {
@@ -390,7 +391,7 @@ pub fn evaluate(
         }
         //TODO: Variables
         else {
-            if !Regex::new(r"[A-Za-z0-9-_]")?.is_match(&val) {
+            if !Regex::new(r"[A-Za-z0-9-_]*")?.is_match(&val) {
                 Err(ASSyntaxError::InvalidVariableName(val.to_string()))?
             }
             parsed = ASVariable::VarRef {

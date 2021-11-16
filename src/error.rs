@@ -127,12 +127,29 @@ pub enum ASSyntaxError {
     EmptyControlCode { code: String },
     #[error("Failed to parse a map. Likely because of a missing :")]
     MapError,
-    #[error("Values of type {key_type} can't be keys in Maps.")]
+    #[error("Values of type {key_type} can't be keys in Maps")]
     InvalidMapKey { key_type: ASType },
     #[error(
         "Invalid token {0}\nIf you were trying to name a variable, keep in mind variable names must be made of either alphanumeric characters, dashes, or underscores"
     )]
     InvalidVariableName(String),
+    #[error("Label {0} doesn't exist")]
+    NonExistentLabel(String),
+    #[error("Label {0} is defined multiple times in the following lines: {}",
+        ( |vec| {
+            let mut out = 1.0.to_string();
+            for elmt in [1,2] {
+                out += ", ";
+                out += &elmt.to_string();
+            }
+            out
+        } ) (.1)
+    )]
+    RepeatedLabel(String, Vec<i32>),
+    #[error(
+        "Invalid token {0}\nIf you were trying to name a label, keep in mind label names must be made of either alphanumeric characters, dashes, or underscores"
+    )]
+    InvalidLabelName(String),
 }
 
 #[derive(Debug)]
