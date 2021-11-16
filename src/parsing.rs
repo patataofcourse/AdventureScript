@@ -4,7 +4,6 @@ use super::{
     info::GameInfo,
     variables::{ASVariable, KeyVar},
 };
-use fancy_regex::Regex as FancyRegex;
 use regex::{Match, Regex};
 use std::collections::HashMap;
 
@@ -486,9 +485,9 @@ fn eval_map(
     let mut map = HashMap::<KeyVar, ASVariable>::new();
     let (text, brackets) = simplify(text, SimplifyMode::Brackets)?;
 
-    let is_map = FancyRegex::new("^(?<=[A-za-z0-9-_ }\\\"'\\]\\)]):(?=[A-za-z0-9-_ {\\\"'\\[(])$")?;
+    let is_map = Regex::new(":")?;
     for elmt in text.split(",") {
-        match is_map.find(&elmt)? {
+        match is_map.find(&elmt) {
             Some(c) => {
                 let (key, value) = elmt.split_at(c.start());
                 let key = evaluate(info, key.to_string(), strings, &brackets)?;
