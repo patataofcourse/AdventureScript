@@ -33,7 +33,7 @@ pub enum ASVariable {
     String(String),
     List(Vec<ASVariable>),
     Map(HashMap<KeyVar, ASVariable>),
-    Label(String),
+    Label(Option<String>),
     VarRef { name: String, flag: bool },
     None,
 }
@@ -227,7 +227,10 @@ impl Display for ASVariable {
                     }
                     out
                 }),
-                Self::Label(c) => format!("Label {}", c),
+                Self::Label(c) => match c {
+                    Some(c) => format!("Label {{{}}}", c),
+                    None => String::from("Null label"),
+                },
                 Self::VarRef { name, flag } => {
                     format!("{} {}", if *flag { "Flag" } else { "Variable" }, name)
                 }

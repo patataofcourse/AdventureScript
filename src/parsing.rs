@@ -105,8 +105,7 @@ fn parse_command(
         // and it's honestly just easier to check that the char to the left is a space
         // or proper variable name char, and the one to the right is that or an opening
         // bracket (since those are gonna be evaluated too)
-        let is_kwarg = FancyRegex::new("(?<=[A-Za-z0-9-_ ])=(?=[A-za-z0-9-_ {\\\"'\\[(?])")?;
-
+        let is_kwarg = Regex::new("^[A-Za-z0-9-_]*\\s*(=)\\s*[A-za-z0-9-_ {\"'\\[(?]")?;
         let (text, strings) = simplify(text, SimplifyMode::Strings)?;
         let (text, brackets) = simplify(text, SimplifyMode::Brackets)?;
 
@@ -114,13 +113,13 @@ fn parse_command(
         for arg in text.split(";") {
             let arg = arg.trim();
 
-            match is_kwarg.find(arg)? {
+            match is_kwarg.captures(arg) {
                 Some(c) => {
                     // Is a keyword argument
                     must_be_kwarg = true;
 
                     // Split kwarg into argument name (key) and argument body (value)
-                    let (name, body) = arg.split_at(c.start());
+                    let (name, body) = arg.split_at(c.get(1).unwrap().start());
                     let body = evaluate(info, body[1..].to_string(), &strings, &brackets)?;
 
                     kwargs.insert(name.to_string(), body);
@@ -359,10 +358,14 @@ pub fn evaluate(
             parsed = if value.contains(":") {
                 eval_map(info, value.to_string(), strings)?
             } else {
-                if !Regex::new(r"[A-Za-z0-9-_]")?.is_match(&val[1..val.len() - 1]) {
-                    Err(ASSyntaxError::InvalidLabelName(val.clone()))?;
+                let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
+                    .parse::<usize>()
+                    .unwrap();
+                let lname = &brackets[index];
+                if !Regex::new(r"^[A-Za-z0-9-_]*$")?.is_match(lname) {
+                    Err(ASSyntaxError::InvalidLabelName(lname.to_string()))?;
                 }
-                ASVariable::Label(val[1..val.len() - 1].to_string())
+                ASVariable::Label(Some(lname.to_string()))
             }
         } else if val.starts_with("(") && val.ends_with(")") {
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
@@ -381,7 +384,7 @@ pub fn evaluate(
         }
         //Flags
         else if val.starts_with("?") {
-            if !Regex::new(r"[A-Za-z0-9-_]*")?.is_match(&val[1..]) {
+            if !Regex::new(r"^?[A-Za-z0-9-_]*$")?.is_match(&val) {
                 Err(ASSyntaxError::InvalidVariableName(val[1..].to_string()))?
             }
             parsed = ASVariable::VarRef {
@@ -391,7 +394,7 @@ pub fn evaluate(
         }
         //TODO: Variables
         else {
-            if !Regex::new(r"[A-Za-z0-9-_]*")?.is_match(&val) {
+            if !Regex::new(r"^[A-Za-z0-9-_]*$")?.is_match(&val) {
                 Err(ASSyntaxError::InvalidVariableName(val.to_string()))?
             }
             parsed = ASVariable::VarRef {
@@ -483,7 +486,7 @@ fn eval_map(
     let mut map = HashMap::<KeyVar, ASVariable>::new();
     let (text, brackets) = simplify(text, SimplifyMode::Brackets)?;
 
-    let is_map = FancyRegex::new("(?<=[A-za-z0-9-_ }\\\"'\\]\\)]):(?=[A-za-z0-9-_ {\\\"'\\[(])")?;
+    let is_map = FancyRegex::new("^(?<=[A-za-z0-9-_ }\\\"'\\]\\)]):(?=[A-za-z0-9-_ {\\\"'\\[(])$")?;
     for elmt in text.split(",") {
         match is_map.find(&elmt)? {
             Some(c) => {

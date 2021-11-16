@@ -9,11 +9,12 @@ Blank lines are ignored now so you have to add a backslash-n
 Choice 1
 \v[[2, 9, "test", ["nested", 2, None]]]
 \v[{1:2, "3":4, true:6}]
-! goto 14
+!goto {merge}
 
 {choice2}
 Choice 2
 (still better)
 
+{merge}
 !wait
 !loadscript "other"

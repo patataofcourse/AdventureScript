@@ -136,25 +136,23 @@ pub fn main_commands() -> HashMap<String, Command> {
                 func: |info, kwargs| {
                     let mut c = 1;
                     let mut choices = Vec::<&str>::new();
-                    let mut gotos = Vec::<i32>::new();
+                    let mut gotos = Vec::<ASVariable>::new();
                     //get lists of the choices and gotos
                     while c <= 9 {
                         if c == 3 {
                             break;
                         } //Remove after proper choice command
-                        let choice = match &kwargs[&format!("ch{}", c)] {
-                            ASVariable::String(c) => &c,
+                        let choice: &str = match &kwargs[&format!("ch{}", c)] {
+                            ASVariable::String(c) => c,
                             _ => "",
                         };
-                        let goto = match &kwargs[&format!("go{}", c)] {
-                            ASVariable::Int(c) => *c,
-                            _ => 0,
-                        };
-                        if goto == 0 {
-                            break;
-                        }
+                        let goto = &kwargs[&format!("go{}", c)];
+                        //TODO: implement None default values
+                        // if goto == ASVariable::None {
+                        //     break;
+                        // }
                         choices.append(&mut Vec::<&str>::from([choice]));
-                        gotos.append(&mut Vec::<i32>::from([goto]));
+                        gotos.append(&mut Vec::<ASVariable>::from([goto.clone()]));
                         c += 1;
                     }
                     //get text
@@ -166,10 +164,10 @@ pub fn main_commands() -> HashMap<String, Command> {
                     let pick = info.query(text, choices, true)?; //TODO: add allow_save
                     if pick == 0 {
                         // used in save/return/quit
-                        info.set_pointer(info.pointer() - 1);
+                        info.pointer -= 1;
                         return Ok(());
                     };
-                    info.set_pointer(*gotos.get((pick - 1) as usize).expect(""));
+                    info.goto_label(gotos.get((pick - 1) as usize).unwrap())?;
                     Ok(())
                 },
                 args_to_kwargs: Vec::<String>::from([String::from("text")]),
@@ -184,15 +182,15 @@ pub fn main_commands() -> HashMap<String, Command> {
                     (String::from("ch7"), ASType::String),
                     (String::from("ch8"), ASType::String),
                     (String::from("ch9"), ASType::String),
-                    (String::from("go1"), ASType::Int),
-                    (String::from("go2"), ASType::Int),
-                    (String::from("go3"), ASType::Int),
-                    (String::from("go4"), ASType::Int),
-                    (String::from("go5"), ASType::Int),
-                    (String::from("go6"), ASType::Int),
-                    (String::from("go7"), ASType::Int),
-                    (String::from("go8"), ASType::Int),
-                    (String::from("go9"), ASType::Int),
+                    (String::from("go1"), ASType::Label),
+                    (String::from("go2"), ASType::Label),
+                    (String::from("go3"), ASType::Label),
+                    (String::from("go4"), ASType::Label),
+                    (String::from("go5"), ASType::Label),
+                    (String::from("go6"), ASType::Label),
+                    (String::from("go7"), ASType::Label),
+                    (String::from("go8"), ASType::Label),
+                    (String::from("go9"), ASType::Label),
                 ]),
                 default_values: HashMap::<String, ASVariable>::from_iter([
                     (String::from("text"), ASVariable::String(String::from(""))),
@@ -232,14 +230,14 @@ pub fn main_commands() -> HashMap<String, Command> {
                         String::from("ch9"),
                         ASVariable::String(String::from("Choice 9")),
                     ),
-                    (String::from("go2"), ASVariable::Int(0)),
-                    (String::from("go3"), ASVariable::Int(0)),
-                    (String::from("go4"), ASVariable::Int(0)),
-                    (String::from("go5"), ASVariable::Int(0)),
-                    (String::from("go6"), ASVariable::Int(0)),
-                    (String::from("go7"), ASVariable::Int(0)),
-                    (String::from("go8"), ASVariable::Int(0)),
-                    (String::from("go9"), ASVariable::Int(0)),
+                    (String::from("go2"), ASVariable::Label(None)),
+                    (String::from("go3"), ASVariable::Label(None)),
+                    (String::from("go4"), ASVariable::Label(None)),
+                    (String::from("go5"), ASVariable::Label(None)),
+                    (String::from("go6"), ASVariable::Label(None)),
+                    (String::from("go7"), ASVariable::Label(None)),
+                    (String::from("go8"), ASVariable::Label(None)),
+                    (String::from("go9"), ASVariable::Label(None)),
                 ]),
             },
         ),
@@ -248,17 +246,13 @@ pub fn main_commands() -> HashMap<String, Command> {
             Command {
                 name: String::from("goto"),
                 func: |info, kwargs| {
-                    let pos = match &kwargs["pos"] {
-                        ASVariable::Int(c) => *c,
-                        _ => 0,
-                    };
-                    info.set_pointer(pos);
+                    info.goto_label(&kwargs["pos"])?;
                     Ok(())
                 },
                 args_to_kwargs: Vec::<String>::from([String::from("pos")]),
                 accepted_kwargs: HashMap::<String, ASType>::from_iter([(
                     String::from("pos"),
-                    ASType::Int,
+                    ASType::Label,
                 )]),
                 default_values: HashMap::<String, ASVariable>::new(),
             },

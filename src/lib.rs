@@ -38,7 +38,7 @@ impl AdventureScriptGame {
             return;
         };
         //parser and stuff
-        while !self.info.quitting() {
+        while !self.info.quitting {
             match parsing::parse_line(&mut self.info, &self.commands) {
                 Ok(_) => (),
                 Err(err) => {

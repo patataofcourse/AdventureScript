@@ -10,8 +10,8 @@ pub struct GameInfo {
     game_root: String,
     script_name: String,
     script: Vec<String>,
-    pointer: i32,
-    quitting: bool,
+    pub pointer: i32,
+    pub quitting: bool,
     flags: HashMap<String, ASVariable>,
     variables: HashMap<String, ASVariable>,
 }
@@ -37,9 +37,6 @@ impl GameInfo {
     pub fn pointer(&self) -> i32 {
         self.pointer + 1
     }
-    pub fn quitting(&self) -> bool {
-        self.quitting
-    }
     pub fn root_dir(&self) -> &str {
         &self.game_root
     }
@@ -54,15 +51,13 @@ impl GameInfo {
         &self.io
     }
 
-    //TODO: remove whenever you add labels
-    pub fn set_pointer(&mut self, pointer: i32) {
-        self.pointer = pointer - 2;
-    }
-
     //TODO: implement
     pub fn goto_label(&mut self, var: &ASVariable) -> anyhow::Result<()> {
         let lname = match var {
-            ASVariable::Label(c) => c,
+            ASVariable::Label(c) => match c {
+                None => return Ok(()),
+                Some(c) => c,
+            },
             _ => panic!("Used goto_label function with a non-label ASVariable"),
         };
 
