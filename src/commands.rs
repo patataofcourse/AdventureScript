@@ -382,7 +382,11 @@ pub fn main_commands() -> HashMap<String, Command> {
                     (String::from("gofalse"), ASType::Label),
                 ]),
                 default_values: HashMap::<String, ASVariable>::new(),
-                args_to_kwargs: vec![String::from("name")],
+                args_to_kwargs: vec![
+                    String::from("condition"),
+                    String::from("gotrue"),
+                    String::from("gofalse"),
+                ],
             },
         ),
     ])

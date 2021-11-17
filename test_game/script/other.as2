@@ -12,5 +12,19 @@ Now variables!
 \v[varname]
 !set var2; varname
 \v[var2]
+!wait
 
-!ending "script loaded"
+ok now if command
+!if true; {true}; {fail}
+
+{true}
+true works
+!if false; {fail}; {false}
+
+{fail}
+test failed. sad.
+!ending "sucks"
+
+{false}
+test succeeded
+!ending "ok it works"
