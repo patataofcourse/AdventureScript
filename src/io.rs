@@ -26,10 +26,21 @@ fn input() -> anyhow::Result<String> {
     Ok(result)
 }
 
-fn load_file(info: &GameInfo, filename: &str, mode: &str) -> anyhow::Result<File> {
+pub enum FileType {
+    Script,
+    CustomDir(String),
+    Other,
+}
+
+fn load_file(info: &GameInfo, filename: &str, mode: &str, ftype: FileType) -> anyhow::Result<File> {
+    let folder = match ftype {
+        FileType::Script => "script/".to_string(),
+        FileType::CustomDir(c) => format!("{}/", c),
+        FileType::Other => String::new(),
+    };
     Ok(match mode {
-        "r" => File::open(format!("{}/{}", info.root_dir(), filename))?,
-        "w" => File::create(format!("{}/{}", info.root_dir(), filename))?,
+        "r" => File::open(format!("{}/{}{}", info.root_dir(), folder, filename))?,
+        "w" => File::create(format!("{}/{}{}", info.root_dir(), folder, filename))?,
         _ => Err(ASFileError {
             filename: filename.to_string(),
             mode: mode.to_string(),
@@ -42,7 +53,8 @@ pub struct AdventureIO {
     show: fn(&str) -> anyhow::Result<()>,
     wait: fn() -> anyhow::Result<()>,
     input: fn() -> anyhow::Result<String>,
-    load_file: fn(&GameInfo, &str, &str) -> anyhow::Result<File>,
+    load_file: fn(&GameInfo, &str, &str, FileType) -> anyhow::Result<File>,
+    //TODO: get io commands
 }
 
 impl AdventureIO {
@@ -55,8 +67,14 @@ impl AdventureIO {
     pub fn input(&self) -> anyhow::Result<String> {
         (self.input)()
     }
-    pub fn load_file(&self, info: &GameInfo, filename: &str, mode: &str) -> anyhow::Result<File> {
-        (self.load_file)(info, filename, mode)
+    pub fn load_file(
+        &self,
+        info: &GameInfo,
+        filename: &str,
+        mode: &str,
+        ftype: FileType,
+    ) -> anyhow::Result<File> {
+        (self.load_file)(info, filename, mode, ftype)
     }
 }
 

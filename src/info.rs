@@ -1,6 +1,6 @@
 use super::{
     error::{ASSyntaxError, ASVarError},
-    io::AdventureIO,
+    io::{AdventureIO, FileType},
     variables::ASVariable,
 };
 use std::{collections::HashMap, io::Read};
@@ -203,7 +203,7 @@ impl GameInfo {
         let mut file = String::from("");
         self.script = vec![];
         self.io
-            .load_file(self, &format!("{}.as2", filename), "r")?
+            .load_file(self, &format!("{}.as2", filename), "r", FileType::Script)?
             .read_to_string(&mut file)?;
         let lines = file.split("\n");
         for line in lines {

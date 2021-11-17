@@ -45,7 +45,7 @@ fn parse_text(info: &mut GameInfo, text: String) -> anyhow::Result<String> {
                             match capture.get(3) {
                                 Some(c) => c,
                                 None => Err(ASSyntaxError::EmptyControlCode {
-                                    code: code.to_string(),
+                                    code: "\\v".to_string(),
                                 })?,
                             }
                             .as_str()
@@ -61,7 +61,7 @@ fn parse_text(info: &mut GameInfo, text: String) -> anyhow::Result<String> {
                         }
                     }
                     c => Err(ASSyntaxError::InvalidEscapeCode {
-                        code: c.to_string(),
+                        code: format!("\\{}", c),
                     })?,
                 },
             )
