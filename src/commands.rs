@@ -8,7 +8,7 @@ use std::{collections::HashMap, iter::FromIterator};
 
 pub struct Command {
     pub name: String,
-    func: fn(&mut GameInfo, HashMap<String, ASVariable>) -> anyhow::Result<()>,
+    func: fn(&Self, &mut GameInfo, HashMap<String, ASVariable>) -> anyhow::Result<()>,
     args_to_kwargs: Vec<String>,
     accepted_kwargs: HashMap<String, ASType>,
     default_values: HashMap<String, ASVariable>,
@@ -86,7 +86,7 @@ impl Command {
                 })?;
             }
         }
-        (self.func)(info, kwargs)
+        (self.func)(&self, info, kwargs)
     }
 }
 
@@ -104,7 +104,7 @@ pub fn test() -> Command {
     );
     Command {
         name: "test".to_string(),
-        func: |_info, kwargs| {
+        func: |_self, _info, kwargs| {
             for (key, arg) in kwargs {
                 println!("{}: {:?}", key, arg);
             }
@@ -123,7 +123,7 @@ pub fn main_commands() -> HashMap<String, Command> {
             "wait".to_string(),
             Command {
                 name: String::from("wait"),
-                func: |info, _kwargs| info.io().wait(),
+                func: |_self, info, _kwargs| info.io().wait(),
                 args_to_kwargs: Vec::<String>::new(),
                 accepted_kwargs: HashMap::<String, ASType>::new(),
                 default_values: HashMap::<String, ASVariable>::new(),
@@ -133,7 +133,7 @@ pub fn main_commands() -> HashMap<String, Command> {
             "choice".to_string(),
             Command {
                 name: String::from("choice"),
-                func: |info, kwargs| {
+                func: |_self, info, kwargs| {
                     let mut c = 1;
                     let mut choices = Vec::<&str>::new();
                     let mut gotos = Vec::<ASVariable>::new();
@@ -245,7 +245,7 @@ pub fn main_commands() -> HashMap<String, Command> {
             "goto".to_string(),
             Command {
                 name: String::from("goto"),
-                func: |info, kwargs| {
+                func: |_self, info, kwargs| {
                     info.goto_label(&kwargs["pos"])?;
                     Ok(())
                 },
@@ -261,7 +261,7 @@ pub fn main_commands() -> HashMap<String, Command> {
             "ending".to_string(),
             Command {
                 name: String::from("ending"),
-                func: |info, kwargs| {
+                func: |_self, info, kwargs| {
                     let name = match &kwargs["name"] {
                         ASVariable::String(c) => c,
                         _ => "",
@@ -285,7 +285,7 @@ pub fn main_commands() -> HashMap<String, Command> {
             "flag".to_string(),
             Command {
                 name: "flag".to_string(),
-                func: |info, kwargs| {
+                func: |_self, info, kwargs| {
                     let flag = match kwargs.get("flag").unwrap() {
                         //Make sure you're getting a flag, not a variable
                         ASVariable::VarRef { name, .. } => ASVariable::VarRef {
@@ -311,7 +311,7 @@ pub fn main_commands() -> HashMap<String, Command> {
             "set".to_string(),
             Command {
                 name: "set".to_string(),
-                func: |info, kwargs| {
+                func: |_self, info, kwargs| {
                     info.set_var(
                         kwargs.get("var").unwrap(),
                         kwargs.get("value").unwrap().clone(),
@@ -329,7 +329,7 @@ pub fn main_commands() -> HashMap<String, Command> {
             "add".to_string(),
             Command {
                 name: "add".to_string(),
-                func: |info, kwargs| {
+                func: |_self, info, kwargs| {
                     let var = kwargs.get("var").unwrap();
                     let val = info.get_var(var)?.clone();
                     info.set_var(var, (val + kwargs.get("value").unwrap().clone())?)
@@ -346,7 +346,7 @@ pub fn main_commands() -> HashMap<String, Command> {
             "loadscript".to_string(),
             Command {
                 name: "loadscript".to_string(),
-                func: |info, kwargs| {
+                func: |_self, info, kwargs| {
                     let script_name: &str = match kwargs.get("name").unwrap() {
                         ASVariable::String(c) => c,
                         _ => panic!(),
@@ -365,7 +365,7 @@ pub fn main_commands() -> HashMap<String, Command> {
             "if".to_string(),
             Command {
                 name: "if".to_string(),
-                func: |info, kwargs| {
+                func: |_self, info, kwargs| {
                     let condition = match kwargs.get("condition").unwrap() {
                         ASVariable::Bool(c) => *c,
                         _ => panic!(),
