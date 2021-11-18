@@ -1,4 +1,4 @@
-use super::{
+use crate::{
     error::{ASSyntaxError, ASVarError},
     io::{AdventureIO, FileType},
     variables::ASVariable,

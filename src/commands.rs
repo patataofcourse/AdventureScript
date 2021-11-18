@@ -1,4 +1,4 @@
-use super::{
+use crate::{
     error::{ASCmdError, CommandErrors},
     info::GameInfo,
     variables::{ASType, ASVariable},

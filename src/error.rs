@@ -1,4 +1,4 @@
-use super::{info::GameInfo, variables::ASType};
+use crate::{info::GameInfo, variables::ASType};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result},

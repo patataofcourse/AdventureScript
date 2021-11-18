@@ -1,4 +1,4 @@
-use super::error::ASSyntaxError;
+use crate::error::ASSyntaxError;
 use std::{
     cmp::{Ordering, PartialOrd},
     collections::HashMap,

@@ -1,4 +1,4 @@
-use super::*;
+use crate::*;
 use std::collections::HashMap;
 
 fn setup() -> (info::GameInfo, HashMap<String, commands::Command>) {
