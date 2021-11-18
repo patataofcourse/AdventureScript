@@ -1,4 +1,5 @@
 use crate::{
+    config::Config,
     error::{ASSyntaxError, ASVarError},
     io::{AdventureIO, FileType},
     variables::ASVariable,
@@ -14,6 +15,7 @@ pub struct GameInfo {
     pub quitting: bool,
     flags: HashMap<String, ASVariable>,
     variables: HashMap<String, ASVariable>,
+    config: Option<Config>,
 }
 
 impl GameInfo {
@@ -27,6 +29,7 @@ impl GameInfo {
             quitting: false,
             flags: HashMap::<String, ASVariable>::new(),
             variables: HashMap::<String, ASVariable>::new(),
+            config: None,
         }
     }
 
