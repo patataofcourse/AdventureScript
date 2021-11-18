@@ -1,8 +1,8 @@
-pub mod commands;
+mod commands;
 
 pub mod error;
 
-pub mod io;
+mod io;
 
 mod info;
 
@@ -12,11 +12,13 @@ mod methods {}
 
 mod parsing;
 
-pub mod variables;
+mod variables;
 
 // TODO: (more) public imports for stuff that might be used in the interface
-pub use commands::CmdSet;
+pub use commands::{CmdSet, Command};
 pub use info::GameInfo;
+pub use io::AdventureIO;
+pub use variables::{ASType, ASVariable};
 
 pub struct AdventureScriptGame {
     info: GameInfo,

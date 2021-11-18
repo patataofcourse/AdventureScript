@@ -116,32 +116,6 @@ impl Command {
     }
 }
 
-// Test command: shows all kwargs and their values
-
-pub fn test() -> Command {
-    let mut accepted = HashMap::<String, ASType>::with_capacity(3);
-    accepted.insert(String::from("test"), ASType::Int);
-    accepted.insert(String::from("arg1"), ASType::Any);
-    accepted.insert(String::from("arg2"), ASType::Any);
-    let mut default = HashMap::<String, ASVariable>::with_capacity(1);
-    default.insert(
-        String::from("arg2"),
-        ASVariable::String(String::from("this is a test")),
-    );
-    Command {
-        name: "test".to_string(),
-        func: |_self, _info, kwargs| {
-            for (key, arg) in kwargs {
-                println!("{}: {:?}", key, arg);
-            }
-            Ok(())
-        },
-        args_to_kwargs: Vec::<String>::from([String::from("arg1"), String::from("arg2")]),
-        accepted_kwargs: accepted,
-        default_values: default,
-    }
-}
-
 //TODO: *please* make this a macro
 pub fn main_commands() -> CmdSet {
     CmdSet::from(vec![

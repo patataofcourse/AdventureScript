@@ -8,17 +8,17 @@ use std::{
     io::{stdin, stdout, Read, Write},
 };
 
-fn show(text: &str) -> anyhow::Result<()> {
+fn show_(text: &str) -> anyhow::Result<()> {
     println!("{}", text);
     Ok(())
 }
 
-fn wait() -> anyhow::Result<()> {
+fn wait_() -> anyhow::Result<()> {
     stdin().read(&mut [0])?;
     Ok(())
 }
 
-fn input() -> anyhow::Result<String> {
+fn input_() -> anyhow::Result<String> {
     print!("> ");
     stdout().flush()?;
     let mut result = String::new();
@@ -32,7 +32,12 @@ pub enum FileType {
     Other,
 }
 
-fn load_file(info: &GameInfo, filename: &str, mode: &str, ftype: FileType) -> anyhow::Result<File> {
+fn load_file_(
+    info: &GameInfo,
+    filename: &str,
+    mode: &str,
+    ftype: FileType,
+) -> anyhow::Result<File> {
     let folder = match ftype {
         FileType::Script => "script/".to_string(),
         FileType::CustomDir(c) => format!("{}/", c),
@@ -76,15 +81,29 @@ impl AdventureIO {
     ) -> anyhow::Result<File> {
         (self.load_file)(info, filename, mode, ftype)
     }
+
+    pub fn default_with(
+        show: Option<fn(&str) -> anyhow::Result<()>>,
+        wait: Option<fn() -> anyhow::Result<()>>,
+        input: Option<fn() -> anyhow::Result<String>>,
+        load_file: Option<fn(&GameInfo, &str, &str, FileType) -> anyhow::Result<File>>,
+    ) -> Self {
+        Self {
+            show: show.unwrap_or(show_),
+            wait: wait.unwrap_or(wait_),
+            input: input.unwrap_or(input_),
+            load_file: load_file.unwrap_or(load_file_),
+        }
+    }
 }
 
 impl Default for AdventureIO {
     fn default() -> Self {
         Self {
-            show: show,
-            wait: wait,
-            input: input,
-            load_file: load_file,
+            show: show_,
+            wait: wait_,
+            input: input_,
+            load_file: load_file_,
         }
     }
 }
