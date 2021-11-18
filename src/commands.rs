@@ -14,6 +14,32 @@ pub struct Command {
     default_values: HashMap<String, ASVariable>,
 }
 
+pub struct CmdSet {
+    pub commands: Vec<Command>,
+}
+
+impl CmdSet {
+    pub fn get(&self, name: &str) -> Option<&Command> {
+        let mut out = None;
+        for command in &self.commands {
+            if command.name == name {
+                out = Some(command);
+                break;
+            }
+        }
+        out
+    }
+    pub fn extend(&mut self, other: Self) {
+        self.commands.extend(other.commands);
+    }
+    pub fn from(vec: Vec<Command>) -> Self {
+        Self { commands: vec }
+    }
+    pub fn new() -> Self {
+        Self { commands: vec![] }
+    }
+}
+
 impl Command {
     pub fn run(
         &self,
@@ -117,277 +143,250 @@ pub fn test() -> Command {
 }
 
 //TODO: *please* make this a macro
-pub fn main_commands() -> HashMap<String, Command> {
-    HashMap::<String, Command>::from([
-        (
-            "wait".to_string(),
-            Command {
-                name: String::from("wait"),
-                func: |_self, info, _kwargs| info.io().wait(),
-                args_to_kwargs: Vec::<String>::new(),
-                accepted_kwargs: HashMap::<String, ASType>::new(),
-                default_values: HashMap::<String, ASVariable>::new(),
-            },
-        ),
-        (
-            "choice".to_string(),
-            Command {
-                name: String::from("choice"),
-                func: |_self, info, kwargs| {
-                    let mut c = 1;
-                    let mut choices = Vec::<&str>::new();
-                    let mut gotos = Vec::<ASVariable>::new();
-                    //get lists of the choices and gotos
-                    while c <= 9 {
-                        if c == 3 {
-                            break;
-                        } //Remove after proper choice command
-                        let choice: &str = match &kwargs[&format!("ch{}", c)] {
-                            ASVariable::String(c) => c,
-                            _ => "",
-                        };
-                        let goto = &kwargs[&format!("go{}", c)];
-                        //TODO: implement None default values
-                        // if goto == ASVariable::None {
-                        //     break;
-                        // }
-                        choices.append(&mut Vec::<&str>::from([choice]));
-                        gotos.append(&mut Vec::<ASVariable>::from([goto.clone()]));
-                        c += 1;
-                    }
-                    //get text
-                    let text = match &kwargs["text"] {
+pub fn main_commands() -> CmdSet {
+    CmdSet::from(vec![
+        Command {
+            name: String::from("wait"),
+            func: |_self, info, _kwargs| info.io().wait(),
+            args_to_kwargs: Vec::<String>::new(),
+            accepted_kwargs: HashMap::<String, ASType>::new(),
+            default_values: HashMap::<String, ASVariable>::new(),
+        },
+        Command {
+            name: String::from("choice"),
+            func: |_self, info, kwargs| {
+                let mut c = 1;
+                let mut choices = Vec::<&str>::new();
+                let mut gotos = Vec::<ASVariable>::new();
+                //get lists of the choices and gotos
+                while c <= 9 {
+                    if c == 3 {
+                        break;
+                    } //Remove after proper choice command
+                    let choice: &str = match &kwargs[&format!("ch{}", c)] {
                         ASVariable::String(c) => c,
                         _ => "",
                     };
-                    //run io func and manage result
-                    let pick = info.query(text, choices, true)?; //TODO: add allow_save
-                    if pick == 0 {
-                        // used in save/return/quit
-                        info.pointer -= 1;
-                        return Ok(());
-                    };
-                    info.goto_label(gotos.get((pick - 1) as usize).unwrap())?;
-                    Ok(())
-                },
-                args_to_kwargs: Vec::<String>::from([String::from("text")]),
-                accepted_kwargs: HashMap::<String, ASType>::from_iter([
-                    (String::from("text"), ASType::String),
-                    (String::from("ch1"), ASType::String),
-                    (String::from("ch2"), ASType::String),
-                    (String::from("ch3"), ASType::String),
-                    (String::from("ch4"), ASType::String),
-                    (String::from("ch5"), ASType::String),
-                    (String::from("ch6"), ASType::String),
-                    (String::from("ch7"), ASType::String),
-                    (String::from("ch8"), ASType::String),
-                    (String::from("ch9"), ASType::String),
-                    (String::from("go1"), ASType::Label),
-                    (String::from("go2"), ASType::Label),
-                    (String::from("go3"), ASType::Label),
-                    (String::from("go4"), ASType::Label),
-                    (String::from("go5"), ASType::Label),
-                    (String::from("go6"), ASType::Label),
-                    (String::from("go7"), ASType::Label),
-                    (String::from("go8"), ASType::Label),
-                    (String::from("go9"), ASType::Label),
-                ]),
-                default_values: HashMap::<String, ASVariable>::from_iter([
-                    (String::from("text"), ASVariable::String(String::from(""))),
-                    (
-                        String::from("ch1"),
-                        ASVariable::String(String::from("Choice 1")),
-                    ),
-                    (
-                        String::from("ch2"),
-                        ASVariable::String(String::from("Choice 2")),
-                    ),
-                    (
-                        String::from("ch3"),
-                        ASVariable::String(String::from("Choice 3")),
-                    ),
-                    (
-                        String::from("ch4"),
-                        ASVariable::String(String::from("Choice 4")),
-                    ),
-                    (
-                        String::from("ch5"),
-                        ASVariable::String(String::from("Choice 5")),
-                    ),
-                    (
-                        String::from("ch6"),
-                        ASVariable::String(String::from("Choice 6")),
-                    ),
-                    (
-                        String::from("ch7"),
-                        ASVariable::String(String::from("Choice 7")),
-                    ),
-                    (
-                        String::from("ch8"),
-                        ASVariable::String(String::from("Choice 8")),
-                    ),
-                    (
-                        String::from("ch9"),
-                        ASVariable::String(String::from("Choice 9")),
-                    ),
-                    (String::from("go2"), ASVariable::Label(None)),
-                    (String::from("go3"), ASVariable::Label(None)),
-                    (String::from("go4"), ASVariable::Label(None)),
-                    (String::from("go5"), ASVariable::Label(None)),
-                    (String::from("go6"), ASVariable::Label(None)),
-                    (String::from("go7"), ASVariable::Label(None)),
-                    (String::from("go8"), ASVariable::Label(None)),
-                    (String::from("go9"), ASVariable::Label(None)),
-                ]),
+                    let goto = &kwargs[&format!("go{}", c)];
+                    //TODO: implement None default values
+                    // if goto == ASVariable::None {
+                    //     break;
+                    // }
+                    choices.append(&mut Vec::<&str>::from([choice]));
+                    gotos.append(&mut Vec::<ASVariable>::from([goto.clone()]));
+                    c += 1;
+                }
+                //get text
+                let text = match &kwargs["text"] {
+                    ASVariable::String(c) => c,
+                    _ => "",
+                };
+                //run io func and manage result
+                let pick = info.query(text, choices, true)?; //TODO: add allow_save
+                if pick == 0 {
+                    // used in save/return/quit
+                    info.pointer -= 1;
+                    return Ok(());
+                };
+                info.goto_label(gotos.get((pick - 1) as usize).unwrap())?;
+                Ok(())
             },
-        ),
-        (
-            "goto".to_string(),
-            Command {
-                name: String::from("goto"),
-                func: |_self, info, kwargs| {
-                    info.goto_label(&kwargs["pos"])?;
-                    Ok(())
-                },
-                args_to_kwargs: Vec::<String>::from([String::from("pos")]),
-                accepted_kwargs: HashMap::<String, ASType>::from_iter([(
-                    String::from("pos"),
-                    ASType::Label,
-                )]),
-                default_values: HashMap::<String, ASVariable>::new(),
+            args_to_kwargs: Vec::<String>::from([String::from("text")]),
+            accepted_kwargs: HashMap::<String, ASType>::from_iter([
+                (String::from("text"), ASType::String),
+                (String::from("ch1"), ASType::String),
+                (String::from("ch2"), ASType::String),
+                (String::from("ch3"), ASType::String),
+                (String::from("ch4"), ASType::String),
+                (String::from("ch5"), ASType::String),
+                (String::from("ch6"), ASType::String),
+                (String::from("ch7"), ASType::String),
+                (String::from("ch8"), ASType::String),
+                (String::from("ch9"), ASType::String),
+                (String::from("go1"), ASType::Label),
+                (String::from("go2"), ASType::Label),
+                (String::from("go3"), ASType::Label),
+                (String::from("go4"), ASType::Label),
+                (String::from("go5"), ASType::Label),
+                (String::from("go6"), ASType::Label),
+                (String::from("go7"), ASType::Label),
+                (String::from("go8"), ASType::Label),
+                (String::from("go9"), ASType::Label),
+            ]),
+            default_values: HashMap::<String, ASVariable>::from_iter([
+                (String::from("text"), ASVariable::String(String::from(""))),
+                (
+                    String::from("ch1"),
+                    ASVariable::String(String::from("Choice 1")),
+                ),
+                (
+                    String::from("ch2"),
+                    ASVariable::String(String::from("Choice 2")),
+                ),
+                (
+                    String::from("ch3"),
+                    ASVariable::String(String::from("Choice 3")),
+                ),
+                (
+                    String::from("ch4"),
+                    ASVariable::String(String::from("Choice 4")),
+                ),
+                (
+                    String::from("ch5"),
+                    ASVariable::String(String::from("Choice 5")),
+                ),
+                (
+                    String::from("ch6"),
+                    ASVariable::String(String::from("Choice 6")),
+                ),
+                (
+                    String::from("ch7"),
+                    ASVariable::String(String::from("Choice 7")),
+                ),
+                (
+                    String::from("ch8"),
+                    ASVariable::String(String::from("Choice 8")),
+                ),
+                (
+                    String::from("ch9"),
+                    ASVariable::String(String::from("Choice 9")),
+                ),
+                (String::from("go2"), ASVariable::Label(None)),
+                (String::from("go3"), ASVariable::Label(None)),
+                (String::from("go4"), ASVariable::Label(None)),
+                (String::from("go5"), ASVariable::Label(None)),
+                (String::from("go6"), ASVariable::Label(None)),
+                (String::from("go7"), ASVariable::Label(None)),
+                (String::from("go8"), ASVariable::Label(None)),
+                (String::from("go9"), ASVariable::Label(None)),
+            ]),
+        },
+        Command {
+            name: String::from("goto"),
+            func: |_self, info, kwargs| {
+                info.goto_label(&kwargs["pos"])?;
+                Ok(())
             },
-        ),
-        (
-            "ending".to_string(),
-            Command {
-                name: String::from("ending"),
-                func: |_self, info, kwargs| {
-                    let name = match &kwargs["name"] {
-                        ASVariable::String(c) => c,
-                        _ => "",
-                    };
-                    info.io().show(&format!("Ending: {}", name))?;
-                    info.quit();
-                    Ok(())
-                },
-                args_to_kwargs: Vec::<String>::from([String::from("name")]),
-                accepted_kwargs: HashMap::<String, ASType>::from_iter([(
-                    String::from("name"),
-                    ASType::String,
-                )]),
-                default_values: HashMap::<String, ASVariable>::from_iter([(
-                    String::from("name"),
-                    ASVariable::String(String::from("")),
-                )]),
+            args_to_kwargs: Vec::<String>::from([String::from("pos")]),
+            accepted_kwargs: HashMap::<String, ASType>::from_iter([(
+                String::from("pos"),
+                ASType::Label,
+            )]),
+            default_values: HashMap::<String, ASVariable>::new(),
+        },
+        Command {
+            name: String::from("ending"),
+            func: |_self, info, kwargs| {
+                let name = match &kwargs["name"] {
+                    ASVariable::String(c) => c,
+                    _ => "",
+                };
+                info.io().show(&format!("Ending: {}", name))?;
+                info.quit();
+                Ok(())
             },
-        ),
-        (
-            "flag".to_string(),
-            Command {
-                name: "flag".to_string(),
-                func: |_self, info, kwargs| {
-                    let flag = match kwargs.get("flag").unwrap() {
-                        //Make sure you're getting a flag, not a variable
-                        ASVariable::VarRef { name, .. } => ASVariable::VarRef {
-                            name: name.to_string(),
-                            flag: true,
-                        },
-                        _ => panic!(""),
-                    };
-                    info.set_var(&flag, kwargs.get("value").unwrap().clone())
-                },
-                accepted_kwargs: HashMap::<String, ASType>::from_iter([
-                    (String::from("flag"), ASType::VarRef),
-                    (String::from("value"), ASType::Bool),
-                ]),
-                default_values: HashMap::<String, ASVariable>::from_iter([(
-                    String::from("value"),
-                    ASVariable::Bool(true),
-                )]),
-                args_to_kwargs: vec![String::from("flag"), String::from("value")],
+            args_to_kwargs: Vec::<String>::from([String::from("name")]),
+            accepted_kwargs: HashMap::<String, ASType>::from_iter([(
+                String::from("name"),
+                ASType::String,
+            )]),
+            default_values: HashMap::<String, ASVariable>::from_iter([(
+                String::from("name"),
+                ASVariable::String(String::from("")),
+            )]),
+        },
+        Command {
+            name: "flag".to_string(),
+            func: |_self, info, kwargs| {
+                let flag = match kwargs.get("flag").unwrap() {
+                    //Make sure you're getting a flag, not a variable
+                    ASVariable::VarRef { name, .. } => ASVariable::VarRef {
+                        name: name.to_string(),
+                        flag: true,
+                    },
+                    _ => panic!(""),
+                };
+                info.set_var(&flag, kwargs.get("value").unwrap().clone())
             },
-        ),
-        (
-            "set".to_string(),
-            Command {
-                name: "set".to_string(),
-                func: |_self, info, kwargs| {
-                    info.set_var(
-                        kwargs.get("var").unwrap(),
-                        kwargs.get("value").unwrap().clone(),
-                    )
-                },
-                accepted_kwargs: HashMap::<String, ASType>::from_iter([
-                    (String::from("var"), ASType::VarRef),
-                    (String::from("value"), ASType::Any),
-                ]),
-                default_values: HashMap::<String, ASVariable>::new(),
-                args_to_kwargs: vec![String::from("var"), String::from("value")],
+            accepted_kwargs: HashMap::<String, ASType>::from_iter([
+                (String::from("flag"), ASType::VarRef),
+                (String::from("value"), ASType::Bool),
+            ]),
+            default_values: HashMap::<String, ASVariable>::from_iter([(
+                String::from("value"),
+                ASVariable::Bool(true),
+            )]),
+            args_to_kwargs: vec![String::from("flag"), String::from("value")],
+        },
+        Command {
+            name: "set".to_string(),
+            func: |_self, info, kwargs| {
+                info.set_var(
+                    kwargs.get("var").unwrap(),
+                    kwargs.get("value").unwrap().clone(),
+                )
             },
-        ),
-        (
-            "add".to_string(),
-            Command {
-                name: "add".to_string(),
-                func: |_self, info, kwargs| {
-                    let var = kwargs.get("var").unwrap();
-                    let val = info.get_var(var)?.clone();
-                    info.set_var(var, (val + kwargs.get("value").unwrap().clone())?)
-                },
-                accepted_kwargs: HashMap::<String, ASType>::from_iter([
-                    (String::from("var"), ASType::VarRef),
-                    (String::from("value"), ASType::Any),
-                ]),
-                default_values: HashMap::<String, ASVariable>::new(),
-                args_to_kwargs: vec![String::from("var"), String::from("value")],
+            accepted_kwargs: HashMap::<String, ASType>::from_iter([
+                (String::from("var"), ASType::VarRef),
+                (String::from("value"), ASType::Any),
+            ]),
+            default_values: HashMap::<String, ASVariable>::new(),
+            args_to_kwargs: vec![String::from("var"), String::from("value")],
+        },
+        Command {
+            name: "add".to_string(),
+            func: |_self, info, kwargs| {
+                let var = kwargs.get("var").unwrap();
+                let val = info.get_var(var)?.clone();
+                info.set_var(var, (val + kwargs.get("value").unwrap().clone())?)
             },
-        ),
-        (
-            "loadscript".to_string(),
-            Command {
-                name: "loadscript".to_string(),
-                func: |_self, info, kwargs| {
-                    let script_name: &str = match kwargs.get("name").unwrap() {
-                        ASVariable::String(c) => c,
-                        _ => panic!(),
-                    };
-                    info.load_script(Some(script_name))
-                },
-                accepted_kwargs: HashMap::<String, ASType>::from_iter([(
-                    String::from("name"),
-                    ASType::String,
-                )]),
-                default_values: HashMap::<String, ASVariable>::new(),
-                args_to_kwargs: vec![String::from("name")],
+            accepted_kwargs: HashMap::<String, ASType>::from_iter([
+                (String::from("var"), ASType::VarRef),
+                (String::from("value"), ASType::Any),
+            ]),
+            default_values: HashMap::<String, ASVariable>::new(),
+            args_to_kwargs: vec![String::from("var"), String::from("value")],
+        },
+        Command {
+            name: "loadscript".to_string(),
+            func: |_self, info, kwargs| {
+                let script_name: &str = match kwargs.get("name").unwrap() {
+                    ASVariable::String(c) => c,
+                    _ => panic!(),
+                };
+                info.load_script(Some(script_name))
             },
-        ),
-        (
-            "if".to_string(),
-            Command {
-                name: "if".to_string(),
-                func: |_self, info, kwargs| {
-                    let condition = match kwargs.get("condition").unwrap() {
-                        ASVariable::Bool(c) => *c,
-                        _ => panic!(),
-                    };
-                    if condition {
-                        info.goto_label(kwargs.get("gotrue").unwrap())
-                    } else {
-                        info.goto_label(kwargs.get("gofalse").unwrap())
-                    }
-                },
-                accepted_kwargs: HashMap::<String, ASType>::from_iter([
-                    (String::from("condition"), ASType::Bool),
-                    (String::from("gotrue"), ASType::Label),
-                    (String::from("gofalse"), ASType::Label),
-                ]),
-                default_values: HashMap::<String, ASVariable>::new(),
-                args_to_kwargs: vec![
-                    String::from("condition"),
-                    String::from("gotrue"),
-                    String::from("gofalse"),
-                ],
+            accepted_kwargs: HashMap::<String, ASType>::from_iter([(
+                String::from("name"),
+                ASType::String,
+            )]),
+            default_values: HashMap::<String, ASVariable>::new(),
+            args_to_kwargs: vec![String::from("name")],
+        },
+        Command {
+            name: "if".to_string(),
+            func: |_self, info, kwargs| {
+                let condition = match kwargs.get("condition").unwrap() {
+                    ASVariable::Bool(c) => *c,
+                    _ => panic!(),
+                };
+                if condition {
+                    info.goto_label(kwargs.get("gotrue").unwrap())
+                } else {
+                    info.goto_label(kwargs.get("gofalse").unwrap())
+                }
             },
-        ),
+            accepted_kwargs: HashMap::<String, ASType>::from_iter([
+                (String::from("condition"), ASType::Bool),
+                (String::from("gotrue"), ASType::Label),
+                (String::from("gofalse"), ASType::Label),
+            ]),
+            default_values: HashMap::<String, ASVariable>::new(),
+            args_to_kwargs: vec![
+                String::from("condition"),
+                String::from("gotrue"),
+                String::from("gofalse"),
+            ],
+        },
     ])
 }

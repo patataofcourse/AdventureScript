@@ -1,5 +1,5 @@
 use super::{
-    commands::Command,
+    commands::CmdSet,
     error::ASSyntaxError,
     info::GameInfo,
     variables::{ASVariable, KeyVar},
@@ -7,7 +7,7 @@ use super::{
 use regex::{Match, Regex};
 use std::collections::HashMap;
 
-pub fn parse_line(info: &mut GameInfo, commands: &HashMap<String, Command>) -> anyhow::Result<()> {
+pub fn parse_line(info: &mut GameInfo, commands: &CmdSet) -> anyhow::Result<()> {
     let ln = info.get_line()?;
     if ln.starts_with("#") {
         return Ok(());
@@ -72,11 +72,7 @@ fn parse_text(info: &mut GameInfo, text: String) -> anyhow::Result<String> {
 }
 
 // part 1 of the proper parser code - spoiler alert it's bad
-fn parse_command(
-    info: &mut GameInfo,
-    commands: &HashMap<String, Command>,
-    text: &str,
-) -> anyhow::Result<()> {
+fn parse_command(info: &mut GameInfo, commands: &CmdSet, text: &str) -> anyhow::Result<()> {
     // Get the command from the name
     let split: Vec<&str> = text.split(" ").collect();
 

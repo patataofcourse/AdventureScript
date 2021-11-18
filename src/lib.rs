@@ -14,12 +14,13 @@ mod parsing;
 
 pub mod variables;
 
-// TODO: public imports for stuff that might be used in the interface
-use std::collections::HashMap;
+// TODO: (more) public imports for stuff that might be used in the interface
+pub use commands::CmdSet;
+pub use info::GameInfo;
 
 pub struct AdventureScriptGame {
-    info: info::GameInfo,
-    commands: HashMap<String, commands::Command>,
+    info: GameInfo,
+    commands: CmdSet,
 }
 
 impl AdventureScriptGame {
@@ -27,8 +28,8 @@ impl AdventureScriptGame {
     /// however, root_dir is basically the root folder of the game
     pub fn new(root_dir: String, io: Option<io::AdventureIO>) -> AdventureScriptGame {
         AdventureScriptGame {
-            info: info::GameInfo::create(root_dir, io.unwrap_or_default()),
-            commands: HashMap::<String, commands::Command>::new(),
+            info: GameInfo::create(root_dir, io.unwrap_or_default()),
+            commands: CmdSet::new(),
         }
     }
 
