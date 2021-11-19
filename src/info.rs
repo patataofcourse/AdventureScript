@@ -1,4 +1,5 @@
 use crate::{
+    config,
     config::Config,
     error::{ASSyntaxError, ASVarError},
     io::{AdventureIO, FileType},
@@ -31,6 +32,12 @@ impl GameInfo {
             variables: HashMap::<String, ASVariable>::new(),
             config: None,
         }
+    }
+
+    pub fn load_config(&mut self) -> anyhow::Result<()> {
+        let config = config::load_config(self)?;
+        self.config = Some(config);
+        Ok(())
     }
 
     // getting some of its items

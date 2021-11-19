@@ -2,7 +2,7 @@ use crate::{info::GameInfo, io::FileType};
 use serde_derive::Deserialize;
 use std::{io::Read, path::PathBuf};
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Config {
     pub name: String,
     pub description: Option<String>,
@@ -12,22 +12,22 @@ pub struct Config {
     pub io: Option<IO>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Module {
     pub name: String,
     pub file: Option<PathBuf>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct IO {
     pub name: String,
     pub file: Option<PathBuf>,
 }
 
-pub fn load_config(info: GameInfo) -> anyhow::Result<Config> {
+pub fn load_config(info: &GameInfo) -> anyhow::Result<Config> {
     let mut file = String::from("");
     info.io()
-        .load_file(&info, "info.toml", "r", FileType::Other)?
+        .load_file(info, "info.toml", "r", FileType::Other)?
         .read_to_string(&mut file)?;
     let config: Config = toml::from_str(&file)?;
     Ok(config)

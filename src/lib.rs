@@ -38,6 +38,11 @@ impl AdventureScriptGame {
     }
 
     pub fn run(&mut self) {
+        //load config file
+        if let Err(err) = self.info.load_config() {
+            error::manage_error(&self.info, err);
+            return;
+        };
         println!("AdventureScript v{}\n", env!("CARGO_PKG_VERSION"));
         //add basic commands
         self.commands.extend(commands::main_commands());
