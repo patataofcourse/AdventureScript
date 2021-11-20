@@ -12,6 +12,8 @@ mod inventory {}
 
 mod methods {}
 
+mod macros;
+
 mod parsing;
 
 mod variables;

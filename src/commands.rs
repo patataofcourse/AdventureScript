@@ -1,5 +1,7 @@
 use crate::{
+    command,
     error::{ASCmdError, CommandErrors},
+    get_var,
     info::GameInfo,
     variables::{ASType, ASVariable},
 };
@@ -30,6 +32,7 @@ impl CmdSet {
         out
     }
     pub fn extend(&mut self, other: Self) {
+        //TODO: adapt for modules
         self.commands.extend(other.commands);
     }
     pub fn from(vec: Vec<Command>) -> Self {
@@ -119,12 +122,10 @@ impl Command {
 //TODO: *please* make this a macro
 pub fn main_commands() -> CmdSet {
     CmdSet::from(vec![
-        Command {
-            name: String::from("wait"),
-            func: |_self, info, _kwargs| info.io().wait(),
-            args_to_kwargs: Vec::<String>::new(),
-            accepted_kwargs: HashMap::<String, ASType>::new(),
-            default_values: HashMap::<String, ASVariable>::new(),
+        command! {
+            "wait" => |_cmd, info, _kwargs| {
+                info.io().wait()
+            }
         },
         Command {
             name: String::from("choice"),
@@ -235,43 +236,21 @@ pub fn main_commands() -> CmdSet {
                 (String::from("go9"), ASVariable::Label(None)),
             ]),
         },
-        Command {
-            name: String::from("goto"),
-            func: |_self, info, kwargs| {
-                info.goto_label(&kwargs["pos"])?;
-                Ok(())
-            },
-            args_to_kwargs: Vec::<String>::from([String::from("pos")]),
-            accepted_kwargs: HashMap::<String, ASType>::from_iter([(
-                String::from("pos"),
-                ASType::Label,
-            )]),
-            default_values: HashMap::<String, ASVariable>::new(),
+        command! {
+            "goto" (!"pos": Label, ) => |_cmd, info, kwargs| {
+                info.goto_label(&kwargs["pos"])
+            }
         },
-        Command {
-            name: String::from("ending"),
-            func: |_self, info, kwargs| {
-                let name = match &kwargs["name"] {
-                    ASVariable::String(c) => c,
-                    _ => "",
-                };
+        command! {
+            "ending" ("name": String = "".to_string(), ) => |_cmd, info, kwargs| {
+                let name = get_var!(kwargs -> "name": String);
                 info.io().show(&format!("Ending: {}", name))?;
                 info.quit();
                 Ok(())
-            },
-            args_to_kwargs: Vec::<String>::from([String::from("name")]),
-            accepted_kwargs: HashMap::<String, ASType>::from_iter([(
-                String::from("name"),
-                ASType::String,
-            )]),
-            default_values: HashMap::<String, ASVariable>::from_iter([(
-                String::from("name"),
-                ASVariable::String(String::from("")),
-            )]),
+            }
         },
-        Command {
-            name: "flag".to_string(),
-            func: |_self, info, kwargs| {
+        command! {
+            "flag" (!"flag": VarRef, "value": Bool = true, ) => |_cmd, info, kwargs| {
                 let flag = match kwargs.get("flag").unwrap() {
                     //Make sure you're getting a flag, not a variable
                     ASVariable::VarRef { name, .. } => ASVariable::VarRef {
@@ -281,16 +260,7 @@ pub fn main_commands() -> CmdSet {
                     _ => panic!(""),
                 };
                 info.set_var(&flag, kwargs.get("value").unwrap().clone())
-            },
-            accepted_kwargs: HashMap::<String, ASType>::from_iter([
-                (String::from("flag"), ASType::VarRef),
-                (String::from("value"), ASType::Bool),
-            ]),
-            default_values: HashMap::<String, ASVariable>::from_iter([(
-                String::from("value"),
-                ASVariable::Bool(true),
-            )]),
-            args_to_kwargs: vec![String::from("flag"), String::from("value")],
+            }
         },
         Command {
             name: "set".to_string(),
