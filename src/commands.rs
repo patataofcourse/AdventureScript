@@ -262,75 +262,36 @@ pub fn main_commands() -> CmdSet {
                 info.set_var(&flag, kwargs.get("value").unwrap().clone())
             }
         },
-        Command {
-            name: "set".to_string(),
-            func: |_self, info, kwargs| {
+        command! {
+            "set" (!"var": VarRef, !"value": Any,) => |_cmd, info, kwargs| {
                 info.set_var(
                     kwargs.get("var").unwrap(),
                     kwargs.get("value").unwrap().clone(),
                 )
-            },
-            accepted_kwargs: HashMap::<String, ASType>::from_iter([
-                (String::from("var"), ASType::VarRef),
-                (String::from("value"), ASType::Any),
-            ]),
-            default_values: HashMap::<String, ASVariable>::new(),
-            args_to_kwargs: vec![String::from("var"), String::from("value")],
+            }
         },
-        Command {
-            name: "add".to_string(),
-            func: |_self, info, kwargs| {
+        command! {
+            "add" (!"var": VarRef, !"value": Any,) => |_cmd, info, kwargs| {
                 let var = kwargs.get("var").unwrap();
                 let val = info.get_var(var)?.clone();
                 info.set_var(var, (val + kwargs.get("value").unwrap().clone())?)
-            },
-            accepted_kwargs: HashMap::<String, ASType>::from_iter([
-                (String::from("var"), ASType::VarRef),
-                (String::from("value"), ASType::Any),
-            ]),
-            default_values: HashMap::<String, ASVariable>::new(),
-            args_to_kwargs: vec![String::from("var"), String::from("value")],
+            }
         },
-        Command {
-            name: "loadscript".to_string(),
-            func: |_self, info, kwargs| {
-                let script_name: &str = match kwargs.get("name").unwrap() {
-                    ASVariable::String(c) => c,
-                    _ => panic!(),
-                };
+        command! {
+            "loadscript" (!"name": String,) => |_cmd, info, kwargs| {
+                let script_name: &str = get_var!(kwargs -> "name": String);
                 info.load_script(Some(script_name))
-            },
-            accepted_kwargs: HashMap::<String, ASType>::from_iter([(
-                String::from("name"),
-                ASType::String,
-            )]),
-            default_values: HashMap::<String, ASVariable>::new(),
-            args_to_kwargs: vec![String::from("name")],
+            }
         },
-        Command {
-            name: "if".to_string(),
-            func: |_self, info, kwargs| {
-                let condition = match kwargs.get("condition").unwrap() {
-                    ASVariable::Bool(c) => *c,
-                    _ => panic!(),
-                };
+        command! {
+            "if" (!"condition": Bool, !"gotrue": Label, !"gofalse": Label, ) => |_cmd, info, kwargs| {
+                let condition = *get_var!(kwargs -> "condition": Bool);
                 if condition {
                     info.goto_label(kwargs.get("gotrue").unwrap())
                 } else {
                     info.goto_label(kwargs.get("gofalse").unwrap())
                 }
-            },
-            accepted_kwargs: HashMap::<String, ASType>::from_iter([
-                (String::from("condition"), ASType::Bool),
-                (String::from("gotrue"), ASType::Label),
-                (String::from("gofalse"), ASType::Label),
-            ]),
-            default_values: HashMap::<String, ASVariable>::new(),
-            args_to_kwargs: vec![
-                String::from("condition"),
-                String::from("gotrue"),
-                String::from("gofalse"),
-            ],
+            }
         },
     ])
 }
