@@ -127,37 +127,70 @@ pub fn main_commands() -> CmdSet {
                 info.io().wait()
             }
         },
-        Command {
-            name: String::from("choice"),
-            func: |_self, info, kwargs| {
+        command! {
+            "choice" (
+                !"text": String,
+                !"choice1": List,
+                "choice2": List = vec![],
+                "choice3": List = vec![],
+                "choice4": List = vec![],
+                "choice5": List = vec![],
+                "choice6": List = vec![],
+                "choice7": List = vec![],
+                "choice8": List = vec![],
+                "choice9": List = vec![],
+            ) => |_cmd, info, kwargs| {
                 let mut c = 1;
-                let mut choices = Vec::<&str>::new();
+                let mut texts = Vec::<&str>::new();
                 let mut gotos = Vec::<ASVariable>::new();
-                //get lists of the choices and gotos
+                // separate the choices into the vectors defined above
                 while c <= 9 {
-                    if c == 3 {
-                        break;
-                    } //Remove after proper choice command
-                    let choice: &str = match &kwargs[&format!("ch{}", c)] {
-                        ASVariable::String(c) => c,
-                        _ => "",
+                    let choice = get_var!(kwargs -> &format!("choice{}", c); List);
+                    let text: &str = match choice.get(0) {
+                        Some(s) => match s {
+                            ASVariable::String(c) => c,
+                            other => Err(ASCmdError {
+                                command: "choice".to_string(),
+                                details: CommandErrors::ChoiceWrongType{
+                                    choice: c,
+                                    number: 0,
+                                    given: other.get_type(),
+                                    asked: ASType::String
+                                }
+                            })?,
+                        },
+                        None => break
                     };
-                    let goto = &kwargs[&format!("go{}", c)];
-                    //TODO: implement None default values
-                    // if goto == ASVariable::None {
-                    //     break;
-                    // }
-                    choices.append(&mut Vec::<&str>::from([choice]));
-                    gotos.append(&mut Vec::<ASVariable>::from([goto.clone()]));
-                    c += 1;
+                    let goto = match choice.get(1){
+                        Some(c) => c,
+                        None => Err(ASCmdError {
+                            command: "choice".to_string(),
+                            details: CommandErrors::ChoiceMissingRequired{typ: ASType::Label, choice: c},
+                        })?,
+                    };
+                    let flag = match choice.get(2) {
+                        Some(l) => match l {
+                            ASVariable::Bool(c) => *c,
+                            other => Err(ASCmdError {
+                                command: "choice".to_string(),
+                                details: CommandErrors::ChoiceWrongType{
+                                    choice: c,
+                                    number: 0,
+                                    given: other.get_type(),
+                                    asked: ASType::String
+                                }
+                            })?,
+                        },
+                        None => true,
+                    };
+                    if flag {
+                        texts.push(text);
+                        gotos.push(goto.clone());
+                    }
+                    c += 1
                 }
-                //get text
-                let text = match &kwargs["text"] {
-                    ASVariable::String(c) => c,
-                    _ => "",
-                };
-                //run io func and manage result
-                let pick = info.query(text, choices, true)?; //TODO: add allow_save
+                let text = get_var!(kwargs -> "text"; String);
+                let pick = info.query(text, texts, true)?; //TODO: add allow_save
                 if pick == 0 {
                     // used in save/return/quit
                     info.pointer -= 1;
@@ -165,76 +198,7 @@ pub fn main_commands() -> CmdSet {
                 };
                 info.goto_label(gotos.get((pick - 1) as usize).unwrap())?;
                 Ok(())
-            },
-            args_to_kwargs: Vec::<String>::from([String::from("text")]),
-            accepted_kwargs: HashMap::<String, ASType>::from_iter([
-                (String::from("text"), ASType::String),
-                (String::from("ch1"), ASType::String),
-                (String::from("ch2"), ASType::String),
-                (String::from("ch3"), ASType::String),
-                (String::from("ch4"), ASType::String),
-                (String::from("ch5"), ASType::String),
-                (String::from("ch6"), ASType::String),
-                (String::from("ch7"), ASType::String),
-                (String::from("ch8"), ASType::String),
-                (String::from("ch9"), ASType::String),
-                (String::from("go1"), ASType::Label),
-                (String::from("go2"), ASType::Label),
-                (String::from("go3"), ASType::Label),
-                (String::from("go4"), ASType::Label),
-                (String::from("go5"), ASType::Label),
-                (String::from("go6"), ASType::Label),
-                (String::from("go7"), ASType::Label),
-                (String::from("go8"), ASType::Label),
-                (String::from("go9"), ASType::Label),
-            ]),
-            default_values: HashMap::<String, ASVariable>::from_iter([
-                (String::from("text"), ASVariable::String(String::from(""))),
-                (
-                    String::from("ch1"),
-                    ASVariable::String(String::from("Choice 1")),
-                ),
-                (
-                    String::from("ch2"),
-                    ASVariable::String(String::from("Choice 2")),
-                ),
-                (
-                    String::from("ch3"),
-                    ASVariable::String(String::from("Choice 3")),
-                ),
-                (
-                    String::from("ch4"),
-                    ASVariable::String(String::from("Choice 4")),
-                ),
-                (
-                    String::from("ch5"),
-                    ASVariable::String(String::from("Choice 5")),
-                ),
-                (
-                    String::from("ch6"),
-                    ASVariable::String(String::from("Choice 6")),
-                ),
-                (
-                    String::from("ch7"),
-                    ASVariable::String(String::from("Choice 7")),
-                ),
-                (
-                    String::from("ch8"),
-                    ASVariable::String(String::from("Choice 8")),
-                ),
-                (
-                    String::from("ch9"),
-                    ASVariable::String(String::from("Choice 9")),
-                ),
-                (String::from("go2"), ASVariable::Label(None)),
-                (String::from("go3"), ASVariable::Label(None)),
-                (String::from("go4"), ASVariable::Label(None)),
-                (String::from("go5"), ASVariable::Label(None)),
-                (String::from("go6"), ASVariable::Label(None)),
-                (String::from("go7"), ASVariable::Label(None)),
-                (String::from("go8"), ASVariable::Label(None)),
-                (String::from("go9"), ASVariable::Label(None)),
-            ]),
+            }
         },
         command! {
             "goto" (!"pos": Label, ) => |_cmd, info, kwargs| {
@@ -243,7 +207,7 @@ pub fn main_commands() -> CmdSet {
         },
         command! {
             "ending" ("name": String = "".to_string(), ) => |_cmd, info, kwargs| {
-                let name = get_var!(kwargs -> "name": String);
+                let name = get_var!(kwargs -> "name"; String);
                 info.io().show(&format!("Ending: {}", name))?;
                 info.quit();
                 Ok(())
@@ -279,13 +243,13 @@ pub fn main_commands() -> CmdSet {
         },
         command! {
             "loadscript" (!"name": String,) => |_cmd, info, kwargs| {
-                let script_name: &str = get_var!(kwargs -> "name": String);
+                let script_name: &str = get_var!(kwargs -> "name"; String);
                 info.load_script(Some(script_name))
             }
         },
         command! {
             "if" (!"condition": Bool, !"gotrue": Label, !"gofalse": Label, ) => |_cmd, info, kwargs| {
-                let condition = *get_var!(kwargs -> "condition": Bool);
+                let condition = *get_var!(kwargs -> "condition"; Bool);
                 if condition {
                     info.goto_label(kwargs.get("gotrue").unwrap())
                 } else {

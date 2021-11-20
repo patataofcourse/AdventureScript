@@ -45,21 +45,22 @@ macro_rules! command {
 
 #[macro_export]
 macro_rules! get_var {
-    ($map:ident->$vname:literal:$vtype:ident or None) => {{
+    ($map:ident->$vname:expr;$vtype:ident or None) => {{
         match $map.get($vname).expect("Non-existent argument on get_var") {
             $crate::ASVariable::$vtype(c) => Some(c),
             $crate::ASVariable::None => None,
             _ => panic!("Wrong type on get_var"),
         }
     }};
-    ($map:ident->$vname:literal:$vtype:ident) => {{
+    ($map:ident->$vname:expr;$vtype:ident) => {{
         let var = match $map.get($vname).expect("Non-existent argument on get_var") {
             $crate::ASVariable::$vtype(c) => Some(c),
             _ => panic!("Wrong type on get_var"),
         };
         match var {
+            //TODO: GotNoneError
             Some(c) => c,
-            _ => panic!("get_var: Got a None value from a variable that shouldn't be None"),
+            None => panic!("get_var: Got a None value from a variable that shouldn't be None"),
         }
     }};
 }

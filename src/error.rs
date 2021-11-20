@@ -64,6 +64,15 @@ pub enum CommandErrors {
         required_type: ASType,
         given_type: ASType,
     },
+    #[error("Choice #{choice} is missing an argument (of type {typ})")]
+    ChoiceMissingRequired { choice: u8, typ: ASType },
+    #[error("Choice #{choice} argument in pos {number} is of type {asked}, but got {given}")]
+    ChoiceWrongType {
+        choice: u8,
+        number: u8,
+        given: ASType,
+        asked: ASType,
+    },
 }
 
 // File error

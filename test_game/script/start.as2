@@ -3,7 +3,7 @@ Some text here\n
 Blank lines are ignored now so you have to add a backslash-n
 \n
 \v["this is a " + "test"] \v[2] \v[]
-! choice "test lists?"; ch1="yes"; go1={choice1}; ch2="no"; go2={choice2}
+! choice "test lists?"; ["yes", {choice1}]; ["no", {choice2}]
 
 {choice1}
 Choice 1
