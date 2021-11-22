@@ -54,12 +54,16 @@ fn load_file_(
     })
 }
 
+fn error_(text: String) {
+    eprintln!("{}", text)
+}
+
 pub struct AdventureIO {
     show: fn(&str) -> anyhow::Result<()>,
     wait: fn() -> anyhow::Result<()>,
     input: fn() -> anyhow::Result<String>,
     load_file: fn(&GameInfo, &str, &str, FileType) -> anyhow::Result<File>,
-    //TODO: get io commands
+    error: fn(String),
 }
 
 impl AdventureIO {
@@ -81,18 +85,23 @@ impl AdventureIO {
     ) -> anyhow::Result<File> {
         (self.load_file)(info, filename, mode, ftype)
     }
+    pub fn error(&self, text: String) {
+        (self.error)(text)
+    }
 
     pub fn default_with(
         show: Option<fn(&str) -> anyhow::Result<()>>,
         wait: Option<fn() -> anyhow::Result<()>>,
         input: Option<fn() -> anyhow::Result<String>>,
         load_file: Option<fn(&GameInfo, &str, &str, FileType) -> anyhow::Result<File>>,
+        error: Option<fn(String)>,
     ) -> Self {
         Self {
             show: show.unwrap_or(show_),
             wait: wait.unwrap_or(wait_),
             input: input.unwrap_or(input_),
             load_file: load_file.unwrap_or(load_file_),
+            error: error.unwrap_or(error_),
         }
     }
 }
@@ -104,6 +113,7 @@ impl Default for AdventureIO {
             wait: wait_,
             input: input_,
             load_file: load_file_,
+            error: error_,
         }
     }
 }

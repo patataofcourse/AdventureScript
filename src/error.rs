@@ -6,7 +6,7 @@ use std::{
 use thiserror::Error;
 
 pub fn manage_error(info: &GameInfo, err: anyhow::Error) {
-    eprint!(
+    let mut error = format!(
         "\nAdventureScript error on script {}, line {} - ",
         info.script_name(),
         info.pointer(),
@@ -14,20 +14,21 @@ pub fn manage_error(info: &GameInfo, err: anyhow::Error) {
     if let Some(_c) = err.downcast_ref::<ASFileError>() {
     } else if let Some(_c) = err.downcast_ref::<ASCmdError>() {
     } else if let Some(_c) = err.downcast_ref::<ASSyntaxError>() {
-        eprint!("syntax error:\n\t")
+        error += "syntax error:\n\t";
     } else if let Some(_c) = err.downcast_ref::<ASNotImplemented>() {
-        eprint!("feature not implemented:\n\t");
+        error += "feature not implemented:\n\t";
     } else if let Some(_c) = err.downcast_ref::<ASVarError>() {
-        eprint!("variable error:\n\t")
+        error += "variable error:\n\t";
     } else if let Some(_c) = err.downcast_ref::<ASGameError>() {
-        eprint!("error raised by game:\n\t");
+        error += "error raised by game:\n\t";
     } else if let Some(_c) = err.downcast_ref::<DevErr>() {
-        eprint!("development error:\n\t");
+        error += "development error:\n\t"
     } else {
-        eprint!("uncaught internal error:\n\t");
+        error += "uncaught internal error:\n\t";
     };
-    eprintln!(
-        "{}",
+    info.io().error(format!(
+        "{}{}",
+        error,
         (|| {
             let err = err.to_string();
             let mut lines = err.lines();
@@ -37,7 +38,7 @@ pub fn manage_error(info: &GameInfo, err: anyhow::Error) {
             }
             out
         })()
-    );
+    ));
 }
 
 // Command error
