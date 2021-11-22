@@ -1,4 +1,8 @@
-use crate::{info::GameInfo, io::FileType};
+use crate::{
+    error::{ASFileError, FileErrors},
+    info::GameInfo,
+    io::FileType,
+};
 use serde_derive::Deserialize;
 use std::{io::Read, path::PathBuf};
 
@@ -29,6 +33,13 @@ pub fn load_config(info: &GameInfo) -> anyhow::Result<Config> {
     info.io()
         .load_file(info, "info.toml", "r", FileType::Other)?
         .read_to_string(&mut file)?;
-    let config: Config = toml::from_str(&file)?;
+    let config: Config = match toml::from_str(&file) {
+        Ok(c) => c,
+        Err(e) => Err(ASFileError::from(
+            "info.toml",
+            "r",
+            FileErrors::ConfigLoadError(e.to_string()),
+        ))?,
+    };
     Ok(config)
 }

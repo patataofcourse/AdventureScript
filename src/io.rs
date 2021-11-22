@@ -43,9 +43,31 @@ fn load_file_(
         FileType::CustomDir(c) => format!("{}/", c),
         FileType::Other => String::new(),
     };
+
+    //this manages std::io errors
+    let return_errors = |i: std::io::Result<File>| -> anyhow::Result<File> {
+        match i {
+            Ok(c) => Ok(c),
+            Err(e) => {
+                use std::io::ErrorKind as EK;
+                match e.kind() {
+                    EK::NotFound => Err(ASFileError::from(filename, mode, FileErrors::NotFound))?,
+                    EK::PermissionDenied => Err(ASFileError::from(
+                        filename,
+                        mode,
+                        FileErrors::MissingPermissions,
+                    ))?,
+
+                    _ => Err(e)?,
+                }
+            }
+        }
+    };
+
+    let fname = format!("{}/{}{}", info.root_dir(), folder, filename);
     Ok(match mode {
-        "r" => File::open(format!("{}/{}{}", info.root_dir(), folder, filename))?,
-        "w" => File::create(format!("{}/{}{}", info.root_dir(), folder, filename))?,
+        "r" => return_errors(File::open(fname))?,
+        "w" => return_errors(File::create(fname))?,
         _ => Err(ASFileError::from(
             filename,
             mode,

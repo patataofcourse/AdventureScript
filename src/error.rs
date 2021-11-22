@@ -14,17 +14,17 @@ pub fn manage_error(info: &GameInfo, err: anyhow::Error) {
     if let Some(_c) = err.downcast_ref::<ASFileError>() {
     } else if let Some(_c) = err.downcast_ref::<ASCmdError>() {
     } else if let Some(_c) = err.downcast_ref::<ASSyntaxError>() {
-        error += "syntax error:\n\t";
+        error += "syntax error:\n    ";
     } else if let Some(_c) = err.downcast_ref::<ASNotImplemented>() {
-        error += "feature not implemented:\n\t";
+        error += "feature not implemented:\n    ";
     } else if let Some(_c) = err.downcast_ref::<ASVarError>() {
-        error += "variable error:\n\t";
+        error += "variable error:\n    ";
     } else if let Some(_c) = err.downcast_ref::<ASGameError>() {
-        error += "error raised by game:\n\t";
+        error += "error raised by game:\n    ";
     } else if let Some(_c) = err.downcast_ref::<DevErr>() {
-        error += "development error:\n\t"
+        error += "development error:\n    "
     } else {
-        error += "uncaught internal error:\n\t";
+        error += "uncaught internal error:\n    ";
     };
     info.io().error(format!(
         "{}{}",
@@ -34,7 +34,7 @@ pub fn manage_error(info: &GameInfo, err: anyhow::Error) {
             let mut lines = err.lines();
             let mut out = lines.next().unwrap().to_string();
             for line in lines {
-                out += &format!("\n\t{}", line);
+                out += &format!("\n    {}", line);
             }
             out
         })()
@@ -122,8 +122,8 @@ impl Display for ASFileError {
     fn fmt(&self, f: &mut Formatter) -> Result {
         write!(
             f,
-            "error when {} file {}\n{}",
-            self.filename, self.mode, self.details
+            "error when {} file {}:\n{}",
+            self.mode, self.filename, self.details
         )
     }
 }
@@ -134,6 +134,12 @@ impl Error for ASFileError {}
 pub enum FileErrors {
     #[error("Mode '{0}' is invalid")]
     InvalidMode(String),
+    #[error("File not found")]
+    NotFound,
+    #[error("Permission denied - check that the file isn't read-only")]
+    MissingPermissions,
+    #[error("Error parsing configuration file:\n    {0}")]
+    ConfigLoadError(String),
 }
 
 // Syntax/parsing error
