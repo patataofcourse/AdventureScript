@@ -262,10 +262,7 @@ fn merge_this_into_simplify(mut text: String) -> anyhow::Result<(String, Vec<Str
                     '[' => ']',
                     '(' => ')',
                     '{' => '}',
-                    //Maybe this should panic?
-                    c => Err(ASSyntaxError::Generic {
-                        details: format!("Bracket type opened unknown: {}", c),
-                    })?,
+                    _ => panic!(),
                 };
                 if chr == needed_char {
                     if nesting > 0 {

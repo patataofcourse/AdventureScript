@@ -1,5 +1,7 @@
 #[macro_export]
 macro_rules! command {
+    //TODO: replace dexpr/kexpr with a tokentree
+    //TODO: maybe remove kwarg functionality and keep only posargs? it's not like an *args functionality is done
     ($name:literal $((
         $(
             $(!$pname:literal:$ptype:ident),+,
@@ -45,7 +47,7 @@ macro_rules! command {
 
 #[macro_export]
 macro_rules! get_var {
-    ($map:ident->$vname:expr;$vtype:ident or None) => {{
+    ($map:ident->$vname:expr;$vtype:ident.or_none) => {{
         match $map.get($vname).expect("Non-existent argument on get_var") {
             $crate::ASVariable::$vtype(c) => Some(c),
             $crate::ASVariable::None => None,

@@ -50,6 +50,10 @@ impl Command {
         args: Vec<ASVariable>,
         kwargs: HashMap<String, ASVariable>,
     ) -> anyhow::Result<()> {
+        //TODO: disallow None type arguments
+        //TODO: implement or_none
+        //TODO: make sure arg ordering/defaults are well done
+
         let mut c = 0;
         let mut kwargs = kwargs;
         // Turn positional arguments into keyword arguments
@@ -119,7 +123,6 @@ impl Command {
     }
 }
 
-//TODO: *please* make this a macro
 pub fn main_commands() -> CmdSet {
     CmdSet::from(vec![
         command! {
@@ -221,7 +224,7 @@ pub fn main_commands() -> CmdSet {
                         name: name.to_string(),
                         flag: true,
                     },
-                    _ => panic!(""),
+                    _ => panic!(),
                 };
                 info.set_var(&flag, kwargs.get("value").unwrap().clone())
             }
