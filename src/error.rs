@@ -21,6 +21,8 @@ pub fn manage_error(info: &GameInfo, err: anyhow::Error) {
         eprint!("variable error:\n\t")
     } else if let Some(_c) = err.downcast_ref::<ASGameError>() {
         eprint!("error raised by game:\n\t");
+    } else if let Some(_c) = err.downcast_ref::<DevErr>() {
+        eprint!("development error:\n\t");
     } else {
         eprint!("uncaught internal error:\n\t");
     };
@@ -192,6 +194,8 @@ pub enum ASSyntaxError {
     InvalidLabelName(String),
 }
 
+// Error for WIP/unimplemented stuff
+
 #[derive(Debug)]
 pub struct ASNotImplemented(pub String);
 
@@ -203,6 +207,8 @@ impl Display for ASNotImplemented {
 
 impl Error for ASNotImplemented {}
 
+//Variable error (getting variables mostly)
+
 #[derive(Debug, Error)]
 pub enum ASVarError {
     #[error("Tried to set flag {0} to a non-boolean value")]
@@ -210,6 +216,8 @@ pub enum ASVarError {
     #[error("Tried to access variable {0}, which doesn't exist.\nTip: use !set {0}; [some value]")]
     VarNotFound(String),
 }
+
+//Error raised from the game
 
 #[derive(Debug)]
 pub struct ASGameError(pub String);
@@ -221,3 +229,18 @@ impl Display for ASGameError {
 }
 
 impl Error for ASGameError {}
+
+#[derive(Debug)]
+pub struct DevErr(pub String);
+
+impl Display for DevErr {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(
+            f,
+            "Author of a module left in a bug - please report to them!\n{}",
+            self.0
+        )
+    }
+}
+
+impl Error for DevErr {}

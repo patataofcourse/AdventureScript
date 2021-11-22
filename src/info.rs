@@ -1,7 +1,7 @@
 use crate::{
     config,
     config::Config,
-    error::{ASSyntaxError, ASVarError},
+    error::{ASSyntaxError, ASVarError, DevErr},
     io::{AdventureIO, FileType},
     variables::ASVariable,
 };
@@ -68,7 +68,9 @@ impl GameInfo {
                 None => return Ok(()),
                 Some(c) => c,
             },
-            _ => panic!("Used goto_label function with a non-label ASVariable"),
+            _ => Err(DevErr(
+                "Used goto_label function with a non-label ASVariable".to_string(),
+            ))?,
         };
 
         let mut c = 0; //loop counter
@@ -122,7 +124,9 @@ impl GameInfo {
                     }
                 }
             }
-            _ => panic!("Tried to get the variable value of a non-VarRef value"),
+            _ => Err(DevErr(
+                "Tried to get the variable value of a non-VarRef value".to_string(),
+            ))?,
         })
     }
 
@@ -138,7 +142,9 @@ impl GameInfo {
                 self.variables.insert(name.to_string(), value);
             }
         } else {
-            panic!("Tried to set the variable value of a non-VarRef value")
+            Err(DevErr(
+                "Tried to set the variable value of a non-VarRef value".to_string(),
+            ))?
         }
         Ok(())
     }
@@ -153,7 +159,9 @@ impl GameInfo {
                 }
             }
         } else {
-            panic!("Tried to delete the variable value of a non-VarRef value")
+            Err(DevErr(
+                "Tried to delete the variable value of a non-VarRef value".to_string(),
+            ))?
         }
         Ok(())
     }
