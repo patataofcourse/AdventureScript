@@ -1,6 +1,6 @@
 use crate::{
     command,
-    error::{ASCmdError, CommandErrors},
+    error::{ASCmdError, ASGameError, CommandErrors},
     get_var,
     info::GameInfo,
     variables::{ASType, ASVariable},
@@ -258,6 +258,12 @@ pub fn main_commands() -> CmdSet {
                 } else {
                     info.goto_label(kwargs.get("gofalse").unwrap())
                 }
+            }
+        },
+        command! {
+            "error" (!"message": String, ) => |_cmd, _info, kwargs| {
+                let message = get_var!(kwargs -> "message"; String).to_string();
+                Err(ASGameError(message))?
             }
         },
     ])

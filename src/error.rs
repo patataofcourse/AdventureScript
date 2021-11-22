@@ -16,10 +16,26 @@ pub fn manage_error(info: &GameInfo, err: anyhow::Error) {
     } else if let Some(_c) = err.downcast_ref::<ASSyntaxError>() {
         eprint!("syntax error:\n\t")
     } else if let Some(_c) = err.downcast_ref::<ASNotImplemented>() {
+        eprint!("feature not implemented:\n\t");
+    } else if let Some(_c) = err.downcast_ref::<ASVarError>() {
+        eprint!("variable error:\n\t")
+    } else if let Some(_c) = err.downcast_ref::<ASGameError>() {
+        eprint!("error raised by game:\n\t");
     } else {
         eprint!("uncaught internal error:\n\t");
     };
-    eprintln!("{}", err);
+    eprintln!(
+        "{}",
+        (|| {
+            let err = err.to_string();
+            let mut lines = err.lines();
+            let mut out = lines.next().unwrap().to_string();
+            for line in lines {
+                out += &format!("\n\t{}", line);
+            }
+            out
+        })()
+    );
 }
 
 // Command error
@@ -32,7 +48,7 @@ pub struct ASCmdError {
 
 impl Display for ASCmdError {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "on command {}:\n\t{}", self.command, self.details)
+        write!(f, "on command {}:\n{}", self.command, self.details)
     }
 }
 
@@ -84,11 +100,26 @@ pub struct ASFileError {
     pub details: FileErrors,
 }
 
+impl ASFileError {
+    pub fn from(filename: &str, mode: &str, details: FileErrors) -> Self {
+        Self {
+            filename: filename.to_string(),
+            mode: match mode {
+                "r" => "reading",
+                "w" => "writing",
+                _ => "opening",
+            }
+            .to_string(),
+            details,
+        }
+    }
+}
+
 impl Display for ASFileError {
     fn fmt(&self, f: &mut Formatter) -> Result {
         write!(
             f,
-            "error when opening file {} with mode '{}':\n\t{}",
+            "error when {} file {}\n{}",
             self.filename, self.mode, self.details
         )
     }
@@ -98,8 +129,8 @@ impl Error for ASFileError {}
 
 #[derive(Debug, Error)]
 pub enum FileErrors {
-    #[error("Mode given is invalid")]
-    InvalidMode {},
+    #[error("Mode '{0}' is invalid")]
+    InvalidMode(String),
 }
 
 // Syntax/parsing error
@@ -166,7 +197,7 @@ pub struct ASNotImplemented(pub String);
 
 impl Display for ASNotImplemented {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(f, "feature not implemented:\n\t{}", self.0)
+        write!(f, "{}", self.0)
     }
 }
 
@@ -179,3 +210,14 @@ pub enum ASVarError {
     #[error("Tried to access variable {0}, which doesn't exist.\nTip: use !set {0}; [some value]")]
     VarNotFound(String),
 }
+
+#[derive(Debug)]
+pub struct ASGameError(pub String);
+
+impl Display for ASGameError {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl Error for ASGameError {}

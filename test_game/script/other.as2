@@ -27,4 +27,5 @@ test failed. sad.
 
 {false}
 test succeeded
+!error "WIP - this isn't finished yet! :D"
 !ending "ok it works"

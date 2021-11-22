@@ -46,11 +46,11 @@ fn load_file_(
     Ok(match mode {
         "r" => File::open(format!("{}/{}{}", info.root_dir(), folder, filename))?,
         "w" => File::create(format!("{}/{}{}", info.root_dir(), folder, filename))?,
-        _ => Err(ASFileError {
-            filename: filename.to_string(),
-            mode: mode.to_string(),
-            details: FileErrors::InvalidMode {},
-        })?,
+        _ => Err(ASFileError::from(
+            filename,
+            mode,
+            FileErrors::InvalidMode(mode.to_string()),
+        ))?,
     })
 }
 
