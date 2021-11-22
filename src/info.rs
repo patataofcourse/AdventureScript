@@ -61,7 +61,6 @@ impl GameInfo {
         &self.io
     }
 
-    //TODO: implement
     pub fn goto_label(&mut self, var: &ASVariable) -> anyhow::Result<()> {
         let lname = match var {
             ASVariable::Label(c) => match c {
@@ -89,16 +88,6 @@ impl GameInfo {
             }
             _ => Err(ASSyntaxError::RepeatedLabel(lname.to_string(), instances))?,
         }
-
-        /*
-        for ch in info.forbidden_characters:
-            if ch in label[1:-1]:
-                raise exceptions.InvalidNameCharacter(info.scriptname, info.pointer, "label", ch)
-        for line in info.script:
-            if line.strip().startswith("{" + label + "}"):
-                return info.script.index(line)+1
-        raise exceptions.UndefinedLabelError(info.scriptname, info.pointer, label)
-        */
     }
 
     pub fn next_line(&mut self) {
