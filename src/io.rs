@@ -1,11 +1,12 @@
 use crate::{
-    error::{ASFileError, FileErrors},
+    error::{ASFileError, ASOtherError, FileErrors},
     info::GameInfo,
 };
 use anyhow;
 use std::{
     fs::File,
     io::{stdin, stdout, Read, Write},
+    path::PathBuf,
 };
 
 fn show_(text: &str) -> anyhow::Result<()> {
@@ -28,8 +29,17 @@ fn input_() -> anyhow::Result<String> {
 
 pub enum FileType {
     Script,
+    Save,
     CustomDir(String),
     Other,
+}
+
+fn pc_save_location() -> anyhow::Result<std::path::PathBuf> {
+    //TODO other platforms?
+    return match dirs::data_local_dir() {
+        Some(c) => Ok(c),
+        None => Err(ASOtherError::UnsupportedPlatform)?,
+    };
 }
 
 fn load_file_(
@@ -39,10 +49,21 @@ fn load_file_(
     ftype: FileType,
 ) -> anyhow::Result<File> {
     let folder = match ftype {
-        FileType::Script => "script/".to_string(),
-        FileType::CustomDir(c) => format!("{}/", c),
-        FileType::Other => String::new(),
+        FileType::Script => PathBuf::from("script"),
+        FileType::CustomDir(c) => PathBuf::from(c),
+        FileType::Save => {
+            if info.local {
+                PathBuf::from("save")
+            } else {
+                pc_save_location()?
+            }
+        }
+        FileType::Other => PathBuf::new(),
     };
+
+    let mut fname = info.root_dir().clone();
+    fname.push(&folder);
+    fname.push(PathBuf::from(filename));
 
     //this manages std::io errors
     let return_errors = |i: std::io::Result<File>| -> anyhow::Result<File> {
@@ -53,7 +74,7 @@ fn load_file_(
                 match e.kind() {
                     EK::NotFound => Err(ASFileError::from(filename, mode, FileErrors::NotFound))?,
                     EK::PermissionDenied => Err(ASFileError::from(
-                        filename,
+                        &fname.to_string_lossy(),
                         mode,
                         FileErrors::MissingPermissions,
                     ))?,
@@ -64,12 +85,11 @@ fn load_file_(
         }
     };
 
-    let fname = format!("{}/{}{}", info.root_dir(), folder, filename);
     Ok(match mode {
-        "r" => return_errors(File::open(fname))?,
-        "w" => return_errors(File::create(fname))?,
+        "r" => return_errors(File::open(&fname))?,
+        "w" => return_errors(File::create(&fname))?,
         _ => Err(ASFileError::from(
-            filename,
+            &fname.to_string_lossy(),
             mode,
             FileErrors::InvalidMode(mode.to_string()),
         ))?,

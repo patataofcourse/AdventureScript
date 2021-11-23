@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 mod commands;
 
 pub mod config;
@@ -32,9 +34,13 @@ pub struct AdventureScriptGame {
 impl AdventureScriptGame {
     /// document this better later, me
     /// however, root_dir is basically the root folder of the game
-    pub fn new(root_dir: String, io: Option<io::AdventureIO>) -> AdventureScriptGame {
+    pub fn new(
+        root_dir: String,
+        io: Option<io::AdventureIO>,
+        is_local: bool,
+    ) -> AdventureScriptGame {
         AdventureScriptGame {
-            info: GameInfo::create(root_dir, io.unwrap_or_default()),
+            info: GameInfo::create(PathBuf::from(root_dir), io.unwrap_or_default(), is_local),
             commands: CmdSet::new(),
         }
     }

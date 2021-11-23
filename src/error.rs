@@ -21,7 +21,7 @@ pub fn manage_error(info: &GameInfo, err: anyhow::Error) {
         error += "variable error:\n    ";
     } else if let Some(_c) = err.downcast_ref::<ASGameError>() {
         error += "error raised by game:\n    ";
-    } else if let Some(_c) = err.downcast_ref::<DevErr>() {
+    } else if let Some(_c) = err.downcast_ref::<ASOtherError>() {
         error += "development error:\n    "
     } else {
         error += "uncaught internal error:\n    ";
@@ -237,17 +237,12 @@ impl Display for ASGameError {
 
 impl Error for ASGameError {}
 
-#[derive(Debug)]
-pub struct DevErr(pub String);
+//Other unspecified error
 
-impl Display for DevErr {
-    fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(
-            f,
-            "Author of a module left in a bug - please report to them!\n{}",
-            self.0
-        )
-    }
+#[derive(Debug, Error)]
+pub enum ASOtherError {
+    #[error("Author of a module left in a bug - please report to them!\n{0}")]
+    DevErr(String),
+    #[error("You tried running AdventureScript on an unsupported platform")]
+    UnsupportedPlatform,
 }
-
-impl Error for DevErr {}

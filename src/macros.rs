@@ -51,17 +51,21 @@ macro_rules! get_var {
         match $map.get($vname).expect("Non-existent argument on get_var") {
             $crate::ASVariable::$vtype(c) => Some(c),
             $crate::ASVariable::None => None,
-            _ => Err($crate::error::DevErr("Wrong type on get_var".to_string()))?,
+            _ => Err($crate::error::ASOtherError::DevErr(
+                "Wrong type on get_var".to_string(),
+            ))?,
         }
     }};
     ($map:ident->$vname:expr;$vtype:ident) => {{
         let var = match $map.get($vname).expect("Non-existent argument on get_var") {
             $crate::ASVariable::$vtype(c) => Some(c),
-            _ => Err($crate::error::DevErr("Wrong type on get_var".to_string()))?,
+            _ => Err($crate::error::ASOtherError::DevErr(
+                "Wrong type on get_var".to_string(),
+            ))?,
         };
         match var {
             Some(c) => c,
-            None => Err($crate::error::DevErr(
+            None => Err($crate::error::ASOtherError::DevErr(
                 "get_var: Got a None value from a variable that shouldn't be None".to_string(),
             ))?,
         }

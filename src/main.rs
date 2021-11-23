@@ -1,6 +1,7 @@
 use adventure_script;
 
 fn main() {
-    let mut game = adventure_script::AdventureScriptGame::new(String::from("test_game"), None);
+    let mut game =
+        adventure_script::AdventureScriptGame::new(String::from("test_game"), None, true);
     game.run();
 }

@@ -1,15 +1,15 @@
 use crate::{
     config,
     config::Config,
-    error::{ASSyntaxError, ASVarError, DevErr},
+    error::{ASOtherError, ASSyntaxError, ASVarError},
     io::{AdventureIO, FileType},
     variables::ASVariable,
 };
-use std::{collections::HashMap, io::Read};
+use std::{collections::HashMap, io::Read, path::PathBuf};
 
 pub struct GameInfo {
     io: AdventureIO,
-    root_dir: String,
+    root_dir: PathBuf,
     script_name: String,
     script: Vec<String>,
     pub pointer: i32,
@@ -17,10 +17,11 @@ pub struct GameInfo {
     flags: HashMap<String, ASVariable>,
     variables: HashMap<String, ASVariable>,
     config: Option<Config>,
+    pub local: bool,
 }
 
 impl GameInfo {
-    pub fn create(root_dir: String, io: AdventureIO) -> GameInfo {
+    pub fn create(root_dir: PathBuf, io: AdventureIO, local: bool) -> GameInfo {
         GameInfo {
             io: io,
             root_dir: root_dir,
@@ -31,6 +32,7 @@ impl GameInfo {
             flags: HashMap::<String, ASVariable>::new(),
             variables: HashMap::<String, ASVariable>::new(),
             config: None,
+            local,
         }
     }
 
@@ -47,7 +49,7 @@ impl GameInfo {
     pub fn pointer(&self) -> i32 {
         self.pointer + 1
     }
-    pub fn root_dir(&self) -> &str {
+    pub fn root_dir(&self) -> &PathBuf {
         &self.root_dir
     }
     pub fn get_line(&self) -> anyhow::Result<String> {
@@ -67,7 +69,7 @@ impl GameInfo {
                 None => return Ok(()),
                 Some(c) => c,
             },
-            _ => Err(DevErr(
+            _ => Err(ASOtherError::DevErr(
                 "Used goto_label function with a non-label ASVariable".to_string(),
             ))?,
         };
@@ -113,7 +115,7 @@ impl GameInfo {
                     }
                 }
             }
-            _ => Err(DevErr(
+            _ => Err(ASOtherError::DevErr(
                 "Tried to get the variable value of a non-VarRef value".to_string(),
             ))?,
         })
@@ -131,7 +133,7 @@ impl GameInfo {
                 self.variables.insert(name.to_string(), value);
             }
         } else {
-            Err(DevErr(
+            Err(ASOtherError::DevErr(
                 "Tried to set the variable value of a non-VarRef value".to_string(),
             ))?
         }
@@ -148,7 +150,7 @@ impl GameInfo {
                 }
             }
         } else {
-            Err(DevErr(
+            Err(ASOtherError::DevErr(
                 "Tried to delete the variable value of a non-VarRef value".to_string(),
             ))?
         }
