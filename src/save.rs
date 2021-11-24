@@ -5,40 +5,49 @@ use crate::{
     variables::ASVariable,
 };
 use serde_derive::{Deserialize, Serialize};
-use serde_json;
-use std::{collections::HashMap, io::Read, path::PathBuf, str::FromStr};
+use std::{collections::HashMap, io::Read};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Save {
     //TODO: make versions SemVers
     pub as_ver: String,
     pub game_ver: String,
-    pub script: PathBuf,
+    //TODO: use PathBufs for filenames
+    pub script: String,
     //TODO: save position as a label??
     pub pointer: i32,
-    pub flags: HashMap<String, bool>,
+    pub flags: HashMap<String, ASVariable>,
     pub variables: HashMap<String, ASVariable>,
     //TODO: implement screentext
     pub screentext: String,
 }
 
-pub fn test_save() {
-    let s = Save {
-        as_ver: "a".to_string(),
-        game_ver: "b".to_string(),
-        script: PathBuf::from_str("c").unwrap(),
-        pointer: 3,
-        flags: HashMap::new(),
-        variables: HashMap::from_iter([(
-            "hi".to_string(),
-            ASVariable::VarRef {
-                name: "s".to_string(),
-                flag: false,
-            },
-        )]),
-        screentext: "d".to_string(),
+pub fn restore(info: &mut GameInfo) -> anyhow::Result<()> {
+    let mut file = String::from("");
+    info.io()
+        //TODO: multisave
+        .load_file(info, "save.ad2", "r", FileType::Save)?
+        .read_to_string(&mut file)?;
+    let save: Save = match serde_json::from_str(&file) {
+        Ok(c) => c,
+        Err(e) => Err(ASFileError::from(
+            "save/save.ad2",
+            "r",
+            FileErrors::SaveLoadError(e.to_string()),
+        ))?,
     };
-    let a = serde_json::to_string_pretty(&s).unwrap();
-    println!("{}", a);
-    println!("{:#?}", serde_json::from_str::<Save>(&a));
+
+    //TODO: check versions
+
+    info.load_script(Some(&save.script))?;
+    info.pointer = save.pointer;
+    info.flags = save.flags;
+    info.variables = save.variables;
+    //TODO: screentext
+
+    Ok(())
+}
+
+pub fn save(info: &GameInfo) -> anyhow::Result<()> {
+    Ok(())
 }

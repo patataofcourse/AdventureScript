@@ -14,8 +14,8 @@ pub struct GameInfo {
     script: Vec<String>,
     pub pointer: i32,
     pub quitting: bool,
-    flags: HashMap<String, ASVariable>,
-    variables: HashMap<String, ASVariable>,
+    pub flags: HashMap<String, ASVariable>,
+    pub variables: HashMap<String, ASVariable>,
     config: Option<Config>,
     pub local: bool,
 }

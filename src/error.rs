@@ -140,6 +140,8 @@ pub enum FileErrors {
     MissingPermissions,
     #[error("Error parsing configuration file:\n    {0}")]
     ConfigLoadError(String),
+    #[error("Error parsing save file:\n    {0}")]
+    SaveLoadError(String),
 }
 
 // Syntax/parsing error

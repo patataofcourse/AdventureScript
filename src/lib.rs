@@ -8,7 +8,7 @@ mod info;
 mod io;
 mod macros;
 mod parsing;
-pub mod save;
+mod save;
 mod variables;
 
 mod inventory {}
