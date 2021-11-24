@@ -72,7 +72,11 @@ fn load_file_(
             Err(e) => {
                 use std::io::ErrorKind as EK;
                 match e.kind() {
-                    EK::NotFound => Err(ASFileError::from(filename, mode, FileErrors::NotFound))?,
+                    EK::NotFound => Err(ASFileError::from(
+                        &fname.to_string_lossy(),
+                        mode,
+                        FileErrors::NotFound,
+                    ))?,
                     EK::PermissionDenied => Err(ASFileError::from(
                         &fname.to_string_lossy(),
                         mode,

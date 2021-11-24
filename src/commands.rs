@@ -193,7 +193,7 @@ pub fn main_commands() -> CmdSet {
                     c += 1
                 }
                 let text = get_var!(kwargs -> "text"; String);
-                let pick = info.query(text, texts, true)?; //TODO: add allow_save
+                let pick = info.query(text, texts)?;
                 if pick == 0 {
                     // used in save/return/quit
                     info.pointer -= 1;
@@ -264,6 +264,12 @@ pub fn main_commands() -> CmdSet {
             "error" (!"message": String, ) => |_cmd, _info, kwargs| {
                 let message = get_var!(kwargs -> "message"; String).to_string();
                 Err(ASGameError(message))?
+            }
+        },
+        command! {
+            "save" (!"val": Bool, ) => |_cmd, info, kwargs| {
+                info.allow_save = *get_var!(kwargs -> "val"; Bool);
+                Ok(())
             }
         },
     ])

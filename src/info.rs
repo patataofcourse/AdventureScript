@@ -18,6 +18,7 @@ pub struct GameInfo {
     pub variables: HashMap<String, ASVariable>,
     config: Option<Config>,
     pub local: bool,
+    pub allow_save: bool,
 }
 
 impl GameInfo {
@@ -33,6 +34,7 @@ impl GameInfo {
             variables: HashMap::<String, ASVariable>::new(),
             config: None,
             local,
+            allow_save: true,
         }
     }
 
@@ -158,12 +160,7 @@ impl GameInfo {
     }
 
     //TODO: customization of choice text formatting
-    pub fn query(
-        &mut self,
-        text: &str,
-        choices: Vec<&str>,
-        allow_save: bool,
-    ) -> anyhow::Result<u8> {
+    pub fn query(&mut self, text: &str, choices: Vec<&str>) -> anyhow::Result<u8> {
         if !text.is_empty() {
             self.io.show(&text)?;
         }
@@ -176,14 +173,16 @@ impl GameInfo {
             let result = self.io.input()?;
             match result.trim() {
                 "s" => {
-                    if allow_save {
+                    if self.allow_save {
                         self.io.show("Would save here")?;
                     }
+                    //return Ok(0);
                 }
                 "r" => {
-                    if allow_save {
-                        self.io.show("Would restore here")?;
+                    if self.allow_save {
+                        crate::save::restore(self)?;
                     }
+                    return Ok(0);
                 }
                 "q" => {
                     self.quit();
