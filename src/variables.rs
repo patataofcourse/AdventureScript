@@ -1,4 +1,5 @@
 use crate::error::ASSyntaxError;
+use serde_derive::{Deserialize, Serialize};
 use std::{
     cmp::{Ordering, PartialOrd},
     collections::HashMap,
@@ -26,7 +27,7 @@ impl Display for ASType {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum ASVariable {
     Bool(bool),
     Int(i32),
@@ -240,7 +241,7 @@ impl Display for ASVariable {
 }
 
 // Struct for ASVariable values that can be used as keys in a Map
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
 pub enum KeyVar {
     Bool(bool),
     Int(i32),
