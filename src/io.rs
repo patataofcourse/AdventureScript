@@ -34,10 +34,14 @@ pub enum FileType {
     Other,
 }
 
-fn pc_save_location() -> anyhow::Result<std::path::PathBuf> {
+fn pc_save_location(info: &GameInfo) -> anyhow::Result<std::path::PathBuf> {
     //TODO other platforms?
     return match dirs::data_local_dir() {
-        Some(c) => Ok(c),
+        Some(c) => {
+            let mut c = c;
+            c.extend(&PathBuf::from(info.root_dir()));
+            Ok(c)
+        }
         None => Err(ASOtherError::UnsupportedPlatform)?,
     };
 }
@@ -52,10 +56,11 @@ fn load_file_(
         FileType::Script => PathBuf::from("script"),
         FileType::CustomDir(c) => PathBuf::from(c),
         FileType::Save => {
+            //TODO: make save directory if it doesn't exist
             if info.local {
                 PathBuf::from("save")
             } else {
-                pc_save_location()?
+                pc_save_location(info)?
             }
         }
         FileType::Other => PathBuf::new(),

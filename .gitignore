@@ -5,3 +5,5 @@ site/
 
 .vscode
 *.code-workspace
+
+*.ad2

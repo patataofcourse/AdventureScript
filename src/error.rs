@@ -85,7 +85,7 @@ pub enum CommandErrors {
     },
     #[error("Choice #{choice} is missing an argument (of type {typ})")]
     ChoiceMissingRequired { choice: u8, typ: ASType },
-    #[error("Choice #{choice} argument in pos {number} is of type {asked}, but got {given}")]
+    #[error("Choice #{choice}, argument {} is of type {asked}, but got {given}", number+1)]
     ChoiceWrongType {
         choice: u8,
         number: u8,

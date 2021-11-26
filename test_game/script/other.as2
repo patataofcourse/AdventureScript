@@ -27,5 +27,22 @@ test failed. sad.
 
 {false}
 test succeeded
-!error "WIP - this isn't finished yet! :D"
-!ending "ok it works"
+!wait
+
+okay now let's do some save time travel shit
+
+!flag a; false
+!flag b; true
+
+{choice}
+!choice "choose."; ["i choose", {a}, ?a]; ["do i have to???", {b}, ?b]
+
+{b}
+yeah
+!flag b; false
+!flag a; true
+!goto {choice}
+
+{a}
+thanks!
+!ending "end of test... for now"

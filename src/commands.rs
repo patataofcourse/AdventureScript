@@ -144,14 +144,28 @@ pub fn main_commands() -> CmdSet {
                 "choice9": List = vec![],
             ) => |_cmd, info, kwargs| {
                 let mut c = 1;
-                let mut texts = Vec::<&str>::new();
+                let mut texts = Vec::<String>::new();
                 let mut gotos = Vec::<ASVariable>::new();
                 // separate the choices into the vectors defined above
                 while c <= 9 {
                     let choice = get_var!(kwargs -> &format!("choice{}", c); List);
-                    let text: &str = match choice.get(0) {
+                    let text = match choice.get(0) {
                         Some(s) => match s {
-                            ASVariable::String(c) => c,
+                            ASVariable::String(c) => c.to_string(),
+                            ASVariable::VarRef {name, flag} => {
+                                match info.get_var(&ASVariable::VarRef {name: name.to_string(),flag: *flag,})? {
+                                        ASVariable::String(c) => c.to_string(),
+                                        other => Err(ASCmdError {
+                                        command: "choice".to_string(),
+                                        details: CommandErrors::ChoiceWrongType{
+                                            choice: c,
+                                            number: 2,
+                                            given: other.get_type(),
+                                            asked: ASType::Bool
+                                        }
+                                    })?,
+                                }
+                            },
                             other => Err(ASCmdError {
                                 command: "choice".to_string(),
                                 details: CommandErrors::ChoiceWrongType{
@@ -174,13 +188,27 @@ pub fn main_commands() -> CmdSet {
                     let flag = match choice.get(2) {
                         Some(l) => match l {
                             ASVariable::Bool(c) => *c,
+                            ASVariable::VarRef {name, flag} => {
+                                match info.get_var(&ASVariable::VarRef {name: name.to_string(),flag: *flag,})? {
+                                        ASVariable::Bool(c) => *c,
+                                        other => Err(ASCmdError {
+                                        command: "choice".to_string(),
+                                        details: CommandErrors::ChoiceWrongType{
+                                            choice: c,
+                                            number: 2,
+                                            given: other.get_type(),
+                                            asked: ASType::Bool
+                                        }
+                                    })?,
+                                }
+                            },
                             other => Err(ASCmdError {
                                 command: "choice".to_string(),
                                 details: CommandErrors::ChoiceWrongType{
                                     choice: c,
-                                    number: 0,
+                                    number: 2,
                                     given: other.get_type(),
-                                    asked: ASType::String
+                                    asked: ASType::Bool
                                 }
                             })?,
                         },
@@ -192,8 +220,12 @@ pub fn main_commands() -> CmdSet {
                     }
                     c += 1
                 }
+                let mut text_refs: Vec<&str> = vec![];
+                for t in &texts {
+                    text_refs.push(t);
+                }
                 let text = get_var!(kwargs -> "text"; String);
-                let pick = info.query(text, texts)?;
+                let pick = info.query(text, text_refs)?;
                 if pick == 0 {
                     // used in save/return/quit
                     info.pointer -= 1;

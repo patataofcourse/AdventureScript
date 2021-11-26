@@ -10,6 +10,7 @@ use std::{io::Read, path::PathBuf};
 pub struct Config {
     pub name: String,
     pub description: Option<String>,
+    //TODO: make the version a SemVer
     pub version: String,
     pub icon: Option<PathBuf>,
     pub module: Option<Vec<Module>>,

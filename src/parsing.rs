@@ -9,8 +9,7 @@ use std::collections::HashMap;
 
 pub fn parse_line(info: &mut GameInfo, commands: &CmdSet) -> anyhow::Result<()> {
     let ln = info.get_line()?;
-    if ln.starts_with("#") {
-        return Ok(());
+    if ln.starts_with("#") || (ln.starts_with("{") && ln.trim().ends_with("}")) {
     } else if ln.starts_with("!") {
         //Since ln[0] is always one byte long, we can use slices
         parse_command(info, commands, ln[1..].trim_start())?;
@@ -132,7 +131,6 @@ fn parse_command(info: &mut GameInfo, commands: &CmdSet, text: &str) -> anyhow::
             }
         }
     }
-
     command.run(info, args, kwargs)
 }
 
