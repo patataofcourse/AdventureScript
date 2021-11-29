@@ -17,4 +17,4 @@ Choice 2
 
 {merge}
 !wait
-!loadscript "other"
+!load "other"

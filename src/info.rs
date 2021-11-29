@@ -175,12 +175,14 @@ impl GameInfo {
                 "s" => {
                     if self.allow_save {
                         crate::save::save(self)?;
+                        self.io.show("Saved.")?;
                     }
                     return Ok(0);
                 }
                 "r" => {
                     if self.allow_save {
                         crate::save::restore(self)?;
+                        self.io.show("Restored save.")?;
                     }
                     return Ok(0);
                 }

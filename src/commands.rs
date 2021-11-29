@@ -18,6 +18,7 @@ pub struct Command {
 
 pub struct CmdSet {
     pub commands: Vec<Command>,
+    pub aliases: HashMap<String, String>,
 }
 
 impl CmdSet {
@@ -29,17 +30,27 @@ impl CmdSet {
                 break;
             }
         }
+        for (alias, a_name) in &self.aliases {
+            if alias == name {
+                out = self.get(a_name);
+                break;
+            }
+        }
         out
     }
     pub fn extend(&mut self, other: Self) {
         //TODO: adapt for modules
         self.commands.extend(other.commands);
+        self.aliases.extend(other.aliases);
     }
-    pub fn from(vec: Vec<Command>) -> Self {
-        Self { commands: vec }
+    pub fn from(commands: Vec<Command>, aliases: HashMap<String, String>) -> Self {
+        Self { commands, aliases }
     }
     pub fn new() -> Self {
-        Self { commands: vec![] }
+        Self {
+            commands: vec![],
+            aliases: HashMap::new(),
+        }
     }
 }
 
@@ -124,185 +135,195 @@ impl Command {
 }
 
 pub fn main_commands() -> CmdSet {
-    CmdSet::from(vec![
-        command! {
-            "wait" => |_cmd, info, _kwargs| {
-                info.io().wait()
-            }
-        },
-        command! {
-            "choice" (
-                !"text": String,
-                !"choice1": List,
-                "choice2": List = vec![],
-                "choice3": List = vec![],
-                "choice4": List = vec![],
-                "choice5": List = vec![],
-                "choice6": List = vec![],
-                "choice7": List = vec![],
-                "choice8": List = vec![],
-                "choice9": List = vec![],
-            ) => |_cmd, info, kwargs| {
-                let mut c = 1;
-                let mut texts = Vec::<String>::new();
-                let mut gotos = Vec::<ASVariable>::new();
-                // separate the choices into the vectors defined above
-                while c <= 9 {
-                    let choice = get_var!(kwargs -> &format!("choice{}", c); List);
-                    let text = match choice.get(0) {
-                        Some(s) => match s {
-                            ASVariable::String(c) => c.to_string(),
-                            ASVariable::VarRef {name, flag} => {
-                                match info.get_var(&ASVariable::VarRef {name: name.to_string(),flag: *flag,})? {
-                                        ASVariable::String(c) => c.to_string(),
-                                        other => Err(ASCmdError {
-                                        command: "choice".to_string(),
-                                        details: CommandErrors::ChoiceWrongType{
-                                            choice: c,
-                                            number: 2,
-                                            given: other.get_type(),
-                                            asked: ASType::Bool
-                                        }
-                                    })?,
-                                }
+    CmdSet::from(
+        vec![
+            command! {
+                "wait" => |_cmd, info, _kwargs| {
+                    info.io().wait()
+                }
+            },
+            command! {
+                "choice" (
+                    !"text": String,
+                    !"choice1": List,
+                    "choice2": List = vec![],
+                    "choice3": List = vec![],
+                    "choice4": List = vec![],
+                    "choice5": List = vec![],
+                    "choice6": List = vec![],
+                    "choice7": List = vec![],
+                    "choice8": List = vec![],
+                    "choice9": List = vec![],
+                ) => |_cmd, info, kwargs| {
+                    let mut c = 1;
+                    let mut texts = Vec::<String>::new();
+                    let mut gotos = Vec::<ASVariable>::new();
+                    // separate the choices into the vectors defined above
+                    while c <= 9 {
+                        let choice = get_var!(kwargs -> &format!("choice{}", c); List);
+                        let text = match choice.get(0) {
+                            Some(s) => match s {
+                                ASVariable::String(c) => c.to_string(),
+                                ASVariable::VarRef {name, flag} => {
+                                    match info.get_var(&ASVariable::VarRef {name: name.to_string(),flag: *flag,})? {
+                                            ASVariable::String(c) => c.to_string(),
+                                            other => Err(ASCmdError {
+                                            command: "choice".to_string(),
+                                            details: CommandErrors::ChoiceWrongType{
+                                                choice: c,
+                                                number: 2,
+                                                given: other.get_type(),
+                                                asked: ASType::Bool
+                                            }
+                                        })?,
+                                    }
+                                },
+                                other => Err(ASCmdError {
+                                    command: "choice".to_string(),
+                                    details: CommandErrors::ChoiceWrongType{
+                                        choice: c,
+                                        number: 0,
+                                        given: other.get_type(),
+                                        asked: ASType::String
+                                    }
+                                })?,
                             },
-                            other => Err(ASCmdError {
+                            None => break
+                        };
+                        let goto = match choice.get(1){
+                            Some(c) => c,
+                            None => Err(ASCmdError {
                                 command: "choice".to_string(),
-                                details: CommandErrors::ChoiceWrongType{
-                                    choice: c,
-                                    number: 0,
-                                    given: other.get_type(),
-                                    asked: ASType::String
-                                }
+                                details: CommandErrors::ChoiceMissingRequired{typ: ASType::Label, choice: c},
                             })?,
-                        },
-                        None => break
-                    };
-                    let goto = match choice.get(1){
-                        Some(c) => c,
-                        None => Err(ASCmdError {
-                            command: "choice".to_string(),
-                            details: CommandErrors::ChoiceMissingRequired{typ: ASType::Label, choice: c},
-                        })?,
-                    };
-                    let flag = match choice.get(2) {
-                        Some(l) => match l {
-                            ASVariable::Bool(c) => *c,
-                            ASVariable::VarRef {name, flag} => {
-                                match info.get_var(&ASVariable::VarRef {name: name.to_string(),flag: *flag,})? {
-                                        ASVariable::Bool(c) => *c,
-                                        other => Err(ASCmdError {
-                                        command: "choice".to_string(),
-                                        details: CommandErrors::ChoiceWrongType{
-                                            choice: c,
-                                            number: 2,
-                                            given: other.get_type(),
-                                            asked: ASType::Bool
-                                        }
-                                    })?,
-                                }
+                        };
+                        let flag = match choice.get(2) {
+                            Some(l) => match l {
+                                ASVariable::Bool(c) => *c,
+                                ASVariable::VarRef {name, flag} => {
+                                    match info.get_var(&ASVariable::VarRef {name: name.to_string(),flag: *flag,})? {
+                                            ASVariable::Bool(c) => *c,
+                                            other => Err(ASCmdError {
+                                            command: "choice".to_string(),
+                                            details: CommandErrors::ChoiceWrongType{
+                                                choice: c,
+                                                number: 2,
+                                                given: other.get_type(),
+                                                asked: ASType::Bool
+                                            }
+                                        })?,
+                                    }
+                                },
+                                other => Err(ASCmdError {
+                                    command: "choice".to_string(),
+                                    details: CommandErrors::ChoiceWrongType{
+                                        choice: c,
+                                        number: 2,
+                                        given: other.get_type(),
+                                        asked: ASType::Bool
+                                    }
+                                })?,
                             },
-                            other => Err(ASCmdError {
-                                command: "choice".to_string(),
-                                details: CommandErrors::ChoiceWrongType{
-                                    choice: c,
-                                    number: 2,
-                                    given: other.get_type(),
-                                    asked: ASType::Bool
-                                }
-                            })?,
-                        },
-                        None => true,
-                    };
-                    if flag {
-                        texts.push(text);
-                        gotos.push(goto.clone());
+                            None => true,
+                        };
+                        if flag {
+                            texts.push(text);
+                            gotos.push(goto.clone());
+                        }
+                        c += 1
                     }
-                    c += 1
+                    let mut text_refs: Vec<&str> = vec![];
+                    for t in &texts {
+                        text_refs.push(t);
+                    }
+                    let text = get_var!(kwargs -> "text"; String);
+                    let pick = info.query(text, text_refs)?;
+                    if pick == 0 {
+                        // used in save/return/quit
+                        info.pointer -= 1;
+                        return Ok(());
+                    };
+                    info.goto_label(gotos.get((pick - 1) as usize).unwrap())?;
+                    Ok(())
                 }
-                let mut text_refs: Vec<&str> = vec![];
-                for t in &texts {
-                    text_refs.push(t);
+            },
+            command! {
+                "goto" (!"pos": Label, ) => |_cmd, info, kwargs| {
+                    info.goto_label(&kwargs["pos"])
                 }
-                let text = get_var!(kwargs -> "text"; String);
-                let pick = info.query(text, text_refs)?;
-                if pick == 0 {
-                    // used in save/return/quit
-                    info.pointer -= 1;
-                    return Ok(());
-                };
-                info.goto_label(gotos.get((pick - 1) as usize).unwrap())?;
-                Ok(())
-            }
-        },
-        command! {
-            "goto" (!"pos": Label, ) => |_cmd, info, kwargs| {
-                info.goto_label(&kwargs["pos"])
-            }
-        },
-        command! {
-            "ending" ("name": String = "".to_string(), ) => |_cmd, info, kwargs| {
-                let name = get_var!(kwargs -> "name"; String);
-                info.io().show(&format!("Ending: {}", name))?;
-                info.quit();
-                Ok(())
-            }
-        },
-        command! {
-            "flag" (!"flag": VarRef, "value": Bool = true, ) => |_cmd, info, kwargs| {
-                let flag = match kwargs.get("flag").unwrap() {
-                    //Make sure you're getting a flag, not a variable
-                    ASVariable::VarRef { name, .. } => ASVariable::VarRef {
-                        name: name.to_string(),
-                        flag: true,
-                    },
-                    _ => panic!(),
-                };
-                info.set_var(&flag, kwargs.get("value").unwrap().clone())
-            }
-        },
-        command! {
-            "set" (!"var": VarRef, !"value": Any,) => |_cmd, info, kwargs| {
-                info.set_var(
-                    kwargs.get("var").unwrap(),
-                    kwargs.get("value").unwrap().clone(),
-                )
-            }
-        },
-        command! {
-            "add" (!"var": VarRef, !"value": Any,) => |_cmd, info, kwargs| {
-                let var = kwargs.get("var").unwrap();
-                let val = info.get_var(var)?.clone();
-                info.set_var(var, (val + kwargs.get("value").unwrap().clone())?)
-            }
-        },
-        command! {
-            "loadscript" (!"name": String,) => |_cmd, info, kwargs| {
-                let script_name: &str = get_var!(kwargs -> "name"; String);
-                info.load_script(Some(script_name))
-            }
-        },
-        command! {
-            "if" (!"condition": Bool, !"gotrue": Label, !"gofalse": Label, ) => |_cmd, info, kwargs| {
-                let condition = *get_var!(kwargs -> "condition"; Bool);
-                if condition {
-                    info.goto_label(kwargs.get("gotrue").unwrap())
-                } else {
-                    info.goto_label(kwargs.get("gofalse").unwrap())
+            },
+            command! {
+                "ending" ("name": String = "".to_string(), ) => |_cmd, info, kwargs| {
+                    let name = get_var!(kwargs -> "name"; String);
+                    info.io().show(&format!("Ending: {}", name))?;
+                    info.quit();
+                    Ok(())
                 }
-            }
-        },
-        command! {
-            "error" (!"message": String, ) => |_cmd, _info, kwargs| {
-                let message = get_var!(kwargs -> "message"; String).to_string();
-                Err(ASGameError(message))?
-            }
-        },
-        command! {
-            "save" (!"val": Bool, ) => |_cmd, info, kwargs| {
-                info.allow_save = *get_var!(kwargs -> "val"; Bool);
-                Ok(())
-            }
-        },
-    ])
+            },
+            command! {
+                "flag" (!"flag": VarRef, "value": Bool = true, ) => |_cmd, info, kwargs| {
+                    let flag = match kwargs.get("flag").unwrap() {
+                        //Make sure you're getting a flag, not a variable
+                        ASVariable::VarRef { name, .. } => ASVariable::VarRef {
+                            name: name.to_string(),
+                            flag: true,
+                        },
+                        _ => panic!(),
+                    };
+                    info.set_var(&flag, kwargs.get("value").unwrap().clone())
+                }
+            },
+            command! {
+                "set" (!"var": VarRef, !"value": Any,) => |_cmd, info, kwargs| {
+                    info.set_var(
+                        kwargs.get("var").unwrap(),
+                        kwargs.get("value").unwrap().clone(),
+                    )
+                }
+            },
+            command! {
+                "add" (!"var": VarRef, !"value": Any,) => |_cmd, info, kwargs| {
+                    let var = kwargs.get("var").unwrap();
+                    let val = info.get_var(var)?.clone();
+                    info.set_var(var, (val + kwargs.get("value").unwrap().clone())?)
+                }
+            },
+            command! {
+                "loadscript" (!"name": String,) => |_cmd, info, kwargs| {
+                    let script_name: &str = get_var!(kwargs -> "name"; String);
+                    info.load_script(Some(script_name))
+                }
+            },
+            command! {
+                "if" (!"condition": Bool, !"gotrue": Label, !"gofalse": Label, ) => |_cmd, info, kwargs| {
+                    let condition = *get_var!(kwargs -> "condition"; Bool);
+                    if condition {
+                        info.goto_label(kwargs.get("gotrue").unwrap())
+                    } else {
+                        info.goto_label(kwargs.get("gofalse").unwrap())
+                    }
+                }
+            },
+            command! {
+                "error" (!"message": String, ) => |_cmd, _info, kwargs| {
+                    let message = get_var!(kwargs -> "message"; String).to_string();
+                    Err(ASGameError(message))?
+                }
+            },
+            command! {
+                "save" (!"val": Bool, ) => |_cmd, info, kwargs| {
+                    info.allow_save = *get_var!(kwargs -> "val"; Bool);
+                    Ok(())
+                }
+            },
+        ],
+        HashMap::from_iter([
+            ("w".to_string(), "wait".to_string()),
+            ("sv".to_string(), "save".to_string()),
+            ("go".to_string(), "goto".to_string()),
+            ("ch".to_string(), "choice".to_string()),
+            ("load".to_string(), "loadscript".to_string()),
+            ("ld".to_string(), "loadscript".to_string()),
+        ]),
+    )
 }
