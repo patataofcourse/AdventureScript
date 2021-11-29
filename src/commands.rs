@@ -191,7 +191,19 @@ pub fn main_commands() -> CmdSet {
                             None => break
                         };
                         let goto = match choice.get(1){
-                            Some(c) => c,
+                            Some(v) => match v {
+                                ASVariable::None => ASVariable::Label(None),
+                                ASVariable::Label{..} => v.clone(),
+                                _ => Err(ASCmdError {
+                                    command: "choice".to_string(),
+                                    details: CommandErrors::ChoiceWrongType{
+                                        choice: c,
+                                        number: 1,
+                                        given: v.get_type(),
+                                        asked: ASType::Label
+                                    }
+                                })?
+                            },
                             None => Err(ASCmdError {
                                 command: "choice".to_string(),
                                 details: CommandErrors::ChoiceMissingRequired{typ: ASType::Label, choice: c},

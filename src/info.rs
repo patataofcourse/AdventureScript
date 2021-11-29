@@ -54,11 +54,18 @@ impl GameInfo {
     pub fn root_dir(&self) -> &PathBuf {
         &self.root_dir
     }
-    pub fn get_line(&self) -> anyhow::Result<String> {
+    pub fn get_line(&self) -> anyhow::Result<&str> {
         //obtains the current line of the script
         match self.script.get(self.pointer as usize) {
-            Some(c) => Ok(c.trim_end().to_string()),
+            Some(c) => Ok(c.trim_end()),
             None => Err(ASSyntaxError::EndOfScript {})?,
+        }
+    }
+    pub fn line_at(&self, pointer: i32) -> Option<&str> {
+        //obtains the line of the script at a certain position, if it exists
+        match self.script.get(pointer as usize) {
+            Some(c) => Some(c.as_str()),
+            None => None,
         }
     }
     pub fn io(&self) -> &AdventureIO {

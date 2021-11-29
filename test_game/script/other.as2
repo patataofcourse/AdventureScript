@@ -1,5 +1,13 @@
 #some more testing shit
 
+!ch "What do you wanna do now?";
+!! ["variable/flag tests", {testing}];
+!! ["save time travel test", {travel}];
+!! ["exit", None]
+
+!ending "No tests"
+
+{testing}
 Gonna move to flag testing then
 !flag test
 \v[ ?test ]
@@ -28,7 +36,9 @@ test failed. sad.
 {false}
 test succeeded
 !wait
+!ending "it works"
 
+{travel}
 okay now let's do some save time travel shit
 
 !flag a; false
@@ -45,4 +55,4 @@ yeah
 
 {a}
 thanks!
-!ending "end of test... for now"
+!ending "did it work?"

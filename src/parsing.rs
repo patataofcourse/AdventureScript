@@ -8,17 +8,37 @@ use regex::{Match, Regex};
 use std::collections::HashMap;
 
 pub fn parse_line(info: &mut GameInfo, commands: &CmdSet) -> anyhow::Result<()> {
-    let ln = info.get_line()?;
+    let mut ln = info.get_line()?.to_string();
+    while ln.starts_with("!!") {
+        info.pointer -= 1;
+        ln = info.get_line()?.to_string();
+    }
     if ln.starts_with("#") || (ln.starts_with("{") && ln.trim().ends_with("}")) {
     } else if ln.starts_with("!") {
-        //Since ln[0] is always one byte long, we can use slices
-        parse_command(info, commands, ln[1..].trim_start())?;
+        //TODO: disallow multiline strings
+        let mut c = 1;
+        let mut ln = ln[1..].trim().to_owned();
+        loop {
+            let next_ln = match info.line_at(info.pointer + c) {
+                Some(c) => c,
+                None => break,
+            };
+            if next_ln.starts_with("!!") {
+                ln += &format!(" {}", next_ln[2..].trim());
+            } else {
+                break;
+            }
+
+            c += 1
+        }
+        info.pointer += c - 1;
+        parse_command(info, commands, ln)?;
     } else {
         match ln.as_ref() {
             "\\n" => info.io().show("")?,
             "" => return Ok(()),
             _ => {
-                let ln = parse_text(info, ln)?;
+                let ln = parse_text(info, &ln)?;
                 info.io().show(&ln)?
             }
         };
@@ -26,11 +46,11 @@ pub fn parse_line(info: &mut GameInfo, commands: &CmdSet) -> anyhow::Result<()> 
     Ok(())
 }
 
-fn parse_text(info: &mut GameInfo, text: String) -> anyhow::Result<String> {
+fn parse_text(info: &mut GameInfo, text: &str) -> anyhow::Result<String> {
     let control_code_regex = Regex::new(r"\\(.)(\[([^\[]*|\[.*\])\])?")?;
     let control_codes = control_code_regex.captures_iter(&text);
 
-    let mut text = text.clone();
+    let mut text = text.to_string();
     for capture in control_codes {
         let code = capture.get(1).unwrap().as_str();
         text = control_code_regex
@@ -71,7 +91,7 @@ fn parse_text(info: &mut GameInfo, text: String) -> anyhow::Result<String> {
 }
 
 // part 1 of the proper parser code - spoiler alert it's bad
-fn parse_command(info: &mut GameInfo, commands: &CmdSet, text: &str) -> anyhow::Result<()> {
+fn parse_command(info: &mut GameInfo, commands: &CmdSet, text: String) -> anyhow::Result<()> {
     // Get the command from the name
     let split: Vec<&str> = text.split(" ").collect();
 
@@ -338,13 +358,13 @@ pub fn evaluate(
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
                 .parse::<usize>()
                 .unwrap();
-            let value = parse_text(info, brackets[index].clone())?;
+            let value = parse_text(info, &brackets[index])?;
             parsed = eval_list(info, value.to_string(), strings)?;
         } else if val.starts_with("{") && val.ends_with("}") {
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
                 .parse::<usize>()
                 .unwrap();
-            let value = parse_text(info, brackets[index].clone())?;
+            let value = parse_text(info, &brackets[index])?;
             parsed = if value.contains(":") {
                 eval_map(info, value.to_string(), strings)?
             } else {
@@ -361,14 +381,14 @@ pub fn evaluate(
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
                 .parse::<usize>()
                 .unwrap();
-            let value = parse_text(info, brackets[index].clone())?;
+            let value = parse_text(info, &brackets[index])?;
             let (value, brcks) = simplify(value, SimplifyMode::Brackets)?;
             parsed = evaluate(info, value, &strings, &brcks)?;
         } else if val.starts_with("\"") && val.ends_with("\"") {
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
                 .parse::<usize>()
                 .unwrap();
-            parsed = ASVariable::String(parse_text(info, strings[index].clone())?);
+            parsed = ASVariable::String(parse_text(info, &strings[index])?);
         } else if val == "None" || val == "" {
             parsed = ASVariable::None;
         }
