@@ -16,7 +16,7 @@ pub struct GameInfo {
     pub quitting: bool,
     pub flags: HashMap<String, ASVariable>,
     pub variables: HashMap<String, ASVariable>,
-    config: Option<Config>,
+    pub config: Option<Config>,
     pub local: bool,
     pub allow_save: bool,
 }
@@ -174,9 +174,9 @@ impl GameInfo {
             match result.trim() {
                 "s" => {
                     if self.allow_save {
-                        self.io.show("Would save here")?;
+                        crate::save::save(self)?;
                     }
-                    //return Ok(0);
+                    return Ok(0);
                 }
                 "r" => {
                     if self.allow_save {

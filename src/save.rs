@@ -5,7 +5,7 @@ use crate::{
     variables::ASVariable,
 };
 use serde_derive::{Deserialize, Serialize};
-use std::{collections::HashMap, io::Read};
+use std::{collections::HashMap, io::Read, io::Write};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Save {
@@ -49,5 +49,23 @@ pub fn restore(info: &mut GameInfo) -> anyhow::Result<()> {
 }
 
 pub fn save(info: &GameInfo) -> anyhow::Result<()> {
+    let save = serde_json::to_string(&Save {
+        as_ver: env!("CARGO_PKG_VERSION").to_string(),
+        game_ver: match &info.config {
+            Some(c) => c.version.to_string(),
+            None => panic!("Config file not initialized"),
+        },
+        script: info.script_name().to_string(),
+        pointer: info.pointer,
+        flags: info.flags.clone(),
+        variables: info.variables.clone(),
+        //TODO: screentext
+        screentext: String::new(),
+    })
+    .unwrap();
+    info.io()
+        //TODO: multisave
+        .load_file(info, "save.ad2", "w", FileType::Save)?
+        .write(save.as_bytes())?;
     Ok(())
 }
