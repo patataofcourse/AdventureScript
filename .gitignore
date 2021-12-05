@@ -1,3 +1,4 @@
+build/
 target/
 Cargo.lock
 
@@ -7,3 +8,5 @@ site/
 *.code-workspace
 
 *.ad2
+
+**/.DS_Store
