@@ -53,20 +53,6 @@ Ask the player a choice and lead to a different label depending on their answer.
 
 Choices are the only place where players can save or restore their saves - although you can turn this off, too (using `!save false`).
 
-### !oldchoice
-```none
-!oldchoice text; ...
-```
-**This command is deprecated.**
-
-Old variant of the `!choice` command, taking the choices' data as individual arguments.
-
-*Introduced in AdventureScript 0.1*
-
-**Parameters:**
-
-- `text: String`: 
-
 ### !goto
 ```none
 !goto pos
@@ -82,22 +68,6 @@ Go to the label indicated.
 **Arguments:**
 
 - `pos: Label`: the label to go to.
-
-### !label
-```none
-!label name
-
-!label "here"
-```
-Creates a label at that position.
-
-*Introduced in AdventureScript 2.0*
-
-**Arguments:**
-
-- `name: String`: the name the label will be referred by.
-
-Equivalent to `{name}` or `\l[name]`.
 
 ### !ending
 ```none
@@ -146,5 +116,24 @@ Turns saving on or off.
 **Arguments:**
 
 - `state: Bool`: Whether saving should be enabled (`true`) or disabled (`false`).
+
+## Flag and variable commands
+
+### !flag
+
+```none
+!flag flag; value
+
+!flag flag_one; false
+```
+Sets the value of the specified flag.
+
+*Introduced in AdventureScript 0.1*
+
+**Arguments:**
+
+- `flag: VarRef`: The name of the flag
+    - In this command, you can omit the `?` prefix that specifies that it's a flag
+- `value: Bool`: The value to set the flag to *(defaults to True)*
 
 You can also use the commands `!saveon` and `!saveoff`. *(Introduced in AdventureScript 1.0-pre)*

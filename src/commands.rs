@@ -334,6 +334,7 @@ pub fn main_commands() -> CmdSet {
             ("sv".to_string(), "save".to_string()),
             ("go".to_string(), "goto".to_string()),
             ("ch".to_string(), "choice".to_string()),
+            ("end".to_string(), "ending".to_string()),
             ("load".to_string(), "loadscript".to_string()),
             ("ld".to_string(), "loadscript".to_string()),
         ]),
