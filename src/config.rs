@@ -14,17 +14,10 @@ pub struct Config {
     pub version: String,
     pub icon: Option<PathBuf>,
     pub module: Option<Vec<Module>>,
-    pub io: Option<IO>,
 }
 
 #[derive(Deserialize, Debug)]
 pub struct Module {
-    pub name: String,
-    pub file: Option<PathBuf>,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct IO {
     pub name: String,
     pub file: Option<PathBuf>,
 }
