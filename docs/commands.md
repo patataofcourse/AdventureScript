@@ -27,9 +27,7 @@ Waits until the user's input. On the default I/O, this input is a keypress.
 
 *Introduced on AdventureScript 0.1*
 
-**Aliases:** `!w`, `!n` (deprecated)
-
-The `\w` escape code can be used as an equivalent, either on an empty line or at the end of a line with text in it.
+**Aliases:** `!w`
 
 ### !choice
 ```none
