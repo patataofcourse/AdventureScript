@@ -18,6 +18,7 @@ This command acts as an equivalent to normally displaying text by using no comma
 **Arguments:**
 
 * `text: String`: the text to be displayed.
+
 ### !wait
 ```none
 !wait
@@ -47,7 +48,7 @@ Ask the player a choice and lead to a different label depending on their answer.
 
 * `choice1 - choice9: List`: Lists containing the information of the choices to give:
     - Choice text (`String`)
-    - Label to go to (`Label`, optional, defaults to `None`)
+    - Label to go to (`Label` or `None`, optional, defaults to `None`)
     - Flag that determines whether to show the choice or not (`Bool`, optional, defaults to `true`)
 * `text: String`: the text to be shown right before the choice. In some I/O implementations it might have different formatting. *(Default: *`""`*)*
 
@@ -83,7 +84,7 @@ Ends the game with a specific ending.
 
 **Arguments:**
 
-- `name: String`: The name the ending is referred by. Must be defined in the `info.json` file. 
+- `name: String`: The name the ending is referred by.
 
 ### !loadscript
 ```none
@@ -109,7 +110,7 @@ Starts reading from the beginning of the indicated script.
 ```
 Turns saving on or off.
 
-*Introduced in AdventureScript 2.0*
+*Introduced in AdventureScript 1.0-pre as `saveon` and `saveoff`*
 
 **Aliases:** `!sv`
 
@@ -117,10 +118,38 @@ Turns saving on or off.
 
 - `state: Bool`: Whether saving should be enabled (`true`) or disabled (`false`).
 
+### !if
+```none
+!if condition; gotrue; gofalse
+
+!if var == 2; {labelA}; {labelB}
+```
+
+Jumps to a different point in the script depending on whether the condition is true or false.
+
+**Arguments:**
+
+- `condition: Bool`: The value to be checked. Usually used with a conditional operator. [TODO: Add link]
+- `gotrue: Label`: The label to go to if the condition is true.
+- `gofalse: Label`: The label to go to if the condition is false.
+
+### !error
+```none
+!error message
+
+!error "The balance of the universe has been destroyed or something idk"
+```
+Shows a custom error message and aborts game execution.
+
+*Introduced in AdventureScript 2.0*
+
+**Arguments:**
+
+- `message: String`: The message to be displayed.
+
 ## Flag and variable commands
 
 ### !flag
-
 ```none
 !flag flag; value
 
@@ -132,8 +161,37 @@ Sets the value of the specified flag.
 
 **Arguments:**
 
-- `flag: VarRef`: The name of the flag
-    - In this command, you can omit the `?` prefix that specifies that it's a flag
-- `value: Bool`: The value to set the flag to *(defaults to True)*
+- `flag: VarRef`: The name of the flag.
+    - In this command, you can omit the `?` prefix (which specifies you're checking inside the flags)
+- `value: Bool`: The value to set the flag to. *(Default: `true`.)*
 
-You can also use the commands `!saveon` and `!saveoff`. *(Introduced in AdventureScript 1.0-pre)*
+### !set
+```none
+!set var; value
+
+!set variable1; 18
+```
+Sets the value of the specified variable.
+
+*Introduced in AdventureScript 1.0-pre as `var`*
+
+**Arguments:**
+
+- `var: VarRef`: The name of the variable.
+    - You can optionally also set to flags, since they're essentially boolean variables, but `!flag` is recommended instead.
+- `value: Any`: The value to set the variable to.
+
+### !add
+```none
+!add var; value
+
+!add somevar; -1
+```
+Adds the specified value to the given variable.
+
+*Introduced in AdventureScript 1.0-pre as `incvar`*
+
+**Arguments:**
+
+- `var: VarRef`: The name of the variable to be added to.
+- `value: Any`: The value to add to the variable (which should be compatible for adding in the first place!)
