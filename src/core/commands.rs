@@ -295,7 +295,7 @@ pub fn main_commands() -> CmdSet {
                 }
             },
             command! {
-              [deprecated = true]  "set" (!"var": VarRef, !"value": Any,) => |_cmd, info, kwargs| {
+              "set" (!"var": VarRef, !"value": Any,) => |_cmd, info, kwargs| {
                     info.set_var(
                         kwargs.get("var").unwrap(),
                         kwargs.get("value").unwrap().clone(),

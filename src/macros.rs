@@ -2,7 +2,7 @@
 macro_rules! command {
     //TODO: replace dexpr/kexpr with a tokentree
     //TODO: maybe remove kwarg functionality and keep only posargs? it's not like an *args functionality is done
-    ($([deprecated=$is_depr:literal])? $name:literal $((
+    ($name:literal $([deprecated=$is_depr:literal])? $((
         $(
             $(!$pname:literal:$ptype:ident),+,
         )?
