@@ -110,27 +110,58 @@ impl Command {
                 if arg_type == ASType::VarRef {
                     kwargs.insert(key.to_string(), info.get_var(value)?.clone());
                 } else {
-                    Err(ASCmdError {
-                        command: String::from(&self.name),
-                        details: CommandErrors::ArgumentTypeError {
-                            argument_name: String::from(key),
-                            required_type: self.accepted_kwargs[key].clone(),
-                            given_type: value.get_type(),
-                        },
-                    })?;
+                    if self.args_to_kwargs.contains(&String::from(key)) {
+                        Err(ASCmdError {
+                            command: String::from(&self.name),
+                            details: CommandErrors::PosArgTypeError {
+                                argument_name: String::from(key),
+                                argument_num: self
+                                    .args_to_kwargs
+                                    .iter()
+                                    .position(|r| r == &String::from(key))
+                                    .unwrap(),
+                                required_type: self.accepted_kwargs[key].clone(),
+                                given_type: value.get_type(),
+                            },
+                        })
+                    } else {
+                        Err(ASCmdError {
+                            command: String::from(&self.name),
+                            details: CommandErrors::ArgumentTypeError {
+                                argument_name: String::from(key),
+                                required_type: self.accepted_kwargs[key].clone(),
+                                given_type: value.get_type(),
+                            },
+                        })?
+                    }?;
                 }
             }
         }
         // Check that all arguments in the command have a value
         for (key, value) in &self.accepted_kwargs {
             if !kwargs.contains_key(key) {
-                Err(ASCmdError {
-                    command: String::from(&self.name),
-                    details: CommandErrors::MissingRequiredArgument {
-                        argument_name: String::from(key),
-                        argument_type: value.clone(),
-                    },
-                })?;
+                if self.args_to_kwargs.contains(&String::from(key)) {
+                    Err(ASCmdError {
+                        command: String::from(&self.name),
+                        details: CommandErrors::MissingRequiredPosArg {
+                            argument_name: String::from(key),
+                            argument_num: self
+                                .args_to_kwargs
+                                .iter()
+                                .position(|r| r == &String::from(key))
+                                .unwrap(),
+                            argument_type: value.clone(),
+                        },
+                    })
+                } else {
+                    Err(ASCmdError {
+                        command: String::from(&self.name),
+                        details: CommandErrors::MissingRequiredArgument {
+                            argument_name: String::from(key),
+                            argument_type: value.clone(),
+                        },
+                    })?
+                }?;
             }
         }
 

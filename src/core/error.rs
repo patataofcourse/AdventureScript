@@ -76,10 +76,28 @@ pub enum CommandErrors {
         argument_type: ASType,
     },
     #[error(
+        "Command is missing argument {argument_name} / #{argument_num} {}",
+        "(type {argument_type}), which is required"
+    )]
+    MissingRequiredPosArg {
+        argument_name: String,
+        argument_num: usize,
+        argument_type: ASType,
+    },
+    #[error(
         "Argument {argument_name} is of type {required_type}, but type {given_type} was given"
     )]
     ArgumentTypeError {
         argument_name: String,
+        required_type: ASType,
+        given_type: ASType,
+    },
+    #[error(
+        "Argument {argument_name} / #{argument_num} is of type {required_type}, but type {given_type} was given"
+    )]
+    PosArgTypeError {
+        argument_name: String,
+        argument_num: usize,
         required_type: ASType,
         given_type: ASType,
     },
