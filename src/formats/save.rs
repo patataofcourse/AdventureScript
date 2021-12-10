@@ -22,9 +22,9 @@ pub struct Save {
 
 pub fn restore(info: &mut GameInfo) -> anyhow::Result<()> {
     let mut file = String::from("");
-    info.io()
+    info
         //TODO: multisave
-        .load_file(info, "save.ad2", "r", FileType::Save)?
+        .load_file("save.ad2", "r", FileType::Save)?
         .read_to_string(&mut file)?;
     let save: Save = match serde_json::from_str(&file) {
         Ok(c) => c,
@@ -41,7 +41,8 @@ pub fn restore(info: &mut GameInfo) -> anyhow::Result<()> {
     info.pointer = save.pointer;
     info.flags = save.flags;
     info.variables = save.variables;
-    //TODO: screentext
+    info.screentext = save.screentext;
+    info.show_screentext()?;
 
     Ok(())
 }
@@ -57,13 +58,12 @@ pub fn save(info: &GameInfo) -> anyhow::Result<()> {
         pointer: info.pointer,
         flags: info.flags.clone(),
         variables: info.variables.clone(),
-        //TODO: screentext
-        screentext: String::new(),
+        screentext: info.screentext.to_string(),
     })
     .unwrap();
-    info.io()
+    info
         //TODO: multisave
-        .load_file(info, "save.ad2", "w", FileType::Save)?
+        .load_file("save.ad2", "w", FileType::Save)?
         .write(save.as_bytes())?;
     Ok(())
 }

@@ -23,8 +23,7 @@ pub struct Module {
 
 pub fn load_config(info: &GameInfo) -> anyhow::Result<Config> {
     let mut file = String::from("");
-    info.io()
-        .load_file(info, "info.toml", "r", FileType::Other)?
+    info.load_file("info.toml", "r", FileType::Other)?
         .read_to_string(&mut file)?;
     let config: Config = match toml::from_str(&file) {
         Ok(c) => c,

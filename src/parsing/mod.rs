@@ -33,11 +33,11 @@ pub fn parse_line(info: &mut GameInfo, commands: &CmdSet) -> anyhow::Result<()> 
         parse_command(info, commands, ln)?;
     } else {
         match ln.as_ref() {
-            "\\n" => info.io().show("")?,
+            "\\n" => info.show("")?,
             "" => return Ok(()),
             _ => {
                 let ln = parse_text(info, &ln)?;
-                info.io().show(&ln)?
+                info.show(&ln)?
             }
         };
     }

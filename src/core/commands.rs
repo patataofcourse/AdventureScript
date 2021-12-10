@@ -166,8 +166,7 @@ impl Command {
         }
 
         if info.debug && self.deprecated {
-            info.io()
-                .warn(format!("Command '{}' is deprecated", self.name));
+            info.warn(format!("Command '{}' is deprecated", self.name));
         }
 
         (self.func)(&self, info, kwargs)
@@ -179,7 +178,7 @@ pub fn main_commands() -> CmdSet {
         vec![
             command! {
                 "wait" => |_cmd, info, _kwargs| {
-                    info.io().wait()
+                    info.wait()
                 }
             },
             command! {
@@ -307,7 +306,7 @@ pub fn main_commands() -> CmdSet {
             command! {
                 "ending" ("name": String = "".to_string(), ) => |_cmd, info, kwargs| {
                     let name = get_var!(kwargs -> "name"; String);
-                    info.io().show(&format!("Ending: {}", name))?;
+                    info.show(&format!("Ending: {}", name))?;
                     info.quit();
                     Ok(())
                 }

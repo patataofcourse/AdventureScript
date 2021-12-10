@@ -8,7 +8,7 @@ use crate::{
     formats::config::Config,
     formats::save,
 };
-use std::{collections::HashMap, io::Read, path::PathBuf};
+use std::{collections::HashMap, fs::File, io::Read, path::PathBuf};
 
 pub struct GameInfo {
     io: AdventureIO,
@@ -23,6 +23,7 @@ pub struct GameInfo {
     pub local: bool,
     pub debug: bool,
     pub allow_save: bool,
+    pub screentext: String,
 }
 
 impl GameInfo {
@@ -40,6 +41,7 @@ impl GameInfo {
             local,
             debug,
             allow_save: true,
+            screentext: String::new(),
         }
     }
 
@@ -73,9 +75,26 @@ impl GameInfo {
             None => None,
         }
     }
-    pub fn io(&self) -> &AdventureIO {
-        &self.io
+
+    // IO stuff
+    pub fn show(&mut self, text: &str) -> anyhow::Result<()> {
+        self.io.show(text)?;
+        self.screentext += &format!("{}\n", text);
+        Ok(())
     }
+    pub fn wait(&self) -> anyhow::Result<()> {
+        self.io.wait()
+    }
+    pub fn error(&self, text: String) {
+        self.io.error(text)
+    }
+    pub fn warn(&self, text: String) {
+        self.io.warn(text)
+    }
+    pub fn load_file(&self, filename: &str, mode: &str, ftype: FileType) -> anyhow::Result<File> {
+        self.io.load_file(self, filename, mode, ftype)
+    }
+    //TODO: complete
 
     pub fn goto_label(&mut self, var: &ASVariable) -> anyhow::Result<()> {
         let lname = match var {
@@ -193,8 +212,8 @@ impl GameInfo {
                 }
                 "r" => {
                     if self.allow_save {
-                        save::restore(self)?;
                         self.io.show("Restored save.")?;
+                        save::restore(self)?;
                     }
                     return Ok(0);
                 }
@@ -209,6 +228,7 @@ impl GameInfo {
                 Err(_) => continue,
             };
             if (num_result as usize) <= choices.len() {
+                self.screentext = String::new();
                 return Ok(num_result);
             }
         }
@@ -233,5 +253,9 @@ impl GameInfo {
         }
         self.pointer = 0;
         Ok(())
+    }
+
+    pub(crate) fn show_screentext(&self) -> anyhow::Result<()> {
+        self.io.show(&self.screentext)
     }
 }

@@ -26,7 +26,7 @@ pub(crate) fn manage_error(info: &GameInfo, err: anyhow::Error) {
     } else {
         error += "uncaught internal error:\n    ";
     };
-    info.io().error(format!(
+    info.error(format!(
         "{}{}",
         error,
         (|| {
