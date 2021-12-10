@@ -8,8 +8,12 @@ use std::{
     ops::{Add, Div, Mul, Neg, Not, Sub},
 };
 
+/// Enum listing all possible types for AdventureScript variables. To see what each type means, check
+/// the `ASVariable` documentation.
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum ASType {
+    /// Not properly a type, but meant to be used when there's compatibility with any type (for example,
+    /// in a command argument that may be of any type).
     Any,
     Bool,
     Int,
@@ -27,19 +31,36 @@ impl Display for ASType {
     }
 }
 
+/// Enum used to handle AdventureScript variables.
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum ASVariable {
+    /// Boolean value (true/false)
     Bool(bool),
+    /// Integer value (32-bit signed)
     Int(i32),
+    /// String value
     String(String),
+    /// List value (vector of other `ASVariable`s of any type)
     List(Vec<ASVariable>),
+    /// Map value (uses `HashMap`, keys can only be of a type that exists in the `KeyVar` enum)
     Map(HashMap<KeyVar, ASVariable>),
+    /// A reference to a label, by name. If `None`, don't jump anywhere, instead continue to the next
+    /// line as usual.
     Label(Option<String>),
-    VarRef { name: String, flag: bool },
+    /// A reference to a variable or flag. Meant to be used with commands that define a variable or
+    /// change its content.
+    VarRef {
+        /// The name of the variable or flag.
+        name: String,
+        /// Whether it's a variable or a flag.
+        flag: bool,
+    },
+    /// Empty value, equivalent to Rust's `()`.
     None,
 }
 
 impl ASVariable {
+    /// Get an `ASType` representing the variable's type.
     pub fn get_type(&self) -> ASType {
         match self {
             Self::Bool(_c) => ASType::Bool,
@@ -152,6 +173,7 @@ impl Not for ASVariable {
 }
 
 impl ASVariable {
+    /// Meant for use with `Int`-type variables, exponent/power function
     pub fn pow(self, exponent: Self) -> anyhow::Result<Self> {
         if let Self::Int(c) = self {
             if let Self::Int(c2) = exponent {
@@ -240,19 +262,18 @@ impl Display for ASVariable {
     }
 }
 
-// Struct for ASVariable values that can be used as keys in a Map
+/// Struct for `ASVariable` values that can be used as keys in a `Map`.
 #[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
 pub enum KeyVar {
     Bool(bool),
     Int(i32),
     String(String),
-    None,
 }
 
 impl KeyVar {
+    /// Creates a `KeyVar` from an `ASVariable` or returns an error if not compatible.
     pub fn new(val: ASVariable) -> anyhow::Result<Self> {
         Ok(match val {
-            ASVariable::None => Self::None,
             ASVariable::Bool(c) => Self::Bool(c),
             ASVariable::Int(c) => Self::Int(c),
             ASVariable::String(c) => Self::String(c),
@@ -261,9 +282,9 @@ impl KeyVar {
             })?,
         })
     }
+    /// Creates an `ASVariable` from the `KeyVar`.
     pub fn get(&self) -> ASVariable {
         match self {
-            Self::None => ASVariable::None,
             Self::Int(c) => ASVariable::Int(*c),
             Self::String(c) => ASVariable::String(c.to_string()),
             Self::Bool(c) => ASVariable::Bool(*c),
@@ -272,6 +293,8 @@ impl KeyVar {
 }
 
 impl ASVariable {
+    /// Returns a `KeyVar` equivalent to the variable. To see what each type means, check
+    /// the `ASVariable` documentation.
     pub fn as_key(self) -> anyhow::Result<KeyVar> {
         KeyVar::new(self)
     }
