@@ -1,11 +1,11 @@
-use crate::{info::GameInfo, variables::ASType};
+use crate::core::{info::GameInfo, variables::ASType};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result},
 };
 use thiserror::Error;
 
-pub fn manage_error(info: &GameInfo, err: anyhow::Error) {
+pub(crate) fn manage_error(info: &GameInfo, err: anyhow::Error) {
     let mut error = format!(
         "\nAdventureScript error on script {}, line {} - ",
         info.script_name(),

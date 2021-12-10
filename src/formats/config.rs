@@ -1,7 +1,6 @@
-use crate::{
+use crate::core::{
     error::{ASFileError, FileErrors},
-    info::GameInfo,
-    io::FileType,
+    FileType, GameInfo,
 };
 use serde_derive::Deserialize;
 use std::{io::Read, path::PathBuf};

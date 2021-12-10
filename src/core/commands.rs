@@ -1,9 +1,11 @@
 use crate::{
     command,
-    error::{ASCmdError, ASGameError, CommandErrors},
+    core::{
+        error::{ASCmdError, ASGameError, CommandErrors},
+        info::GameInfo,
+        variables::{ASType, ASVariable},
+    },
     get_var,
-    info::GameInfo,
-    variables::{ASType, ASVariable},
 };
 use anyhow;
 use std::{collections::HashMap, iter::FromIterator};

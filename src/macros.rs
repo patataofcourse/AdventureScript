@@ -14,7 +14,7 @@ macro_rules! command {
             $($kname:literal:$ktype:ident=$kexpr:expr),+,
         )?
     ))? => |$cmd:ident, $info:ident, $kwargs:ident| $fnbody: tt) => {
-        $crate::Command {
+        $crate::core::Command {
             name: $name.to_string(),
             func: |$cmd, $info, $kwargs| $fnbody,
             args_to_kwargs: vec![
@@ -26,19 +26,19 @@ macro_rules! command {
             accepted_kwargs: ::std::collections::HashMap::<String, ASType>::from_iter([
                 $(
                     $($(($pname.to_string(),
-                    $crate::ASType::$ptype,)),+,)?
+                    $crate::core::ASType::$ptype,)),+,)?
                     $($(($dname.to_string(),
-                    $crate::ASType::$dtype,)),+,)?
+                    $crate::core::ASType::$dtype,)),+,)?
                     $($(($kname.to_string(),
-                    $crate::ASType::$ktype,)),+,)?
+                    $crate:::core:ASType::$ktype,)),+,)?
                 )?
             ]),
             default_values: std::collections::HashMap::<String, ASVariable>::from_iter([
                 $(
                     $($(($dname.to_string(),
-                    $crate::ASVariable::$dtype($dexpr),)),+,)?
+                    $crate::core::ASVariable::$dtype($dexpr),)),+,)?
                     $($(($kname.to_string(),
-                    $crate::ASVariable::$ktype($kexpr),)),+,)?
+                    $crate::core::ASVariable::$ktype($kexpr),)),+,)?
                 )?
             ]),
         }
@@ -58,14 +58,14 @@ macro_rules! get_var {
     }};
     ($map:ident->$vname:expr;$vtype:ident) => {{
         let var = match $map.get($vname).expect("Non-existent argument on get_var") {
-            $crate::ASVariable::$vtype(c) => Some(c),
-            _ => Err($crate::error::ASOtherError::DevErr(
+            $crate::core::ASVariable::$vtype(c) => Some(c),
+            _ => Err($crate::core::error::ASOtherError::DevErr(
                 "Wrong type on get_var".to_string(),
             ))?,
         };
         match var {
             Some(c) => c,
-            None => Err($crate::error::ASOtherError::DevErr(
+            None => Err($crate::core::error::ASOtherError::DevErr(
                 "get_var: Got a None value from a variable that shouldn't be None".to_string(),
             ))?,
         }

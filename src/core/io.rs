@@ -1,4 +1,4 @@
-use crate::{
+use crate::core::{
     error::{ASFileError, ASOtherError, FileErrors},
     info::GameInfo,
 };

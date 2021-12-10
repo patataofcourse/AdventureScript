@@ -1,9 +1,12 @@
 use crate::{
-    config,
-    config::Config,
-    error::{ASOtherError, ASSyntaxError, ASVarError},
-    io::{AdventureIO, FileType},
-    variables::ASVariable,
+    core::{
+        error::{ASOtherError, ASSyntaxError, ASVarError},
+        io::{AdventureIO, FileType},
+        variables::ASVariable,
+    },
+    formats::config,
+    formats::config::Config,
+    formats::save,
 };
 use std::{collections::HashMap, io::Read, path::PathBuf};
 
@@ -181,14 +184,14 @@ impl GameInfo {
             match result.trim() {
                 "s" => {
                     if self.allow_save {
-                        crate::save::save(self)?;
+                        save::save(self)?;
                         self.io.show("Saved.")?;
                     }
                     return Ok(0);
                 }
                 "r" => {
                     if self.allow_save {
-                        crate::save::restore(self)?;
+                        save::restore(self)?;
                         self.io.show("Restored save.")?;
                     }
                     return Ok(0);

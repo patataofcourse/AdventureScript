@@ -1,25 +1,28 @@
-use std::path::PathBuf;
+//! AdventureScript is a crate for creating text-based games.
+//!
+//! If you just want to run a game, the `AdventureScriptGame` struct handles all needed processes.
+//! Example:
+//! ```no_run
+//! let mut game = AdventureScriptGame::new("path_to_game".to_string(), None);
+//! game.run();
+//! ```
+//!
+//! If what you want is to make a module, you can find the public API for the AdventureScript core in
+//! the `core` module, and the macros available in the crate will help keep your code readable.
 
-pub mod config;
-pub mod error;
+//TODO: update when modules are a thing ^
 
-mod commands;
-mod info;
-mod io;
+pub mod core;
+
+pub(crate) mod formats;
 mod macros;
 mod parsing;
-mod save;
-mod variables;
-
 mod inventory {}
-mod methods {}
 
-// TODO: (more) public imports for stuff that might be used in the interface
-pub use commands::{CmdSet, Command};
-pub use info::GameInfo;
-pub use io::{AdventureIO, FileType};
-pub use variables::{ASType, ASVariable};
+use crate::core::{error::manage_error, main_commands, AdventureIO, CmdSet, GameInfo};
+use std::path::PathBuf;
 
+/// A struct that handles initializing and running an AdventureScript game.
 pub struct AdventureScriptGame {
     info: GameInfo,
     commands: CmdSet,
@@ -28,11 +31,7 @@ pub struct AdventureScriptGame {
 impl AdventureScriptGame {
     /// document this better later, me
     /// however, root_dir is basically the root folder of the game
-    pub fn new(
-        root_dir: String,
-        io: Option<io::AdventureIO>,
-        is_local: bool,
-    ) -> AdventureScriptGame {
+    pub fn new(root_dir: String, io: Option<AdventureIO>, is_local: bool) -> AdventureScriptGame {
         AdventureScriptGame {
             info: GameInfo::create(PathBuf::from(root_dir), io.unwrap_or_default(), is_local),
             commands: CmdSet::new(),
@@ -42,15 +41,15 @@ impl AdventureScriptGame {
     pub fn run(&mut self) {
         //load config file
         if let Err(err) = self.info.load_config() {
-            error::manage_error(&self.info, err);
+            manage_error(&self.info, err);
             return;
         };
         println!("AdventureScript v{}\n", env!("CARGO_PKG_VERSION"));
         //add basic commands
-        self.commands.extend(commands::main_commands());
+        self.commands.extend(main_commands());
         //load script file
         if let Err(err) = self.info.load_script(None) {
-            error::manage_error(&self.info, err);
+            manage_error(&self.info, err);
             return;
         };
         //parser and stuff
@@ -58,7 +57,7 @@ impl AdventureScriptGame {
             match parsing::parse_line(&mut self.info, &self.commands) {
                 Ok(_) => (),
                 Err(err) => {
-                    error::manage_error(&self.info, err);
+                    manage_error(&self.info, err);
                     return;
                 }
             };

@@ -1,11 +1,9 @@
-use crate::{
-    commands::CmdSet,
-    error::ASSyntaxError,
-    info::GameInfo,
-    variables::{ASVariable, KeyVar},
-};
+use crate::core::{error::ASSyntaxError, ASVariable, CmdSet, GameInfo, KeyVar};
 use regex::{Match, Regex};
 use std::collections::HashMap;
+
+#[cfg(test)]
+mod tests;
 
 pub fn parse_line(info: &mut GameInfo, commands: &CmdSet) -> anyhow::Result<()> {
     let mut ln = info.get_line()?.to_string();
@@ -157,14 +155,6 @@ fn parse_command(info: &mut GameInfo, commands: &CmdSet, text: String) -> anyhow
 enum SimplifyMode {
     Strings,
     Brackets,
-}
-
-#[test]
-fn simplify_test() {
-    let text = "'hel\"lo' \"hel'lo\" 'hel\\'lo' \"hel\\\"lo\"".to_string();
-    let (s, q) = simplify(text, SimplifyMode::Strings).unwrap();
-    assert_eq!(s, "\"0\" \"1\" \"2\" \"3\"");
-    assert_eq!(q, vec!["hel\"lo", "hel'lo", "hel\\'lo", "hel\\\"lo"]);
 }
 
 // TODO: name better

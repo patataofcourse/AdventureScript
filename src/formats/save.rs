@@ -1,8 +1,6 @@
-use crate::{
+use crate::core::{
     error::{ASFileError, FileErrors},
-    info::GameInfo,
-    io::FileType,
-    variables::ASVariable,
+    ASVariable, FileType, GameInfo,
 };
 use serde_derive::{Deserialize, Serialize};
 use std::{collections::HashMap, io::Read, io::Write};
