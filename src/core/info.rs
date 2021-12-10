@@ -21,11 +21,12 @@ pub struct GameInfo {
     pub variables: HashMap<String, ASVariable>,
     pub config: Option<Config>,
     pub local: bool,
+    pub debug: bool,
     pub allow_save: bool,
 }
 
 impl GameInfo {
-    pub fn create(root_dir: PathBuf, io: AdventureIO, local: bool) -> GameInfo {
+    pub fn create(root_dir: PathBuf, io: AdventureIO, local: bool, debug: bool) -> GameInfo {
         GameInfo {
             io: io,
             root_dir: root_dir,
@@ -37,6 +38,7 @@ impl GameInfo {
             variables: HashMap::<String, ASVariable>::new(),
             config: None,
             local,
+            debug,
             allow_save: true,
         }
     }

@@ -2,7 +2,7 @@
 macro_rules! command {
     //TODO: replace dexpr/kexpr with a tokentree
     //TODO: maybe remove kwarg functionality and keep only posargs? it's not like an *args functionality is done
-    ($name:literal $((
+    ($([deprecated=$is_depr:literal])? $name:literal $((
         $(
             $(!$pname:literal:$ptype:ident),+,
         )?
@@ -41,6 +41,7 @@ macro_rules! command {
                     $crate::core::ASVariable::$ktype($kexpr),)),+,)?
                 )?
             ]),
+            deprecated: $(if $is_depr {true} else {false} && !)? false,
         }
     };
 }

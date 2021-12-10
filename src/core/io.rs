@@ -109,12 +109,17 @@ fn error_(text: String) {
     eprintln!("{}", text)
 }
 
+fn warn_(text: String) {
+    eprintln!("WARNING: {}", text)
+}
+
 pub struct AdventureIO {
     show: fn(&str) -> anyhow::Result<()>,
     wait: fn() -> anyhow::Result<()>,
     input: fn() -> anyhow::Result<String>,
     load_file: fn(&GameInfo, &str, &str, FileType) -> anyhow::Result<File>,
     error: fn(String),
+    warn: fn(String),
 }
 
 impl AdventureIO {
@@ -139,6 +144,9 @@ impl AdventureIO {
     pub fn error(&self, text: String) {
         (self.error)(text)
     }
+    pub fn warn(&self, text: String) {
+        (self.warn)(text)
+    }
 
     pub fn default_with(
         show: Option<fn(&str) -> anyhow::Result<()>>,
@@ -146,6 +154,7 @@ impl AdventureIO {
         input: Option<fn() -> anyhow::Result<String>>,
         load_file: Option<fn(&GameInfo, &str, &str, FileType) -> anyhow::Result<File>>,
         error: Option<fn(String)>,
+        warn: Option<fn(String)>,
     ) -> Self {
         Self {
             show: show.unwrap_or(show_),
@@ -153,6 +162,7 @@ impl AdventureIO {
             input: input.unwrap_or(input_),
             load_file: load_file.unwrap_or(load_file_),
             error: error.unwrap_or(error_),
+            warn: warn.unwrap_or(warn_),
         }
     }
 }
@@ -165,6 +175,7 @@ impl Default for AdventureIO {
             input: input_,
             load_file: load_file_,
             error: error_,
+            warn: warn_,
         }
     }
 }

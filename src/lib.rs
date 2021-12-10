@@ -31,9 +31,19 @@ pub struct AdventureScriptGame {
 impl AdventureScriptGame {
     /// document this better later, me
     /// however, root_dir is basically the root folder of the game
-    pub fn new(root_dir: String, io: Option<AdventureIO>, is_local: bool) -> AdventureScriptGame {
+    pub fn new(
+        root_dir: String,
+        io: Option<AdventureIO>,
+        is_local: bool,
+        is_debug: bool,
+    ) -> AdventureScriptGame {
         AdventureScriptGame {
-            info: GameInfo::create(PathBuf::from(root_dir), io.unwrap_or_default(), is_local),
+            info: GameInfo::create(
+                PathBuf::from(root_dir),
+                io.unwrap_or_default(),
+                is_local,
+                is_debug,
+            ),
             commands: CmdSet::new(),
         }
     }

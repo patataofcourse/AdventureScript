@@ -16,6 +16,7 @@ pub struct Command {
     args_to_kwargs: Vec<String>,
     accepted_kwargs: HashMap<String, ASType>,
     default_values: HashMap<String, ASVariable>,
+    deprecated: bool,
 }
 
 pub struct CmdSet {
@@ -132,6 +133,12 @@ impl Command {
                 })?;
             }
         }
+
+        if info.debug && self.deprecated {
+            info.io()
+                .warn(format!("Command '{}' is deprecated", self.name));
+        }
+
         (self.func)(&self, info, kwargs)
     }
 }
@@ -288,7 +295,7 @@ pub fn main_commands() -> CmdSet {
                 }
             },
             command! {
-                "set" (!"var": VarRef, !"value": Any,) => |_cmd, info, kwargs| {
+              [deprecated = true]  "set" (!"var": VarRef, !"value": Any,) => |_cmd, info, kwargs| {
                     info.set_var(
                         kwargs.get("var").unwrap(),
                         kwargs.get("value").unwrap().clone(),
