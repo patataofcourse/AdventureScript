@@ -1,5 +1,10 @@
 # Changelog
 ## v2.0.0
+### Alpha 3:
+* Saving and restoring saves
+* `!!` syntax - multiline commands
+* Improve error managing: `!error` command, `DevError`, `error` and `warn` IO functions, adding details to some errors
+* Command aliases and command deprecations
 ### Alpha 2:
 * Labels, Label variable type
 * Storing and accessing variable
