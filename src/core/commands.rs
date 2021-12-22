@@ -5,7 +5,7 @@ use crate::{
         info::GameInfo,
         variables::{ASType, ASVariable},
     },
-    get_var,
+    unwrap_var,
 };
 use anyhow;
 use std::{collections::HashMap, iter::FromIterator};
@@ -199,7 +199,7 @@ pub fn main_commands() -> CmdSet {
                     let mut gotos = Vec::<ASVariable>::new();
                     // separate the choices into the vectors defined above
                     while c <= 9 {
-                        let choice = get_var!(kwargs -> &format!("choice{}", c); List);
+                        let choice = unwrap_var!(kwargs -> &format!("choice{}", c); List);
                         let text = match choice.get(0) {
                             Some(s) => match s {
                                 ASVariable::String(c) => c.to_string(),
@@ -287,7 +287,7 @@ pub fn main_commands() -> CmdSet {
                     for t in &texts {
                         text_refs.push(t);
                     }
-                    let text = get_var!(kwargs -> "text"; String);
+                    let text = unwrap_var!(kwargs -> "text"; String);
                     let pick = info.query(text, text_refs)?;
                     if pick == 0 {
                         // used in save/return/quit
@@ -305,7 +305,7 @@ pub fn main_commands() -> CmdSet {
             },
             command! {
                 "ending" ("name": String = "".to_string(), ) => |_cmd, info, kwargs| {
-                    let name = get_var!(kwargs -> "name"; String);
+                    let name = unwrap_var!(kwargs -> "name"; String);
                     info.show(&format!("Ending: {}", name))?;
                     info.quit();
                     Ok(())
@@ -341,13 +341,13 @@ pub fn main_commands() -> CmdSet {
             },
             command! {
                 "loadscript" (!"name": String,) => |_cmd, info, kwargs| {
-                    let script_name: &str = get_var!(kwargs -> "name"; String);
+                    let script_name: &str = unwrap_var!(kwargs -> "name"; String);
                     info.load_script(Some(script_name))
                 }
             },
             command! {
                 "if" (!"condition": Bool, !"gotrue": Label, !"gofalse": Label, ) => |_cmd, info, kwargs| {
-                    let condition = *get_var!(kwargs -> "condition"; Bool);
+                    let condition = *unwrap_var!(kwargs -> "condition"; Bool);
                     if condition {
                         info.goto_label(kwargs.get("gotrue").unwrap())
                     } else {
@@ -357,13 +357,13 @@ pub fn main_commands() -> CmdSet {
             },
             command! {
                 "error" (!"message": String, ) => |_cmd, _info, kwargs| {
-                    let message = get_var!(kwargs -> "message"; String).to_string();
+                    let message = unwrap_var!(kwargs -> "message"; String).to_string();
                     Err(ASGameError(message))?
                 }
             },
             command! {
                 "save" (!"val": Bool, ) => |_cmd, info, kwargs| {
-                    info.allow_save = *get_var!(kwargs -> "val"; Bool);
+                    info.allow_save = *unwrap_var!(kwargs -> "val"; Bool);
                     Ok(())
                 }
             },
