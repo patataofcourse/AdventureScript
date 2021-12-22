@@ -160,10 +160,8 @@ pub enum FileErrors {
     ConfigLoadError(String),
     #[error("Error parsing save file:\n    {0}")]
     SaveLoadError(String),
-    #[error(
-        "Save was created on AdventureScript v{save_ver} (minimum supported ver. is {min_ver})"
-    )]
-    SaveNotCompatible { save_ver: String, min_ver: String },
+    #[error("Save was created on incompatible AdventureScript version v{0}")]
+    SaveNotCompatible(String),
     #[error("Save was created on a newer version of AdventureScript (v{0})")]
     SaveTooNew(String),
 }

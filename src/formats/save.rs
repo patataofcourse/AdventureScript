@@ -22,10 +22,6 @@ pub struct Save {
     pub screentext: String,
 }
 
-fn min_ver() -> String {
-    "2.0.0-alpha.2".to_string()
-}
-
 pub fn restore(info: &mut GameInfo) -> anyhow::Result<()> {
     //TODO: multisave
     let save_path = "save.ad2";
@@ -51,17 +47,14 @@ pub fn restore(info: &mut GameInfo) -> anyhow::Result<()> {
         ))?,
     };
 
-    if !VersionReq::parse(&format!(">= {}", min_ver()))
+    if !VersionReq::parse(&format!(">= 2.0.0-alpha.1")) //TODO: update on betas
         .unwrap()
         .matches(&ver)
     {
         Err(ASFileError::from(
             &format!("save/{}", save_path),
             "r",
-            FileErrors::SaveNotCompatible {
-                save_ver: ver.to_string(),
-                min_ver: min_ver(),
-            },
+            FileErrors::SaveNotCompatible(ver.to_string()),
         ))?
     }
 
