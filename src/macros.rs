@@ -47,27 +47,30 @@ macro_rules! command {
 }
 
 #[macro_export]
-macro_rules! get_var {
-    ($map:ident->$vname:expr;$vtype:ident.or_none) => {{
-        match $map.get($vname).expect("Non-existent argument on get_var") {
-            $crate::ASVariable::$vtype(c) => Some(c),
-            $crate::ASVariable::None => None,
+macro_rules! unwrap_var {
+    ($map:ident->$vname:expr; Option<$vtype:ident>) => {{
+        match $map.get($vname) {
+            Some($crate::ASVariable::$vtype(c)) => Some(c),
+            None | Some($crate::ASVariable::None) => None,
             _ => Err($crate::error::ASOtherError::DevErr(
-                "Wrong type on get_var".to_string(),
+                "Wrong type on unwrap_var".to_string(),
             ))?,
         }
     }};
     ($map:ident->$vname:expr;$vtype:ident) => {{
-        let var = match $map.get($vname).expect("Non-existent argument on get_var") {
+        let var = match $map
+            .get($vname)
+            .expect("Non-existent argument on unwrap_var")
+        {
             $crate::core::ASVariable::$vtype(c) => Some(c),
             _ => Err($crate::core::error::ASOtherError::DevErr(
-                "Wrong type on get_var".to_string(),
+                "Wrong type on unwrap_var".to_string(),
             ))?,
         };
         match var {
             Some(c) => c,
             None => Err($crate::core::error::ASOtherError::DevErr(
-                "get_var: Got a None value from a variable that shouldn't be None".to_string(),
+                "unwrap_var: Got a None value from a variable that shouldn't be None".to_string(),
             ))?,
         }
     }};
