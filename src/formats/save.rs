@@ -3,33 +3,36 @@ use crate::core::{
     ASVariable, FileType, GameInfo,
 };
 use serde_derive::{Deserialize, Serialize};
-use std::{collections::HashMap, io::Read, io::Write};
+use std::{
+    collections::HashMap,
+    io::{Read, Write},
+    path::PathBuf,
+};
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Save {
     //TODO: make versions SemVers
     pub as_ver: String,
     pub game_ver: String,
-    //TODO: use PathBufs for filenames
-    pub script: String,
+    pub script: PathBuf,
     //TODO: save position as a label??
     pub pointer: i32,
     pub flags: HashMap<String, ASVariable>,
     pub variables: HashMap<String, ASVariable>,
-    //TODO: implement screentext
     pub screentext: String,
 }
 
 pub fn restore(info: &mut GameInfo) -> anyhow::Result<()> {
+    //TODO: multisave
+    let save_path = "save.ad2";
+
     let mut file = String::from("");
-    info
-        //TODO: multisave
-        .load_file("save.ad2", "r", FileType::Save)?
+    info.load_file(save_path, "r", FileType::Save)?
         .read_to_string(&mut file)?;
     let save: Save = match serde_json::from_str(&file) {
         Ok(c) => c,
         Err(e) => Err(ASFileError::from(
-            "save/save.ad2",
+            &format!("save/{}", save_path),
             "r",
             FileErrors::SaveLoadError(e.to_string()),
         ))?,
@@ -37,7 +40,18 @@ pub fn restore(info: &mut GameInfo) -> anyhow::Result<()> {
 
     //TODO: check versions
 
-    info.load_script(Some(&save.script))?;
+    info.load_script(Some(
+        match &save.script.as_os_str().to_os_string().into_string() {
+            Ok(c) => c,
+            Err(_) => Err(ASFileError::from(
+                &format!("save/{}", save_path),
+                "r",
+                FileErrors::SaveLoadError(
+                    "Path to script invalid - make sure it's UTF-8 compatible".to_string(),
+                ),
+            ))?,
+        },
+    ))?;
     info.pointer = save.pointer;
     info.flags = save.flags;
     info.variables = save.variables;
@@ -48,22 +62,22 @@ pub fn restore(info: &mut GameInfo) -> anyhow::Result<()> {
 }
 
 pub fn save(info: &GameInfo) -> anyhow::Result<()> {
+    let save_path = "save.ad2";
+
     let save = serde_json::to_string(&Save {
         as_ver: env!("CARGO_PKG_VERSION").to_string(),
         game_ver: match &info.config {
             Some(c) => c.version.to_string(),
             None => panic!("Config file not initialized"),
         },
-        script: info.script_name().to_string(),
+        script: PathBuf::from(info.script_name()),
         pointer: info.pointer,
         flags: info.flags.clone(),
         variables: info.variables.clone(),
         screentext: info.screentext.to_string(),
     })
     .unwrap();
-    info
-        //TODO: multisave
-        .load_file("save.ad2", "w", FileType::Save)?
+    info.load_file(save_path, "w", FileType::Save)?
         .write(save.as_bytes())?;
     Ok(())
 }

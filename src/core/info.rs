@@ -31,7 +31,7 @@ impl GameInfo {
         GameInfo {
             io: io,
             root_dir: root_dir,
-            script_name: String::from("start"),
+            script_name: "start".to_string(),
             script: Vec::<String>::new(),
             pointer: 0,
             quitting: false,
