@@ -50,7 +50,7 @@ pub struct Module {
     pub file: Option<PathBuf>,
 }
 
-pub(crate) fn load_config(info: &GameInfo) -> anyhow::Result<Config> {
+pub fn load_config(info: &GameInfo) -> anyhow::Result<Config> {
     let mut file = String::from("");
     info.load_file("info.toml", "r", FileType::Other)?
         .read_to_string(&mut file)?;
