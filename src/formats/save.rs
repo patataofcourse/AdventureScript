@@ -2,6 +2,7 @@ use crate::core::{
     error::{ASFileError, FileErrors},
     ASVariable, FileType, GameInfo,
 };
+use semver::{Version, VersionReq};
 use serde_derive::{Deserialize, Serialize};
 use std::{
     collections::HashMap,
@@ -11,7 +12,6 @@ use std::{
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Save {
-    //TODO: make versions SemVers
     pub as_ver: String,
     pub game_ver: String,
     pub script: PathBuf,
@@ -20,6 +20,10 @@ pub struct Save {
     pub flags: HashMap<String, ASVariable>,
     pub variables: HashMap<String, ASVariable>,
     pub screentext: String,
+}
+
+fn min_ver() -> String {
+    "2.0.0-alpha.2".to_string()
 }
 
 pub fn restore(info: &mut GameInfo) -> anyhow::Result<()> {
@@ -38,7 +42,39 @@ pub fn restore(info: &mut GameInfo) -> anyhow::Result<()> {
         ))?,
     };
 
-    //TODO: check versions
+    let ver = match Version::parse(&save.as_ver) {
+        Ok(c) => c,
+        Err(e) => Err(ASFileError::from(
+            &format!("save/{}", save_path),
+            "r",
+            FileErrors::SaveLoadError(e.to_string()),
+        ))?,
+    };
+
+    if !VersionReq::parse(&format!(">= {}", min_ver()))
+        .unwrap()
+        .matches(&ver)
+    {
+        Err(ASFileError::from(
+            &format!("save/{}", save_path),
+            "r",
+            FileErrors::SaveNotCompatible {
+                save_ver: ver.to_string(),
+                min_ver: min_ver(),
+            },
+        ))?
+    }
+
+    if !VersionReq::parse(&format!("<= {}", crate::get_version()))
+        .unwrap()
+        .matches(&ver)
+    {
+        Err(ASFileError::from(
+            &format!("save/{}", save_path),
+            "r",
+            FileErrors::SaveTooNew(ver.to_string()),
+        ))?
+    }
 
     info.load_script(Some(
         match &save.script.as_os_str().to_os_string().into_string() {

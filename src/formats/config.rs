@@ -18,17 +18,19 @@ struct UnparsedVerConfig {
 
 impl UnparsedVerConfig {
     pub fn parse_ver(self) -> anyhow::Result<Config> {
+        let version = match Version::parse(&self.version) {
+            Ok(c) => c,
+            Err(e) => Err(ASFileError::from(
+                "info.toml",
+                "r",
+                FileErrors::ConfigLoadError(format!("Error parsing field 'version': {}", e)),
+            ))?,
+        };
+
         Ok(Config {
             name: self.name,
             description: self.description,
-            version: match Version::parse(&self.version) {
-                Ok(c) => c,
-                Err(e) => Err(ASFileError::from(
-                    "info.toml",
-                    "r",
-                    FileErrors::ConfigLoadError(format!("Error parsing field 'version': {}", e)),
-                ))?,
-            },
+            version,
             icon: self.icon,
             module: self.module,
         })

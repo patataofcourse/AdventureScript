@@ -20,7 +20,12 @@ mod parsing;
 mod inventory {}
 
 use crate::core::{error::manage_error, main_commands, AdventureIO, CmdSet, GameInfo};
+use semver::Version;
 use std::path::PathBuf;
+
+pub fn get_version() -> Version {
+    Version::parse(env!("CARGO_PKG_VERSION")).unwrap()
+}
 
 /// A struct that handles initializing and running an AdventureScript game.
 pub struct AdventureScriptGame {
