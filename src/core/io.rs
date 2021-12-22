@@ -35,10 +35,12 @@ pub enum FileType {
 }
 
 fn pc_save_location(info: &GameInfo) -> anyhow::Result<std::path::PathBuf> {
-    //TODO other platforms?
+    //TODO: other platforms?
     return match dirs::data_local_dir() {
         Some(c) => {
             let mut c = c;
+            c.extend(&PathBuf::from("AdventureScript"));
+            //TODO: add some internal_name field to the config and take that instead
             c.extend(&PathBuf::from(info.root_dir()));
             Ok(c)
         }
@@ -56,7 +58,6 @@ fn load_file_(
         FileType::Script => PathBuf::from("script"),
         FileType::CustomDir(c) => PathBuf::from(c),
         FileType::Save => {
-            //TODO: make save directory if it doesn't exist
             if info.local {
                 PathBuf::from("save")
             } else {
@@ -68,6 +69,11 @@ fn load_file_(
 
     let mut fname = info.root_dir().clone();
     fname.push(&folder);
+
+    if mode == "w" && !fname.is_dir() {
+        std::fs::create_dir_all(&fname)?
+    }
+
     fname.push(PathBuf::from(filename));
 
     //this manages std::io errors

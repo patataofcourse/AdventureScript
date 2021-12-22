@@ -159,7 +159,6 @@ enum SimplifyMode {
 
 // TODO: name better
 fn simplify(mut text: String, mode: SimplifyMode) -> anyhow::Result<(String, Vec<String>)> {
-    //TODO: implement Brackets mode
     match mode {
         SimplifyMode::Strings => (),
         SimplifyMode::Brackets => return merge_this_into_simplify(text),
@@ -392,7 +391,7 @@ pub fn evaluate(
                 flag: true,
             }
         }
-        //TODO: Variables
+        // Variables
         else {
             if !Regex::new(r"^[A-Za-z0-9-_]*$")?.is_match(&val) {
                 Err(ASSyntaxError::InvalidVariableName(val.to_string()))?
