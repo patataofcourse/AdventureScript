@@ -2,8 +2,7 @@ use crate::{
     command,
     core::{
         error::{ASCmdError, ASGameError, CommandErrors},
-        info::GameInfo,
-        variables::{ASType, ASVariable},
+        ASType, ASVariable, GameInfo,
     },
     formats::save,
     unwrap_var,

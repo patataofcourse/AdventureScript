@@ -1,8 +1,7 @@
 use crate::{
     core::{
         error::{ASOtherError, ASSyntaxError, ASVarError},
-        io::{AdventureIO, FileType},
-        variables::ASVariable,
+        ASVariable, AdventureIO, FileType,
     },
     formats::config,
     formats::config::Config,

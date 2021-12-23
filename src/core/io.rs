@@ -1,6 +1,6 @@
 use crate::core::{
     error::{ASFileError, ASOtherError, FileErrors},
-    info::GameInfo,
+    GameInfo,
 };
 use anyhow;
 use std::{
