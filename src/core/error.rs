@@ -238,7 +238,7 @@ impl Display for ASNotImplemented {
 
 impl Error for ASNotImplemented {}
 
-//Variable error (getting variables mostly)
+//Variable error
 
 #[derive(Debug, Error)]
 pub enum ASVarError {
@@ -246,6 +246,10 @@ pub enum ASVarError {
     FlagNotBool(String),
     #[error("Tried to access variable {0}, which doesn't exist.\nTip: use !set {0}; [some value]")]
     VarNotFound(String),
+    #[error("List indexes should be 0 or positive")]
+    NegativeListIndex,
+    #[error("Tried to get item {index} of a list that only has {num_items} items")]
+    WrongListIndex { num_items: usize, index: i32 },
 }
 
 //Error raised from the game

@@ -26,20 +26,17 @@ pub struct CmdSet {
 
 impl CmdSet {
     pub fn get(&self, name: &str) -> Option<&Command> {
-        let mut out = None;
         for command in &self.commands {
             if command.name == name {
-                out = Some(command);
-                break;
+                return Some(command);
             }
         }
         for (alias, a_name) in &self.aliases {
             if alias == name {
-                out = self.get(a_name);
-                break;
+                return self.get(a_name);
             }
         }
-        out
+        None
     }
     pub fn extend(&mut self, other: Self) {
         //TODO: adapt for modules
