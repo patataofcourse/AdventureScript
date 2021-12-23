@@ -223,7 +223,7 @@ impl Display for ASVariable {
                 Self::None => "None".to_string(),
                 Self::Bool(c) => if *c { "true" } else { "false" }.to_string(),
                 Self::Int(c) => c.to_string(),
-                Self::String(c) => format!("\"{}\"", c),
+                Self::String(c) => format!("{}", c),
                 Self::List(c) => format!("[{}]", {
                     let mut out = String::new();
                     let mut first_elem = true;
