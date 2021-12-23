@@ -5,6 +5,7 @@ use crate::{
         info::GameInfo,
         variables::{ASType, ASVariable},
     },
+    formats::save,
     unwrap_var,
 };
 use anyhow;
@@ -367,6 +368,20 @@ pub fn main_commands() -> CmdSet {
                     Ok(())
                 }
             },
+            command! {
+                "gameover" () => |_cmd, info, _kwargs| {
+                    info.show("**GAME OVER**")?;
+                    let query = info.query("Start over from last save?", vec!("Yes","No"))?;
+                    if query == 1 {
+                        if !save::restore(info)? {
+                            info.quit();
+                        };
+                    } else {
+                        info.quit();
+                    }
+                    Ok(())
+                }
+            },
         ],
         HashMap::from_iter([
             ("w".to_string(), "wait".to_string()),
@@ -376,6 +391,7 @@ pub fn main_commands() -> CmdSet {
             ("end".to_string(), "ending".to_string()),
             ("load".to_string(), "loadscript".to_string()),
             ("ld".to_string(), "loadscript".to_string()),
+            ("lose".to_string(), "gameover".to_string()),
         ]),
     )
 }

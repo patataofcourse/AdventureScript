@@ -22,13 +22,25 @@ pub struct Save {
     pub screentext: String,
 }
 
-pub fn restore(info: &mut GameInfo) -> anyhow::Result<()> {
+pub fn restore(info: &mut GameInfo) -> anyhow::Result<bool> {
     //TODO: multisave
     let save_path = "save.ad2";
 
     let mut file = String::from("");
-    info.load_file(save_path, "r", FileType::Save)?
-        .read_to_string(&mut file)?;
+    match info.load_file(save_path, "r", FileType::Save) {
+        Ok(c) => c,
+        Err(e) => match e.downcast_ref::<ASFileError>() {
+            Some(ASFileError {
+                details: FileErrors::NotFound,
+                ..
+            }) => {
+                info.show("No save available")?;
+                return Ok(false);
+            }
+            _ => Err(e)?,
+        },
+    }
+    .read_to_string(&mut file)?;
     let save: Save = match serde_json::from_str(&file) {
         Ok(c) => c,
         Err(e) => Err(ASFileError::from(
@@ -81,18 +93,23 @@ pub fn restore(info: &mut GameInfo) -> anyhow::Result<()> {
             ))?,
         },
     ))?;
+
+    info.show("Restored save\n")?;
+
     info.pointer = save.pointer;
     info.flags = save.flags;
     info.variables = save.variables;
     info.screentext = save.screentext;
     info.show_screentext()?;
 
-    Ok(())
+    Ok(true)
 }
 
-pub fn save(info: &GameInfo) -> anyhow::Result<()> {
+pub fn save(info: &mut GameInfo) -> anyhow::Result<()> {
+    //TODO: add multisave
     let save_path = "save.ad2";
 
+    let screentext = info.screentext.to_string();
     let save = serde_json::to_string(&Save {
         as_ver: env!("CARGO_PKG_VERSION").to_string(),
         game_ver: match &info.config {
@@ -103,10 +120,13 @@ pub fn save(info: &GameInfo) -> anyhow::Result<()> {
         pointer: info.pointer,
         flags: info.flags.clone(),
         variables: info.variables.clone(),
-        screentext: info.screentext.to_string(),
+        screentext: screentext.clone(),
     })
     .unwrap();
     info.load_file(save_path, "w", FileType::Save)?
         .write(save.as_bytes())?;
+
+    info.show("Saved")?;
+    info.screentext = screentext; // so the "Saved." doesn't get added to the screentext
     Ok(())
 }

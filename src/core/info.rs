@@ -206,13 +206,11 @@ impl GameInfo {
                 "s" => {
                     if self.allow_save {
                         save::save(self)?;
-                        self.io.show("Saved.")?;
                     }
                     return Ok(0);
                 }
                 "r" => {
                     if self.allow_save {
-                        self.io.show("Restored save.")?;
                         save::restore(self)?;
                     }
                     return Ok(0);
