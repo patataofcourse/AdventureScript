@@ -85,17 +85,16 @@ impl TypeMethods {
             ASType::Map => Self::from(vec![Method {
                 name: "get".to_string(),
                 func: |var, args: Vec<ASVariable>| -> anyhow::Result<ASVariable> {
-                    let pos = *unwrap_var!(args -> 0; Int);
-                    if pos < 0 {
-                        Err(ASVarError::NegativeListIndex)?;
+                    let key = match args.get(0) {
+                        Some(c) => c.clone(),
+                        None => panic!(),
                     }
-                    if let ASVariable::List(list) = var {
-                        match list.get(pos as usize) {
+                    .as_key()?;
+
+                    if let ASVariable::Map(map) = var {
+                        match map.get(&key) {
                             Some(c) => Ok(c.clone()),
-                            None => Err(ASVarError::WrongListIndex {
-                                num_items: list.len(),
-                                index: pos,
-                            })?,
+                            None => Err(ASVarError::WrongMapKey { key: key })?,
                         }
                     } else {
                         panic!()

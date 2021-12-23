@@ -1,4 +1,4 @@
-use crate::core::{ASType, GameInfo};
+use crate::core::{ASType, GameInfo, KeyVar};
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result},
@@ -250,6 +250,8 @@ pub enum ASVarError {
     NegativeListIndex,
     #[error("Tried to get item {index} of a list that only has {num_items} items")]
     WrongListIndex { num_items: usize, index: i32 },
+    #[error("Tried to get value of a map associated to key {key}, which doesn't exist")]
+    WrongMapKey { key: KeyVar },
 }
 
 //Error raised from the game
