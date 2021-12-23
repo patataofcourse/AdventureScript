@@ -13,10 +13,10 @@ macro_rules! command {
             *,
             $($kname:literal:$ktype:ident=$kexpr:expr),+,
         )?
-    ))? => |$cmd:ident, $info:ident, $kwargs:ident| $fnbody: tt) => {
+    ))? => |$info:ident, $kwargs:ident| $fnbody: tt) => {
         $crate::core::Command {
             name: $name.to_string(),
-            func: |$cmd, $info, $kwargs| $fnbody,
+            func: |$info, $kwargs| $fnbody,
             args_to_kwargs: vec![
                 $(
                     $($($pname.to_string()),+,)?

@@ -59,4 +59,7 @@ thanks!
 !ending "did it work?"
 
 {gameover}
+!set eight; 8
+\v[eight]
+!del eight
 !gameover

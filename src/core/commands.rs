@@ -13,7 +13,7 @@ use std::{collections::HashMap, iter::FromIterator};
 
 pub struct Command {
     pub name: String,
-    func: fn(&Self, &mut GameInfo, HashMap<String, ASVariable>) -> anyhow::Result<()>,
+    func: fn(&mut GameInfo, HashMap<String, ASVariable>) -> anyhow::Result<()>,
     args_to_kwargs: Vec<String>,
     accepted_kwargs: HashMap<String, ASType>,
     default_values: HashMap<String, ASVariable>,
@@ -170,7 +170,7 @@ impl Command {
             info.warn(format!("Command '{}' is deprecated", self.name));
         }
 
-        (self.func)(&self, info, kwargs)
+        (self.func)(info, kwargs)
     }
 }
 
@@ -178,7 +178,7 @@ pub fn main_commands() -> CmdSet {
     CmdSet::from(
         vec![
             command! {
-                "wait" => |_cmd, info, _kwargs| {
+                "wait" => |info, _kwargs| {
                     info.wait()
                 }
             },
@@ -194,7 +194,7 @@ pub fn main_commands() -> CmdSet {
                     "choice7": List = vec![],
                     "choice8": List = vec![],
                     "choice9": List = vec![],
-                ) => |_cmd, info, kwargs| {
+                ) => |info, kwargs| {
                     let mut c = 1;
                     let mut texts = Vec::<String>::new();
                     let mut gotos = Vec::<ASVariable>::new();
@@ -300,12 +300,12 @@ pub fn main_commands() -> CmdSet {
                 }
             },
             command! {
-                "goto" (!"pos": Label, ) => |_cmd, info, kwargs| {
+                "goto" (!"pos": Label, ) => |info, kwargs| {
                     info.goto_label(&kwargs["pos"])
                 }
             },
             command! {
-                "ending" ("name": String = "".to_string(), ) => |_cmd, info, kwargs| {
+                "ending" ("name": String = "".to_string(), ) => |info, kwargs| {
                     let name = unwrap_var!(kwargs -> "name"; String);
                     info.show(&format!("Ending: {}", name))?;
                     info.quit();
@@ -313,7 +313,7 @@ pub fn main_commands() -> CmdSet {
                 }
             },
             command! {
-                "flag" (!"flag": VarRef, "value": Bool = true, ) => |_cmd, info, kwargs| {
+                "flag" (!"flag": VarRef, "value": Bool = true, ) => |info, kwargs| {
                     let flag = match kwargs.get("flag").unwrap() {
                         //Make sure you're getting a flag, not a variable
                         ASVariable::VarRef { name, .. } => ASVariable::VarRef {
@@ -326,7 +326,7 @@ pub fn main_commands() -> CmdSet {
                 }
             },
             command! {
-              "set" (!"var": VarRef, !"value": Any,) => |_cmd, info, kwargs| {
+              "set" (!"var": VarRef, !"value": Any,) => |info, kwargs| {
                     info.set_var(
                         kwargs.get("var").unwrap(),
                         kwargs.get("value").unwrap().clone(),
@@ -334,20 +334,20 @@ pub fn main_commands() -> CmdSet {
                 }
             },
             command! {
-                "add" (!"var": VarRef, !"value": Any,) => |_cmd, info, kwargs| {
+                "add" (!"var": VarRef, !"value": Any,) => |info, kwargs| {
                     let var = kwargs.get("var").unwrap();
                     let val = info.get_var(var)?.clone();
                     info.set_var(var, (val + kwargs.get("value").unwrap().clone())?)
                 }
             },
             command! {
-                "loadscript" (!"name": String,) => |_cmd, info, kwargs| {
+                "loadscript" (!"name": String,) => |info, kwargs| {
                     let script_name: &str = unwrap_var!(kwargs -> "name"; String);
                     info.load_script(Some(script_name))
                 }
             },
             command! {
-                "if" (!"condition": Bool, !"gotrue": Label, !"gofalse": Label, ) => |_cmd, info, kwargs| {
+                "if" (!"condition": Bool, !"gotrue": Label, !"gofalse": Label, ) => |info, kwargs| {
                     let condition = *unwrap_var!(kwargs -> "condition"; Bool);
                     if condition {
                         info.goto_label(kwargs.get("gotrue").unwrap())
@@ -357,19 +357,19 @@ pub fn main_commands() -> CmdSet {
                 }
             },
             command! {
-                "error" (!"message": String, ) => |_cmd, _info, kwargs| {
+                "error" (!"message": String, ) => |_info, kwargs| {
                     let message = unwrap_var!(kwargs -> "message"; String).to_string();
                     Err(ASGameError(message))?
                 }
             },
             command! {
-                "save" (!"val": Bool, ) => |_cmd, info, kwargs| {
+                "save" (!"val": Bool, ) => |info, kwargs| {
                     info.allow_save = *unwrap_var!(kwargs -> "val"; Bool);
                     Ok(())
                 }
             },
             command! {
-                "gameover" () => |_cmd, info, _kwargs| {
+                "gameover" () => |info, _kwargs| {
                     info.show("**GAME OVER**")?;
                     let query = info.query("Start over from last save?", vec!("Yes","No"))?;
                     if query == 1 {
@@ -380,6 +380,11 @@ pub fn main_commands() -> CmdSet {
                         info.quit();
                     }
                     Ok(())
+                }
+            },
+            command! {
+                "del" (!"var": VarRef,) => |info, kwargs| {
+                    info.del_var(kwargs.get("var").unwrap())
                 }
             },
         ],
