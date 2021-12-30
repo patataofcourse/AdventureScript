@@ -23,7 +23,7 @@ macro_rules! command {
                     $($(stringify!($dname).to_string()),+,)?
                 )?
             ],
-            accepted_kwargs: ::std::collections::HashMap::<String, ASType>::from_iter([
+            accepted_kwargs: ::std::collections::HashMap::<String, $crate::core::ASType>::from_iter([
                 $(
                     $($((stringify!($pname).to_string(),
                     $crate::core::ASType::$ptype,)),+,)?
@@ -33,7 +33,7 @@ macro_rules! command {
                     $crate:::core:ASType::$ktype,)),+,)?
                 )?
             ]),
-            default_values: std::collections::HashMap::<String, ASVariable>::from_iter([
+            default_values: std::collections::HashMap::<String, $crate::core::ASVariable>::from_iter([
                 $(
                     $($((stringify!($dname).to_string(),
                     $crate::core::ASVariable::$dtype($dexpr),)),+,)?

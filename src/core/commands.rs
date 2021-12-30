@@ -10,15 +10,17 @@ use crate::{
 use anyhow;
 use std::{collections::HashMap, iter::FromIterator};
 
+#[derive(Clone)]
 pub struct Command {
     pub name: String,
-    func: fn(&mut GameInfo, HashMap<String, ASVariable>) -> anyhow::Result<()>,
-    args_to_kwargs: Vec<String>,
-    accepted_kwargs: HashMap<String, ASType>,
-    default_values: HashMap<String, ASVariable>,
-    deprecated: bool,
+    pub func: fn(&mut GameInfo, HashMap<String, ASVariable>) -> anyhow::Result<()>,
+    pub args_to_kwargs: Vec<String>,
+    pub accepted_kwargs: HashMap<String, ASType>,
+    pub default_values: HashMap<String, ASVariable>,
+    pub deprecated: bool,
 }
 
+#[derive(Clone)]
 pub struct CmdSet {
     pub commands: Vec<Command>,
     pub aliases: HashMap<String, String>,

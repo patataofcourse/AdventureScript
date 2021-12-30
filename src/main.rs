@@ -1,7 +1,9 @@
-use adventure_script;
+use adventure_script::AdventureScriptGame;
+
+use adventure_script::modules::inventory;
 
 fn main() {
-    let mut game =
-        adventure_script::AdventureScriptGame::new(String::from("test_game"), None, true, true);
+    let mut game = AdventureScriptGame::new(String::from("test_game"), None, true, true);
+    game.add_module(inventory::get_module());
     game.run();
 }

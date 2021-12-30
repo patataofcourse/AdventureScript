@@ -13,6 +13,7 @@
 //TODO: update when modules are a thing ^
 
 pub mod core;
+pub mod modules;
 
 pub(crate) mod formats;
 mod macros;
@@ -78,5 +79,9 @@ impl AdventureScriptGame {
             };
             self.info.next_line();
         }
+    }
+
+    pub fn add_module(&mut self, module: modules::Module) {
+        module.add_to(&mut self.info, &mut self.commands);
     }
 }
