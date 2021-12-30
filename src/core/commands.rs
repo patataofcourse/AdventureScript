@@ -5,6 +5,7 @@ use crate::{
         ASType, ASVariable, GameInfo,
     },
     formats::save,
+    modules::Module,
     unwrap_var,
 };
 use anyhow;
@@ -24,6 +25,7 @@ pub struct Command {
 pub struct CmdSet {
     pub commands: Vec<Command>,
     pub aliases: HashMap<String, String>,
+    modules: Vec<String>,
 }
 
 impl CmdSet {
@@ -46,13 +48,36 @@ impl CmdSet {
         self.aliases.extend(other.aliases);
     }
     pub fn from(commands: Vec<Command>, aliases: HashMap<String, String>) -> Self {
-        Self { commands, aliases }
+        Self {
+            commands,
+            aliases,
+            modules: vec![],
+        }
     }
     pub fn new() -> Self {
         Self {
             commands: vec![],
             aliases: HashMap::new(),
+            modules: vec![],
         }
+    }
+    pub fn add_module(&mut self, module: &Module) -> anyhow::Result<()> {
+        self.extend(module.commands.adapt_for_module(module.name.to_string())?);
+        Ok(())
+    }
+    pub fn adapt_for_module(&self, module_name: String) -> anyhow::Result<Self> {
+        let mut new_self = Self::new();
+        for command in &mut self.commands.clone() {
+            command.name = format!("{}.{}", module_name, command.name);
+            new_self.commands.push(command.clone());
+        }
+        for (key, value) in &self.aliases {
+            new_self.aliases.insert(
+                format!("{}.{}", module_name, key),
+                format!("{}.{}", module_name, value),
+            );
+        }
+        Ok(new_self)
     }
 }
 

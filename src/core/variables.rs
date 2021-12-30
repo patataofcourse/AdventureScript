@@ -23,6 +23,7 @@ pub enum ASType {
     Label,
     VarRef,
     None,
+    Object(String),
 }
 
 impl Display for ASType {
@@ -32,7 +33,7 @@ impl Display for ASType {
 }
 
 /// Enum used to handle AdventureScript variables.
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum ASVariable {
     /// Boolean value (true/false)
     Bool(bool),
@@ -57,21 +58,27 @@ pub enum ASVariable {
     },
     /// Empty value, equivalent to Rust's `()`.
     None,
+    /// A custom object/"class" type, to be used in modules
+    Object {
+        name: String,
+        fields: HashMap<String, ASVariable>,
+        //TODO: add spec for object specification (available in info)
+    },
 }
 
 impl ASVariable {
     /// Get an `ASType` representing the variable's type.
     pub fn get_type(&self) -> ASType {
         match self {
-            Self::Bool(_c) => ASType::Bool,
-            Self::Int(_c) => ASType::Int,
-            Self::String(_c) => ASType::String,
-            Self::List(_c) => ASType::List,
-            Self::Map(_c) => ASType::Map,
-            Self::Label(_c) => ASType::Label,
-            Self::VarRef { .. } => ASType::VarRef, // Variable name, for defining new variables
+            Self::Bool(_) => ASType::Bool,
+            Self::Int(_) => ASType::Int,
+            Self::String(_) => ASType::String,
+            Self::List(_) => ASType::List,
+            Self::Map(_) => ASType::Map,
+            Self::Label(_) => ASType::Label,
+            Self::VarRef { .. } => ASType::VarRef,
             Self::None => ASType::None,
-            //keep adding whenever you add more types
+            Self::Object { name, .. } => ASType::Object(name.clone()),
         }
     }
 }
@@ -256,6 +263,10 @@ impl Display for ASVariable {
                 },
                 Self::VarRef { name, flag } => {
                     format!("{} {}", if *flag { "Flag" } else { "Variable" }, name)
+                }
+                Self::Object { name, .. } => {
+                    //TODO: refer to spec instead
+                    format!("<Object type {}>", name)
                 }
             }
         )

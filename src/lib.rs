@@ -82,6 +82,7 @@ impl AdventureScriptGame {
     }
 
     pub fn add_module(&mut self, module: modules::Module) {
+        //TODO: make error a ModuleError and manage
         module.add_to(&mut self.info, &mut self.commands);
     }
 }

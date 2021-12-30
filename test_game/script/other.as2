@@ -4,6 +4,7 @@
 !! ["variable/flag tests", {testing}];
 !! ["save time travel test", {travel}];
 !! ["game over & other shit", {gameover}];
+!! ["inventory and module stuff", {mod}];
 !! ["exit", None]
 
 !ending "No tests"
@@ -63,3 +64,7 @@ thanks!
 \v[eight]
 !del eight
 !gameover
+
+{mod}
+!inv.test
+!ending
