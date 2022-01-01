@@ -133,6 +133,8 @@ impl Command {
             {
                 if arg_type == ASType::VarRef {
                     kwargs.insert(key.to_string(), info.get_var(value)?.clone());
+                } else if arg_type == ASType::None && self.accepted_kwargs[key] == ASType::Label {
+                    kwargs.insert(key.to_string(), ASVariable::Label(None));
                 } else {
                     if self.args_to_kwargs.contains(&String::from(key)) {
                         Err(ASCmdError {
@@ -161,7 +163,7 @@ impl Command {
                 }
             }
         }
-        // Check that all arguments in the command have a value
+        // Check that all arguments in the command have been given
         for (key, value) in &self.accepted_kwargs {
             if !kwargs.contains_key(key) {
                 if self.args_to_kwargs.contains(&String::from(key)) {
