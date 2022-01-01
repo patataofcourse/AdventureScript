@@ -1,5 +1,8 @@
-use super::Module;
-use crate::command;
+use super::{Module, ObjSpec};
+use crate::{
+    command,
+    core::{ASType, TypeMethods},
+};
 
 use std::collections::HashMap;
 
@@ -12,5 +15,10 @@ pub fn get_module() -> Module {
             }
         }],
         HashMap::new(),
+        vec![ObjSpec {
+            name: "Inventory".to_string(),
+            fields: HashMap::from([("".to_string(), ASType::Map)]),
+            methods: TypeMethods::new(),
+        }],
     )
 }
