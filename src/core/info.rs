@@ -3,16 +3,15 @@ use crate::{
         error::{ASOtherError, ASSyntaxError, ASVarError},
         ASVariable, AdventureIO, FileType,
     },
-    formats::config,
-    formats::config::Config,
-    formats::save,
+    formats::{config, config::Config, save},
+    modules::ObjSpec,
 };
 use std::{collections::HashMap, fs::File, io::Read, path::PathBuf};
 
 pub struct GameInfo {
-    io: AdventureIO,
-    root_dir: PathBuf,
-    script_name: String,
+    pub io: AdventureIO,
+    pub root_dir: PathBuf,
+    pub script_name: String,
     script: Vec<String>,
     pub pointer: i32,
     pub quitting: bool,
@@ -23,6 +22,7 @@ pub struct GameInfo {
     pub debug: bool,
     pub allow_save: bool,
     pub screentext: String,
+    pub objects: Vec<ObjSpec>,
 }
 
 impl GameInfo {
@@ -41,6 +41,7 @@ impl GameInfo {
             debug,
             allow_save: true,
             screentext: String::new(),
+            objects: vec![],
         }
     }
 
@@ -254,5 +255,13 @@ impl GameInfo {
 
     pub(crate) fn show_screentext(&self) -> anyhow::Result<()> {
         self.io.show(&self.screentext)
+    }
+
+    pub(crate) fn add_module(&mut self, objects: Vec<ObjSpec>, name: &str) {
+        let mut out_obj = vec![];
+        for object in objects {
+            out_obj.push(object.adapt_for_module(name))
+        }
+        self.objects = out_obj;
     }
 }

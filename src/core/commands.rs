@@ -5,7 +5,6 @@ use crate::{
         ASType, ASVariable, GameInfo,
     },
     formats::save,
-    modules::Module,
     unwrap_var,
 };
 use anyhow;
@@ -61,11 +60,10 @@ impl CmdSet {
             modules: vec![],
         }
     }
-    pub fn add_module(&mut self, module: &Module) -> anyhow::Result<()> {
-        self.extend(module.commands.adapt_for_module(module.name.to_string())?);
-        Ok(())
+    pub(crate) fn add_module(&mut self, commands: CmdSet, name: &str) {
+        self.extend(commands.adapt_for_module(name))
     }
-    pub fn adapt_for_module(&self, module_name: String) -> anyhow::Result<Self> {
+    pub(crate) fn adapt_for_module(self, module_name: &str) -> Self {
         let mut new_self = Self::new();
         for command in &mut self.commands.clone() {
             command.name = format!("{}.{}", module_name, command.name);
@@ -77,7 +75,7 @@ impl CmdSet {
                 format!("{}.{}", module_name, value),
             );
         }
-        Ok(new_self)
+        new_self
     }
 }
 

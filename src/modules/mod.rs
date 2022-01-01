@@ -23,8 +23,9 @@ impl Module {
         }
     }
 
-    pub fn add_to(&self, info: &mut GameInfo, commands: &mut CmdSet) -> anyhow::Result<()> {
-        commands.add_module(self)
+    pub fn add_to(self, info: &mut GameInfo, commands: &mut CmdSet) {
+        info.add_module(self.objects, &self.name);
+        commands.add_module(self.commands, &self.name)
     }
 }
 
@@ -34,4 +35,12 @@ pub struct ObjSpec {
     pub fields: HashMap<String, ASType>,
 }
 
-impl ObjSpec {}
+impl ObjSpec {
+    pub fn adapt_for_module(self, module_name: &str) -> Self {
+        Self {
+            name: format!("{}.{}", module_name, self.name),
+            methods: self.methods,
+            fields: self.fields,
+        }
+    }
+}
