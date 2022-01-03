@@ -29,6 +29,7 @@ impl Module {
     }
 }
 
+#[derive(Clone)]
 pub struct ObjSpec {
     pub name: String,
     pub methods: TypeMethods,

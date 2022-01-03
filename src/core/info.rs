@@ -264,4 +264,13 @@ impl GameInfo {
         }
         self.objects = out_obj;
     }
+
+    pub fn get_object(&self, spec: &str) -> Option<ObjSpec> {
+        for object in &self.objects {
+            if object.name == spec {
+                return Some(object.clone());
+            }
+        }
+        return None;
+    }
 }

@@ -128,7 +128,6 @@ impl Display for ASVariable {
                     format!("{} {}", if *flag { "Flag" } else { "Variable" }, name)
                 }
                 Self::Object { spec, .. } => {
-                    //TODO: refer to spec's toString instead
                     format!("<Object type {}>", spec)
                 }
             }

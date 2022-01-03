@@ -1,21 +1,28 @@
 use crate::{
-    core::{error::ASVarError, ASType, ASVariable},
+    core::{error::ASVarError, ASType, ASVariable, GameInfo},
     unwrap_var,
 };
 
+#[derive(Clone)]
 pub struct Method {
     pub name: String,
-    func: fn(ASVariable, Vec<ASVariable>) -> anyhow::Result<ASVariable>,
+    func: fn(&GameInfo, &ASVariable, Vec<&ASVariable>) -> anyhow::Result<ASVariable>,
     //TODO: potentially check args?
 }
 
 impl Method {
-    pub fn run(self, var: ASVariable, args: Vec<ASVariable>) -> anyhow::Result<ASVariable> {
+    pub fn run(
+        self,
+        info: &GameInfo,
+        var: &ASVariable,
+        args: Vec<&ASVariable>,
+    ) -> anyhow::Result<ASVariable> {
         //TODO: arg checking
-        (self.func)(var, args)
+        (self.func)(info, var, args)
     }
 }
 
+#[derive(Clone)]
 pub struct TypeMethods {
     methods: Vec<Method>,
 }
@@ -27,9 +34,12 @@ impl TypeMethods {
     pub fn basic() -> Self {
         Self::from(vec![Method {
             name: "str".to_string(),
-            func: |var, _args| {
+            func: |info, var, _args| {
                 Ok(ASVariable::String(match var {
                     ASVariable::String(c) => format!("{:?}", c),
+                    ASVariable::Object { spec, fields } => {
+                        (info.get_object(spec).unwrap().stringify)(fields.clone())
+                    }
                     var => var.to_string(),
                 }))
             },
@@ -60,11 +70,11 @@ impl TypeMethods {
         //self.aliases.extend(other.aliases);
     }
 
-    pub fn get_for_type(type_: ASType) -> Self {
+    pub fn get_for_type(info: &GameInfo, type_: &ASType) -> Self {
         let mut out = match type_ {
             ASType::List => Self::from(vec![Method {
                 name: "get".to_string(),
-                func: |var, args: Vec<ASVariable>| -> anyhow::Result<ASVariable> {
+                func: |_info, var, args| -> anyhow::Result<ASVariable> {
                     let pos = *unwrap_var!(args -> 0; Int)?;
                     if pos < 0 {
                         Err(ASVarError::NegativeListIndex)?;
@@ -84,11 +94,12 @@ impl TypeMethods {
             }]),
             ASType::Map => Self::from(vec![Method {
                 name: "get".to_string(),
-                func: |var, args: Vec<ASVariable>| -> anyhow::Result<ASVariable> {
+                func: |_info, var, args| -> anyhow::Result<ASVariable> {
                     let key = match args.get(0) {
                         Some(c) => c.clone(),
                         None => panic!(),
                     }
+                    .clone()
                     .as_key()?;
 
                     if let ASVariable::Map(map) = var {
@@ -101,6 +112,7 @@ impl TypeMethods {
                     }
                 },
             }]),
+            ASType::Object(spec) => info.get_object(spec).unwrap().methods,
             _ => Self::new(),
         };
         out.extend(Self::basic());
