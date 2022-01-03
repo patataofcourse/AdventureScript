@@ -91,7 +91,7 @@ impl TypeMethods {
 
     pub fn extend(&mut self, other: Self) {
         self.methods.extend(other.methods);
-        //self.aliases.extend(other.aliases);
+        self.aliases.extend(other.aliases);
     }
 
     pub fn get_for_type(info: &GameInfo, type_: &ASType) -> Self {
