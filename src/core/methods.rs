@@ -5,6 +5,7 @@ use crate::{
     },
     unwrap_var,
 };
+use std::collections::HashMap;
 
 #[derive(Clone)]
 pub struct Method {
@@ -28,28 +29,35 @@ impl Method {
 #[derive(Clone)]
 pub struct TypeMethods {
     methods: Vec<Method>,
+    aliases: HashMap<String, String>,
 }
 
 impl TypeMethods {
     pub fn new() -> Self {
-        Self { methods: vec![] }
+        Self {
+            methods: vec![],
+            aliases: HashMap::new(),
+        }
     }
     pub fn basic() -> Self {
-        Self::from(vec![Method {
-            name: "str".to_string(),
-            func: |info, var, _args| {
-                Ok(ASVariable::String(match var {
-                    ASVariable::String(c) => format!("{:?}", c),
-                    ASVariable::Object { spec, fields } => {
-                        (info.get_object(spec).unwrap().stringify)(fields.clone())
-                    }
-                    var => var.to_string(),
-                }))
-            },
-        }])
+        Self::from(
+            vec![Method {
+                name: "str".to_string(),
+                func: |info, var, _args| {
+                    Ok(ASVariable::String(match var {
+                        ASVariable::String(c) => format!("{:?}", c),
+                        ASVariable::Object { spec, fields } => {
+                            (info.get_object(spec).unwrap().stringify)(fields.clone())
+                        }
+                        var => var.to_string(),
+                    }))
+                },
+            }],
+            HashMap::new(),
+        )
     }
-    pub fn from(methods: Vec<Method>) -> Self {
-        Self { methods }
+    pub fn from(methods: Vec<Method>, aliases: HashMap<String, String>) -> Self {
+        Self { methods, aliases }
     }
 
     pub fn get(&self, name: &str) -> Option<&Method> {
@@ -58,14 +66,11 @@ impl TypeMethods {
                 return Some(method);
             }
         }
-        //TODO: aliases?
-        /*
         for (alias, a_name) in &self.aliases {
             if alias == name {
                 return self.get(a_name);
             }
         }
-        */
         None
     }
     pub fn run_method(
@@ -91,46 +96,52 @@ impl TypeMethods {
 
     pub fn get_for_type(info: &GameInfo, type_: &ASType) -> Self {
         let mut out = match type_ {
-            ASType::List => Self::from(vec![Method {
-                name: "get".to_string(),
-                func: |_info, var, args| -> anyhow::Result<ASVariable> {
-                    let pos = *unwrap_var!(args -> 0; Int)?;
-                    if pos < 0 {
-                        Err(ASVarError::NegativeListIndex)?;
-                    }
-                    if let ASVariable::List(list) = var {
-                        match list.get(pos as usize) {
-                            Some(c) => Ok(c.clone()),
-                            None => Err(ASVarError::WrongListIndex {
-                                num_items: list.len(),
-                                index: pos,
-                            })?,
+            ASType::List => Self::from(
+                vec![Method {
+                    name: "get".to_string(),
+                    func: |_info, var, args| -> anyhow::Result<ASVariable> {
+                        let pos = *unwrap_var!(args -> 0; Int)?;
+                        if pos < 0 {
+                            Err(ASVarError::NegativeListIndex)?;
                         }
-                    } else {
-                        panic!()
-                    }
-                },
-            }]),
-            ASType::Map => Self::from(vec![Method {
-                name: "get".to_string(),
-                func: |_info, var, args| -> anyhow::Result<ASVariable> {
-                    let key = match args.get(0) {
-                        Some(c) => c.clone(),
-                        None => panic!(),
-                    }
-                    .clone()
-                    .as_key()?;
+                        if let ASVariable::List(list) = var {
+                            match list.get(pos as usize) {
+                                Some(c) => Ok(c.clone()),
+                                None => Err(ASVarError::WrongListIndex {
+                                    num_items: list.len(),
+                                    index: pos,
+                                })?,
+                            }
+                        } else {
+                            panic!()
+                        }
+                    },
+                }],
+                HashMap::new(),
+            ),
+            ASType::Map => Self::from(
+                vec![Method {
+                    name: "get".to_string(),
+                    func: |_info, var, args| -> anyhow::Result<ASVariable> {
+                        let key = match args.get(0) {
+                            Some(c) => c.clone(),
+                            None => panic!(),
+                        }
+                        .clone()
+                        .as_key()?;
 
-                    if let ASVariable::Map(map) = var {
-                        match map.get(&key) {
-                            Some(c) => Ok(c.clone()),
-                            None => Err(ASVarError::WrongMapKey { key: key })?,
+                        if let ASVariable::Map(map) = var {
+                            match map.get(&key) {
+                                Some(c) => Ok(c.clone()),
+                                None => Err(ASVarError::WrongMapKey { key: key })?,
+                            }
+                        } else {
+                            panic!()
                         }
-                    } else {
-                        panic!()
-                    }
-                },
-            }]),
+                    },
+                }],
+                HashMap::new(),
+            ),
             ASType::Object(spec) => info.get_object(spec).unwrap().methods,
             _ => Self::new(),
         };
