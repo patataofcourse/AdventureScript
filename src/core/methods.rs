@@ -65,7 +65,7 @@ impl TypeMethods {
             ASType::List => Self::from(vec![Method {
                 name: "get".to_string(),
                 func: |var, args: Vec<ASVariable>| -> anyhow::Result<ASVariable> {
-                    let pos = *unwrap_var!(args -> 0; Int);
+                    let pos = *unwrap_var!(args -> 0; Int)?;
                     if pos < 0 {
                         Err(ASVarError::NegativeListIndex)?;
                     }

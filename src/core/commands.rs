@@ -223,12 +223,12 @@ pub fn main_commands() -> CmdSet {
                     let mut gotos = Vec::<ASVariable>::new();
                     // separate the choices into the vectors defined above
                     while c <= 9 {
-                        let choice = unwrap_var!(kwargs -> &format!("choice{}", c); List);
+                        let choice = unwrap_var!(kwargs -> &format!("choice{}", c); List)?;
                         let text = match choice.get(0) {
                             Some(s) => match s {
                                 ASVariable::String(c) => c.to_string(),
                                 ASVariable::VarRef {name, flag} => {
-                                    match info.get_var(&ASVariable::VarRef {name: name.to_string(),flag: *flag,})? {
+                                    match info.get_var(&ASVariable::VarRef {name: name.to_string(), flag: *flag})? {
                                             ASVariable::String(c) => c.to_string(),
                                             other => Err(ASCmdError {
                                             command: "choice".to_string(),
@@ -276,7 +276,7 @@ pub fn main_commands() -> CmdSet {
                             Some(l) => match l {
                                 ASVariable::Bool(c) => *c,
                                 ASVariable::VarRef {name, flag} => {
-                                    match info.get_var(&ASVariable::VarRef {name: name.to_string(),flag: *flag,})? {
+                                    match info.get_var(&ASVariable::VarRef {name: name.to_string(),flag: *flag})? {
                                             ASVariable::Bool(c) => *c,
                                             other => Err(ASCmdError {
                                             command: "choice".to_string(),
@@ -311,7 +311,7 @@ pub fn main_commands() -> CmdSet {
                     for t in &texts {
                         text_refs.push(t);
                     }
-                    let text = unwrap_var!(kwargs -> "text"; String);
+                    let text = unwrap_var!(kwargs -> "text"; String)?;
                     let pick = info.query(text, text_refs)?;
                     if pick == 0 {
                         // used in save/return/quit
@@ -329,7 +329,7 @@ pub fn main_commands() -> CmdSet {
             },
             command! {
                 ending (name: String = "".to_string(), ) => |info, kwargs| {
-                    let name = unwrap_var!(kwargs -> "name"; String);
+                    let name = unwrap_var!(kwargs -> "name"; String)?;
                     info.show(&format!("Ending: {}", name))?;
                     info.quit();
                     Ok(())
@@ -365,13 +365,13 @@ pub fn main_commands() -> CmdSet {
             },
             command! {
                 loadscript (!name: String,) => |info, kwargs| {
-                    let script_name: &str = unwrap_var!(kwargs -> "name"; String);
+                    let script_name: &str = unwrap_var!(kwargs -> "name"; String)?;
                     info.load_script(Some(script_name))
                 }
             },
             command! {
                 if (!condition: Bool, !gotrue: Label, !gofalse: Label, ) => |info, kwargs| {
-                    let condition = *unwrap_var!(kwargs -> "condition"; Bool);
+                    let condition = *unwrap_var!(kwargs -> "condition"; Bool)?;
                     if condition {
                         info.goto_label(kwargs.get("gotrue").unwrap())
                     } else {
@@ -381,13 +381,13 @@ pub fn main_commands() -> CmdSet {
             },
             command! {
                 error (!message: String, ) => |_info, kwargs| {
-                    let message = unwrap_var!(kwargs -> "message"; String).to_string();
+                    let message = unwrap_var!(kwargs -> "message"; String)?.to_string();
                     Err(ASGameError(message))?
                 }
             },
             command! {
                 save (!val: Bool, ) => |info, kwargs| {
-                    info.allow_save = *unwrap_var!(kwargs -> "val"; Bool);
+                    info.allow_save = *unwrap_var!(kwargs -> "val"; Bool)?;
                     Ok(())
                 }
             },

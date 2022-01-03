@@ -1,4 +1,4 @@
-use crate::core::{ASType, CmdSet, Command, GameInfo, TypeMethods};
+use crate::core::{ASType, ASVariable, CmdSet, Command, GameInfo, TypeMethods};
 use std::collections::HashMap;
 
 pub mod inventory;
@@ -33,6 +33,7 @@ pub struct ObjSpec {
     pub name: String,
     pub methods: TypeMethods,
     pub fields: HashMap<String, ASType>,
+    pub stringify: fn(HashMap<String, ASVariable>) -> String,
 }
 
 impl ObjSpec {
@@ -41,6 +42,7 @@ impl ObjSpec {
             name: format!("{}.{}", module_name, self.name),
             methods: self.methods,
             fields: self.fields,
+            stringify: self.stringify,
         }
     }
 }

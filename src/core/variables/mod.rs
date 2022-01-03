@@ -164,6 +164,14 @@ impl KeyVar {
             Self::Bool(c) => ASVariable::Bool(*c),
         }
     }
+
+    pub fn get_type(&self) -> ASType {
+        match self {
+            Self::Int(_) => ASType::Int,
+            Self::String(_) => ASType::String,
+            Self::Bool(_) => ASType::Bool,
+        }
+    }
 }
 
 impl ASVariable {
