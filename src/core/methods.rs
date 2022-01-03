@@ -1,12 +1,15 @@
 use crate::{
-    core::{error::ASVarError, ASType, ASVariable, GameInfo},
+    core::{
+        error::{ASSyntaxError, ASVarError},
+        ASType, ASVariable, GameInfo,
+    },
     unwrap_var,
 };
 
 #[derive(Clone)]
 pub struct Method {
     pub name: String,
-    func: fn(&GameInfo, &ASVariable, Vec<&ASVariable>) -> anyhow::Result<ASVariable>,
+    func: fn(&GameInfo, &ASVariable, Vec<ASVariable>) -> anyhow::Result<ASVariable>,
     //TODO: potentially check args?
 }
 
@@ -15,7 +18,7 @@ impl Method {
         self,
         info: &GameInfo,
         var: &ASVariable,
-        args: Vec<&ASVariable>,
+        args: Vec<ASVariable>,
     ) -> anyhow::Result<ASVariable> {
         //TODO: arg checking
         (self.func)(info, var, args)
@@ -65,6 +68,22 @@ impl TypeMethods {
         */
         None
     }
+    pub fn run_method(
+        &self,
+        name: &str,
+        info: &GameInfo,
+        var: &ASVariable,
+        args: Vec<ASVariable>,
+    ) -> anyhow::Result<ASVariable> {
+        match self.get(name) {
+            Some(c) => c.clone().run(info, var, args),
+            None => Err(ASSyntaxError::UnknownMethod(
+                name.to_string(),
+                var.get_type(),
+            ))?,
+        }
+    }
+
     pub fn extend(&mut self, other: Self) {
         self.methods.extend(other.methods);
         //self.aliases.extend(other.aliases);

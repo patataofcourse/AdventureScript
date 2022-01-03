@@ -24,7 +24,7 @@ pub struct Command {
 pub struct CmdSet {
     pub commands: Vec<Command>,
     pub aliases: HashMap<String, String>,
-    modules: Vec<String>,
+    pub modules: HashMap<String, CmdSet>, //TODO: make it work
 }
 
 impl CmdSet {
@@ -50,14 +50,14 @@ impl CmdSet {
         Self {
             commands,
             aliases,
-            modules: vec![],
+            modules: HashMap::new(),
         }
     }
     pub fn new() -> Self {
         Self {
             commands: vec![],
             aliases: HashMap::new(),
-            modules: vec![],
+            modules: HashMap::new(),
         }
     }
     pub(crate) fn add_module(&mut self, commands: CmdSet, name: &str) {

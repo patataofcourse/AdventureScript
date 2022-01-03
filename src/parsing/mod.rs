@@ -1,4 +1,4 @@
-use crate::core::{error::ASSyntaxError, ASVariable, CmdSet, GameInfo, KeyVar};
+use crate::core::{error::ASSyntaxError, ASVariable, CmdSet, GameInfo, KeyVar, TypeMethods};
 use regex::{Match, Regex};
 use std::collections::HashMap;
 
@@ -157,7 +157,6 @@ enum SimplifyMode {
     Brackets,
 }
 
-// TODO: name better
 fn simplify(mut text: String, mode: SimplifyMode) -> anyhow::Result<(String, Vec<String>)> {
     match mode {
         SimplifyMode::Strings => (),
@@ -362,7 +361,7 @@ pub fn evaluate(
                     .unwrap();
                 let lname = &brackets[index];
                 if !Regex::new(r"^[A-Za-z0-9-_]*$")?.is_match(lname) {
-                    Err(ASSyntaxError::InvalidLabelName(lname.to_string()))?;
+                    Err(ASSyntaxError::InvalidLabelName(lname.to_string()))?; //TODO: get proper token content
                 }
                 ASVariable::Label(Some(lname.to_string()))
             }
@@ -384,7 +383,7 @@ pub fn evaluate(
         //Flags
         else if val.starts_with("?") {
             if !Regex::new(r"^?[A-Za-z0-9-_]*$")?.is_match(&val) {
-                Err(ASSyntaxError::InvalidVariableName(val[1..].to_string()))?
+                Err(ASSyntaxError::InvalidVariableName(val[1..].to_string()))? //TODO: get proper token content
             }
             parsed = ASVariable::VarRef {
                 name: val[1..].to_string(),
@@ -394,7 +393,7 @@ pub fn evaluate(
         // Variables
         else {
             if !Regex::new(r"^[A-Za-z0-9-_]*$")?.is_match(&val) {
-                Err(ASSyntaxError::InvalidVariableName(val.to_string()))?
+                Err(ASSyntaxError::InvalidVariableName(val.to_string()))? //TODO: get proper token content
             }
             parsed = ASVariable::VarRef {
                 name: val.to_string(),
@@ -451,14 +450,35 @@ pub fn evaluate(
     Ok(values[0].clone())
 }
 
-//TODO: methods
 fn manage_methods(
-    _info: &GameInfo,
+    info: &mut GameInfo,
     value: ASVariable,
-    _methods: Vec<String>,
-    _strings: &Vec<String>,
-    _brackets: &Vec<String>,
+    methods: Vec<String>,
+    strings: &Vec<String>,
+    brackets: &Vec<String>,
 ) -> anyhow::Result<ASVariable> {
+    let method_regex = Regex::new("^([A-Za-z0-9-_]+)\\s*\\(([0-9]+)\\)$").unwrap();
+    let mut value = value;
+    for method in &methods {
+        let method_captures = method_regex.captures(method);
+        if let None = method_captures {
+            Err(ASSyntaxError::InvalidMethod(method.to_string()))? //TODO: get proper token content
+        } else if let Some(c) = method_regex.captures(method) {
+            let bracket = format!("[{}]", c.get(2).unwrap().as_str().parse::<usize>().unwrap());
+            let args: Vec<ASVariable>;
+            if let ASVariable::List(l) = evaluate(info, bracket, strings, brackets)? {
+                args = l;
+            } else {
+                panic!()
+            }
+            value = TypeMethods::get_for_type(info, &value.get_type()).run_method(
+                c.get(1).unwrap().as_str(),
+                info,
+                &value,
+                args,
+            )?
+        };
+    }
     Ok(value)
 }
 

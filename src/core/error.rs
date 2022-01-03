@@ -202,10 +202,6 @@ pub enum ASSyntaxError {
     MapError,
     #[error("Values of type {key_type} can't be keys in Maps")]
     InvalidMapKey { key_type: ASType },
-    #[error(
-        "Invalid token {0}\nIf you were trying to name a variable, keep in mind variable names must be made of either alphanumeric characters, dashes, or underscores"
-    )]
-    InvalidVariableName(String),
     #[error("Label {0} doesn't exist")]
     NonExistentLabel(String),
     #[error("Label {0} is defined multiple times in the following lines: {}",
@@ -220,9 +216,17 @@ pub enum ASSyntaxError {
     )]
     RepeatedLabel(String, Vec<i32>),
     #[error(
+        "Invalid token {0}\nIf you were trying to name a variable, keep in mind variable names must be made of either alphanumeric characters, dashes, or underscores"
+    )]
+    InvalidVariableName(String),
+    #[error(
         "Invalid token {0}\nIf you were trying to name a label, keep in mind label names must be made of either alphanumeric characters, dashes, or underscores"
     )]
     InvalidLabelName(String),
+    #[error("Invalid token {0}\nWere you trying to call a method?")]
+    InvalidMethod(String),
+    #[error("Method {0} doesn't exist for type {1}")]
+    UnknownMethod(String, ASType),
 }
 
 // Error for WIP/unimplemented stuff
