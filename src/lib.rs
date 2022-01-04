@@ -60,7 +60,9 @@ impl AdventureScriptGame {
             manage_error(&self.info, err);
             return;
         };
-        println!("AdventureScript v{}\n", env!("CARGO_PKG_VERSION"));
+        if self.info.debug {
+            println!("AdventureScript v{}\n", env!("CARGO_PKG_VERSION"));
+        }
         //add basic commands
         self.commands.extend(main_commands());
         //load script file
