@@ -5,6 +5,7 @@
 !! ["save time travel test", {travel}];
 !! ["game over & other shit", {gameover}];
 !! ["inventory and module stuff", {mod}];
+!! ["switch/case", {switch}];
 !! ["exit", None]
 
 !ending "No tests"
@@ -67,4 +68,11 @@ thanks!
 
 {mod}
 !inv.test
+!ending
+
+{switch}
+!switch "";
+!! ["one", "two"];
+!! [{a}, {b}];
+!! default= {c}
 !ending

@@ -410,6 +410,19 @@ pub fn main_commands() -> CmdSet {
                     info.del_var(kwargs.get("var").unwrap())
                 }
             },
+            command! {
+                switch (
+                    !value: Any,
+                    !values: List,
+                    !labels: List,
+                    default: Label = None,
+                ) => |info, kwargs| {
+                    let values = unwrap_var!(kwargs -> "values"; List);
+                    let labels = unwrap_var!(kwargs -> "labels"; List);
+                    let default = unwrap_var!(kwargs -> "default"; Label);
+                    Ok(())
+                }
+            },
         ],
         HashMap::from_iter([
             ("w".to_string(), "wait".to_string()),

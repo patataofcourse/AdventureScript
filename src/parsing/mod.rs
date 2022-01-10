@@ -132,6 +132,7 @@ fn parse_command(info: &mut GameInfo, commands: &CmdSet, text: String) -> anyhow
 
                     // Split kwarg into argument name (key) and argument body (value)
                     let (name, body) = arg.split_at(c.get(1).unwrap().start());
+                    let name = name.trim();
                     let body = evaluate(info, body[1..].to_string(), &strings, &brackets)?;
 
                     kwargs.insert(name.to_string(), body);
