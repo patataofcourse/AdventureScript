@@ -3,7 +3,7 @@
 ## Basic commands
 These commands control the main flow of an AdventureScript game.
 
-### !disp
+<!--### !disp
 ```none
 !disp text
 
@@ -17,7 +17,7 @@ This command acts as an equivalent to normally displaying text by using no comma
 
 **Arguments:**
 
-* `text: String`: the text to be displayed.
+* `text: String`: the text to be displayed.-->
 
 ### !wait
 ```none
@@ -84,6 +84,16 @@ Ends the game with a specific ending.
 
 - `name: String`: The name the ending is referred by.
 
+### !gameover
+```none
+!gameover
+```
+Triggers a Game Over, prompting the user to reload their past save.
+
+*Introduced in AdventureScript 1.1*
+
+**Aliases:** `!lose`
+
 ### !loadscript
 ```none
 !loadscript name
@@ -116,21 +126,6 @@ Turns saving on or off.
 
 - `state: Bool`: Whether saving should be enabled (`true`) or disabled (`false`).
 
-### !if
-```none
-!if condition; gotrue; gofalse
-
-!if var == 2; {labelA}; {labelB}
-```
-
-Jumps to a different point in the script depending on whether the condition is true or false.
-
-**Arguments:**
-
-- `condition: Bool`: The value to be checked. Usually used with a conditional operator. [TODO: Add link]
-- `gotrue: Label`: The label to go to if the condition is true.
-- `gofalse: Label`: The label to go to if the condition is false.
-
 ### !error
 ```none
 !error message
@@ -144,6 +139,42 @@ Shows a custom error message and aborts game execution.
 **Arguments:**
 
 - `message: String`: The message to be displayed.
+
+## Conditional commands
+### !if
+```none
+!if condition; gotrue; gofalse
+
+!if var == 2; {labelA}; {labelB}
+```
+
+*Introduced in AdventureScript 1.??? as `???`*
+
+Jumps to a different point in the script depending on whether the condition is true or false.
+
+**Arguments:**
+
+- `condition: Bool`: The value to be checked. Usually used with a conditional operator. [TODO: Add link]
+- `gotrue: Label`: The label to go to if the condition is true.
+- `gofalse: Label`: The label to go to if the condition is false.
+
+### !switch
+```none
+!switch check; values; labels; default
+
+!switch variable; [1, 2]; [{go_if_1}, {go_if_2}]; default={go_if_neither}
+```
+
+*Introduced in AdventureScript 1.???*
+
+Checks a certain value against a set of values, and when it finds a match, the game jumps to the specific label. If no matches happen, the game jumps to the `default` label.
+
+**Arguments:**
+
+- `check: Any`: The value to be checked against others.
+- `values: Label`: A list of values to have the value checked.
+- `labels: List`: A list of `Label`s to go to for their respective matches. **Must be as long as `values`.**
+- `default: Label`: The label to go to if there's no matches. *(Default: `None`)*
 
 ## Flag and variable commands
 
@@ -161,7 +192,7 @@ Sets the value of the specified flag.
 
 - `flag: VarRef`: The name of the flag.
     - In this command, you can omit the `?` prefix (which specifies you're checking inside the flags)
-- `value: Bool`: The value to set the flag to. *(Default: `true`.)*
+- `value: Bool`: The value to set the flag to. *(Default: `true`)*
 
 ### !set
 ```none
@@ -178,6 +209,21 @@ Sets the value of the specified variable.
 - `var: VarRef`: The name of the variable.
     - You can optionally also set to flags, since they're essentially boolean variables, but `!flag` is recommended instead.
 - `value: Any`: The value to set the variable to.
+
+### !del
+```none
+!del var
+
+!del variable1
+!del ?thisflag
+```
+Deletes the specified variable or flag.
+
+*Introduced in AdventureScript 2.0*
+
+**Arguments:**
+
+- `var: VarRef`: The name of the variable or flag.
 
 ### !add
 ```none
