@@ -1,5 +1,7 @@
 # Changelog
 ## v2.0.0
+### Alpha 4:
+* 
 ### Alpha 3:
 * Saving and restoring saves
 * `!!` syntax - multiline commands
@@ -19,4 +21,4 @@
 * .as2 file parser
 * Basic main loop
 ## Previous versions
-Since v2 was a complete rewrite, changelogs for v0.1-v1.3.2 are not included.
+Since v2 was a complete rewrite, changelogs for v0.1-v1.3.2 are not included. Check release notes in https://github.com/patataofcourse/AdventureScript-legacy/releases.
