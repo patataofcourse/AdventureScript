@@ -1,7 +1,7 @@
 use crate::{
     command,
     core::{
-        error::{ASCmdError, ASGameError, ASSyntaxError, CommandErrors},
+        error::{ASCmdError, ASGameError, CommandErrors},
         ASType, ASVariable, GameInfo,
     },
     formats::save,
@@ -87,7 +87,6 @@ impl Command {
         kwargs: HashMap<String, ASVariable>,
     ) -> anyhow::Result<()> {
         //TODO: disallow None type arguments
-        //TODO: implement or_none
         //TODO: make sure arg ordering/defaults are well done
 
         let mut c = 0;
@@ -426,10 +425,11 @@ pub fn main_commands() -> CmdSet {
                     let labels = unwrap_var!(kwargs -> "gotos"; List)?;
                     let default = kwargs.get("default").unwrap();
 
-                    //TODO: assert labels' type
-
                     if values.len() != labels.len() {
-                        Err(ASSyntaxError::SwitchParams(values.len(), labels.len()))?
+                        Err(ASCmdError {
+                            command: "switch".to_string(),
+                            details: CommandErrors::SwitchParams(values.len(), labels.len()),
+                        })?
                     }
 
                     let mut c = 0; // counter
@@ -440,7 +440,18 @@ pub fn main_commands() -> CmdSet {
                         }
 
                         if &value == check {
-                            info.goto_label(labels.get(c).unwrap())?;
+                            let label = labels.get(c).unwrap();
+                            if label.get_type() != ASType::Label {
+                                Err(ASCmdError {
+                                    command: "switch".to_string(),
+                                    details: CommandErrors::SwitchLabelType{
+                                        number: c,
+                                        given: label.get_type(),
+                                    }
+                                })?
+                            }
+
+                            info.goto_label(label)?;
                             return Ok(())
                         }
                         c += 1;

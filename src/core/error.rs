@@ -110,6 +110,10 @@ pub enum CommandErrors {
         given: ASType,
         asked: ASType,
     },
+    #[error("Label #{} should be type Label, but got {given}", number+1)]
+    SwitchLabelType { number: usize, given: ASType },
+    #[error("!switch command was given a different number of values ({0}) and labels ({1})")]
+    SwitchParams(usize, usize),
 }
 
 // File error
@@ -229,8 +233,6 @@ pub enum ASSyntaxError {
     InvalidMethod(String),
     #[error("Method {0} doesn't exist for type {1}")]
     UnknownMethod(String, ASType),
-    #[error("!switch command was given a different number of values ({0}) and labels ({1})")]
-    SwitchParams(usize, usize),
 }
 
 // Error for WIP/unimplemented stuff
