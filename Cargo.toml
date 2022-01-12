@@ -3,6 +3,7 @@ name = "adventure_script"
 version = "2.0.0-alpha.3"
 authors = ["patataofcourse"]
 edition = "2021"
+default-run = "test"
 
 [dependencies]
 anyhow = "1.0.44"
@@ -14,3 +15,7 @@ serde_derive = "1.0.130"
 serde_json = "1.0.59"
 thiserror = "1.0.30"
 toml = "0.5.8"
+
+[[bin]]
+name = "test"
+path = "src/main.rs"
