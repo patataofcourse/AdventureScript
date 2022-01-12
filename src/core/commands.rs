@@ -1,7 +1,7 @@
 use crate::{
     command,
     core::{
-        error::{ASCmdError, ASGameError, CommandErrors},
+        error::{ASCmdError, ASGameError, ASSyntaxError, CommandErrors},
         ASType, ASVariable, GameInfo,
     },
     formats::save,
@@ -350,9 +350,13 @@ pub fn main_commands() -> CmdSet {
             },
             command! {
               set (!var: VarRef, !value: Any,) => |info, kwargs| {
+                    let mut val = kwargs.get("value").unwrap().clone();
+                    while val.get_type() == ASType::VarRef {
+                        val = info.get_var(&val)?.clone();
+                    }
                     info.set_var(
                         kwargs.get("var").unwrap(),
-                        kwargs.get("value").unwrap().clone(),
+                        val,
                     )
                 }
             },
@@ -412,15 +416,36 @@ pub fn main_commands() -> CmdSet {
             },
             command! {
                 switch (
-                    !value: Any,
+                    !check: Any,
                     !values: List,
-                    !labels: List,
+                    !gotos: List,
                     default: Label = None,
                 ) => |info, kwargs| {
-                    let values = unwrap_var!(kwargs -> "values"; List);
-                    let labels = unwrap_var!(kwargs -> "labels"; List);
-                    let default = unwrap_var!(kwargs -> "default"; Label);
-                    Ok(())
+                    let check = kwargs.get("check").unwrap();
+                    let values = unwrap_var!(kwargs -> "values"; List)?;
+                    let labels = unwrap_var!(kwargs -> "gotos"; List)?;
+                    let default = kwargs.get("default").unwrap();
+
+                    //TODO: assert labels' type
+
+                    if values.len() != labels.len() {
+                        Err(ASSyntaxError::SwitchParams(values.len(), labels.len()))?
+                    }
+
+                    let mut c = 0; // counter
+                    for value in values {
+                        let mut value = value.clone();
+                        while value.get_type() == ASType::VarRef {
+                            value = info.get_var(&value)?.clone();
+                        }
+
+                        if &value == check {
+                            info.goto_label(labels.get(c).unwrap())?;
+                            return Ok(())
+                        }
+                        c += 1;
+                    }
+                    info.goto_label(default)
                 }
             },
         ],

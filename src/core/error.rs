@@ -205,10 +205,12 @@ pub enum ASSyntaxError {
     #[error("Label {0} doesn't exist")]
     NonExistentLabel(String),
     #[error("Label {0} is defined multiple times in the following lines: {}",
-        ( |vec| {
-            let mut out = 1.0.to_string();
-            for elmt in [1,2] {
-                out += ", ";
+        ( |vec: &Vec<i32>| {
+            let mut out = "".to_string();
+            for elmt in vec {
+                if out != "" {
+                    out += ", ";
+                }
                 out += &elmt.to_string();
             }
             out
@@ -227,6 +229,8 @@ pub enum ASSyntaxError {
     InvalidMethod(String),
     #[error("Method {0} doesn't exist for type {1}")]
     UnknownMethod(String, ASType),
+    #[error("!switch command was given a different number of values ({0}) and labels ({1})")]
+    SwitchParams(usize, usize),
 }
 
 // Error for WIP/unimplemented stuff

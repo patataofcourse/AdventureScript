@@ -71,8 +71,13 @@ thanks!
 !ending
 
 {switch}
-!switch "";
+!switch "twfo";
 !! ["one", "two"];
-!! [{a}, {b}];
-!! default= {c}
-!ending
+!! [{one}, {two}];
+!! default={neither}
+{one}
+!ending "one"
+{two}
+!ending "two"
+{neither}
+!ending "default"
