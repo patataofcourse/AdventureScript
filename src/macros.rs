@@ -14,16 +14,16 @@ macro_rules! command {
             $($kname:ident:$ktype:ident=$kexpr:expr),+,
         )?
     ))? => |$info:ident, $kwargs:ident| $fnbody: tt) => {
-        $crate::core::Command {
-            name: stringify!($name).to_string(),
-            func: |$info, $kwargs| $fnbody,
-            args_to_kwargs: vec![
+        $crate::core::Command::new (
+            stringify!($name).to_string(),
+            |$info, $kwargs| $fnbody,
+            vec![
                 $(
                     $($(stringify!($pname).to_string()),+,)?
                     $($(stringify!($dname).to_string()),+,)?
                 )?
             ],
-            accepted_kwargs: ::std::collections::HashMap::<String, $crate::core::ASType>::from_iter([
+            ::std::collections::HashMap::<String, $crate::core::ASType>::from_iter([
                 $(
                     $($((stringify!($pname).to_string(),
                     $crate::core::ASType::$ptype,)),+,)?
@@ -33,7 +33,7 @@ macro_rules! command {
                     $crate:::core:ASType::$ktype,)),+,)?
                 )?
             ]),
-            default_values: std::collections::HashMap::<String, $crate::core::ASVariable>::from_iter([
+            std::collections::HashMap::<String, $crate::core::ASVariable>::from_iter([
                 $(
                     $($((stringify!($dname).to_string(),
                     $crate::core::ASVariable::$dtype($dexpr),)),+,)?
@@ -41,8 +41,8 @@ macro_rules! command {
                     $crate::core::ASVariable::$ktype($kexpr),)),+,)?
                 )?
             ]),
-            deprecated: $(if $is_depr {true} else {false} && !)? false,
-        }
+            $(if $is_depr {true} else {false} && !)? false,
+            )
     };
 }
 

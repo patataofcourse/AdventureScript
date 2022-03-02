@@ -13,10 +13,10 @@ use std::{collections::HashMap, iter::FromIterator};
 #[derive(Clone)]
 pub struct Command {
     pub name: String,
-    pub func: fn(&mut GameInfo, HashMap<String, ASVariable>) -> anyhow::Result<()>,
-    pub args_to_kwargs: Vec<String>,
-    pub accepted_kwargs: HashMap<String, ASType>,
-    pub default_values: HashMap<String, ASVariable>,
+    func: fn(&mut GameInfo, HashMap<String, ASVariable>) -> anyhow::Result<()>,
+    args_to_kwargs: Vec<String>,
+    accepted_kwargs: HashMap<String, ASType>,
+    default_values: HashMap<String, ASVariable>,
     pub deprecated: bool,
 }
 
@@ -80,15 +80,31 @@ impl CmdSet {
 }
 
 impl Command {
+    pub fn new(
+        name: String,
+        func: fn(&mut GameInfo, HashMap<String, ASVariable>) -> anyhow::Result<()>,
+        args_to_kwargs: Vec<String>,
+        accepted_kwargs: HashMap<String, ASType>,
+        default_values: HashMap<String, ASVariable>,
+        deprecated: bool,
+    ) -> Self {
+        //TODO: disallow None and Empty type arguments
+        //TODO: make sure arg ordering/defaults are well done
+        Self {
+            name,
+            func,
+            args_to_kwargs,
+            accepted_kwargs,
+            default_values,
+            deprecated,
+        }
+    }
     pub fn run(
         &self,
         info: &mut GameInfo,
         args: Vec<ASVariable>,
         kwargs: HashMap<String, ASVariable>,
     ) -> anyhow::Result<()> {
-        //TODO: disallow None and empty type arguments
-        //TODO: make sure arg ordering/defaults are well done
-
         let mut c = 0;
         let mut kwargs = kwargs;
         // Turn positional arguments into keyword arguments
