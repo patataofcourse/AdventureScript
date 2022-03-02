@@ -35,6 +35,8 @@ impl Display for ASType {
 /// Enum used to handle AdventureScript variables.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum ASVariable {
+    /// Value used internally for parsing, DO NOT use in modules
+    Empty,
     /// Boolean value (true/false)
     Bool(bool),
     /// Integer value (32-bit signed)
@@ -80,6 +82,7 @@ impl ASVariable {
             Self::VarRef { .. } => ASType::VarRef,
             Self::None => ASType::None,
             Self::Object { spec, .. } => ASType::Object(spec.clone()),
+            Self::Empty => panic!("Cannot use get_type with Empty type"),
         }
     }
 }
@@ -130,6 +133,7 @@ impl Display for ASVariable {
                 Self::Object { spec, .. } => {
                     format!("<Object type {}>", spec)
                 }
+                Self::Empty => panic!("Cannot use to_string with Empty type"),
             }
         )
     }

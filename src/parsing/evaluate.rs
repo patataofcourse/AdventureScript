@@ -52,7 +52,7 @@ pub fn expr(
                     .unwrap();
                 let lname = &brackets[index];
                 if !Regex::new(r"^[A-Za-z0-9-_]*$")?.is_match(lname) {
-                    Err(ASSyntaxError::InvalidVariableName(val))?;
+                    Err(ASSyntaxError::InvalidVariableName(val.to_string()))?;
                 }
                 ASVariable::Label(Some(lname.to_string()))
             }
@@ -68,8 +68,10 @@ pub fn expr(
                 .parse::<usize>()
                 .unwrap();
             parsed = ASVariable::String(parse_text(info, &strings[index])?);
-        } else if val == "None" || val == "" {
+        } else if val == "None" {
             parsed = ASVariable::None;
+        } else if val == "" {
+            parsed = ASVariable::Empty;
         }
         //Flags
         else if val.starts_with("?") {
@@ -91,6 +93,11 @@ pub fn expr(
                 flag: false,
             }
         }
+
+        // Can't run methods on an Empty type
+        if methods.len() > 0 && parsed == ASVariable::Empty {
+            Err(ASSyntaxError::InvalidVariableName(val.to_string()))?
+        }
         values.push(manage_methods(info, parsed, methods, strings, brackets)?)
     }
     //unary operations
@@ -99,7 +106,7 @@ pub fn expr(
         while c < operators.len() {
             // It's a unary operator if the first value is None
             // Yes this is a dumb way to add it shush
-            if operators[c].as_str() == operation && values[c] == ASVariable::None {
+            if operators[c].as_str() == operation && values[c] == ASVariable::Empty {
                 operators.remove(c);
                 values[c] = match operation {
                     "-" => (-values[c + 1].clone()),
@@ -137,6 +144,10 @@ pub fn expr(
                 c += 1;
             }
         }
+    }
+    // Empty type bad
+    if values[0] == ASVariable::Empty {
+        Err(ASSyntaxError::InvalidVariableName(text.to_string()))?
     }
     Ok(values[0].clone())
 }
