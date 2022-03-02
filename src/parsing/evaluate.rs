@@ -52,7 +52,7 @@ pub fn expr(
                     .unwrap();
                 let lname = &brackets[index];
                 if !Regex::new(r"^[A-Za-z0-9-_]*$")?.is_match(lname) {
-                    Err(ASSyntaxError::InvalidLabelName(lname.to_string()))?; //TODO: get proper token content
+                    Err(ASSyntaxError::InvalidVariableName(val))?;
                 }
                 ASVariable::Label(Some(lname.to_string()))
             }
