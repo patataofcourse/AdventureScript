@@ -10,6 +10,7 @@ use std::{io::Read, path::PathBuf};
 #[derive(Deserialize, Debug)]
 struct UnparsedVerConfig {
     pub name: String,
+    pub internal_name: String,
     pub description: Option<String>,
     pub version: String,
     pub icon: Option<PathBuf>,
@@ -29,6 +30,7 @@ impl UnparsedVerConfig {
 
         Ok(Config {
             name: self.name,
+            internal_name: self.internal_name,
             description: self.description,
             version,
             icon: self.icon,
@@ -40,6 +42,7 @@ impl UnparsedVerConfig {
 #[derive(Debug)]
 pub struct Config {
     pub name: String,
+    pub internal_name: String,
     pub description: Option<String>,
     pub version: Version,
     pub icon: Option<PathBuf>,

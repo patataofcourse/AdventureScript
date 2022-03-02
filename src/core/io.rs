@@ -40,8 +40,10 @@ fn pc_save_location(info: &GameInfo) -> anyhow::Result<std::path::PathBuf> {
         Some(c) => {
             let mut c = c;
             c.extend(&PathBuf::from("AdventureScript"));
-            //TODO: add some internal_name field to the config and take that instead
-            c.extend(&PathBuf::from(info.root_dir()));
+            c.extend(&PathBuf::from(match &info.config {
+                Some(c) => &c.internal_name,
+                None => panic!("Config file not initialized"),
+            }));
             Ok(c)
         }
         None => Err(ASOtherError::UnsupportedPlatform)?,
