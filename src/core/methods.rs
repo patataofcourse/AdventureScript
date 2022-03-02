@@ -1,6 +1,6 @@
 use crate::{
     core::{
-        error::{ASSyntaxError, ASVarError},
+        error::{ASMethodError, ASSyntaxError, ASVarError, MethodErrors},
         ASType, ASVariable, GameInfo,
     },
     unwrap_var,
@@ -11,17 +11,76 @@ use std::collections::HashMap;
 pub struct Method {
     pub name: String,
     func: fn(&GameInfo, &ASVariable, Vec<ASVariable>) -> anyhow::Result<ASVariable>,
-    //TODO: potentially check args?
+    argtypes: Vec<ASType>,
+    required_args: usize,
+    deprecated: bool,
 }
 
 impl Method {
     pub fn run(
         self,
-        info: &GameInfo,
+        info: &mut GameInfo,
         var: &ASVariable,
-        args: Vec<ASVariable>,
+        mut args: Vec<ASVariable>,
     ) -> anyhow::Result<ASVariable> {
-        //TODO: arg checking
+        //TODO: get name of original type
+
+        if args.len() > self.argtypes.len() {
+            Err(ASMethodError {
+                method: String::from(&self.name),
+                type_name: "TYPE_NAME".to_string(),
+                details: MethodErrors::TooManyArguments {
+                    given_args: args.len(),
+                    max_args: self.argtypes.len(),
+                },
+            })?
+        }
+
+        let mut argnum = 0;
+        for arg in &args.clone() {
+            let arg_type = arg.get_type();
+            if !(self.argtypes[argnum] == ASType::Any && arg_type != ASType::VarRef)
+                && self.argtypes[argnum] != arg_type
+            {
+                if arg_type == ASType::VarRef {
+                    args.insert(argnum, info.get_var(arg)?.clone());
+                } else if arg_type == ASType::None && self.argtypes[argnum] == ASType::Label {
+                    args.insert(argnum, ASVariable::Label(None));
+                } else {
+                    Err(ASMethodError {
+                        method: String::from(&self.name),
+                        type_name: "TYPE_NAME".to_string(), //TODO
+                        details: MethodErrors::ArgumentTypeError {
+                            argument_num: argnum,
+                            required_type: self.argtypes[argnum].clone(),
+                            given_type: arg.get_type(),
+                        },
+                    })?
+                }
+            }
+            argnum += 1;
+        }
+
+        // Check that all required arguments in the method have been given
+        if argnum < self.required_args {
+            Err(ASMethodError {
+                method: String::from(&self.name),
+                type_name: "TYPE_NAME".to_string(), //TODO
+                details: MethodErrors::MissingRequiredArgument {
+                    argument_num: argnum,
+                    argument_type: self.argtypes.get(argnum).unwrap().clone(),
+                },
+            })?;
+        }
+
+        if info.debug && self.deprecated {
+            info.warn(format!(
+                "Method '{}' for object type {} is deprecated",
+                self.name,
+                "OBJTYPE HERE" //TODO
+            ));
+        }
+
         (self.func)(info, var, args)
     }
 }
@@ -52,6 +111,9 @@ impl TypeMethods {
                         var => var.to_string(),
                     }))
                 },
+                argtypes: vec![],
+                required_args: 0,
+                deprecated: false,
             }],
             HashMap::new(),
         )
@@ -76,7 +138,7 @@ impl TypeMethods {
     pub fn run_method(
         &self,
         name: &str,
-        info: &GameInfo,
+        info: &mut GameInfo,
         var: &ASVariable,
         args: Vec<ASVariable>,
     ) -> anyhow::Result<ASVariable> {
@@ -116,6 +178,9 @@ impl TypeMethods {
                             panic!()
                         }
                     },
+                    argtypes: vec![ASType::Int],
+                    required_args: 1,
+                    deprecated: false,
                 }],
                 HashMap::new(),
             ),
@@ -139,6 +204,9 @@ impl TypeMethods {
                             panic!()
                         }
                     },
+                    argtypes: vec![ASType::Any],
+                    required_args: 1,
+                    deprecated: false,
                 }],
                 HashMap::new(),
             ),

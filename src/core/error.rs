@@ -13,6 +13,7 @@ pub(crate) fn manage_error(info: &GameInfo, err: anyhow::Error) {
     );
     if let Some(_c) = err.downcast_ref::<ASFileError>() {
     } else if let Some(_c) = err.downcast_ref::<ASCmdError>() {
+    } else if let Some(_c) = err.downcast_ref::<ASMethodError>() {
     } else if let Some(_c) = err.downcast_ref::<ASSyntaxError>() {
         error += "syntax error:\n    ";
     } else if let Some(_c) = err.downcast_ref::<ASNotImplemented>() {
@@ -62,7 +63,7 @@ pub enum CommandErrors {
     #[error("{details}")]
     Generic { details: String },
     #[error("Command can only take {max_args} positional arguments, but was given {given_args}")]
-    TooManyPosArgs { max_args: u32, given_args: u32 },
+    TooManyPosArgs { max_args: usize, given_args: usize },
     #[error("Command was given argument {argument_name} (type {argument_type}), which it doesn't recognize")]
     UndefinedArgument {
         argument_name: String,
@@ -114,6 +115,51 @@ pub enum CommandErrors {
     SwitchLabelType { number: usize, given: ASType },
     #[error("!switch command was given a different number of values ({0}) and labels ({1})")]
     SwitchParams(usize, usize),
+}
+
+// Same thing but for methods
+
+#[derive(Debug)]
+pub struct ASMethodError {
+    pub method: String,
+    pub type_name: String,
+    pub details: MethodErrors,
+}
+
+impl Display for ASMethodError {
+    fn fmt(&self, f: &mut Formatter) -> Result {
+        write!(
+            f,
+            "on method {} of type {} :\n{}",
+            self.method, self.type_name, self.details
+        )
+    }
+}
+
+impl Error for ASMethodError {}
+
+#[derive(Debug, Error)]
+pub enum MethodErrors {
+    #[error("{details}")]
+    Generic { details: String },
+    #[error("Method can only take {max_args} arguments, but was given {given_args}")]
+    TooManyArguments { max_args: usize, given_args: usize },
+    #[error(
+        "Method is missing argument #{argument_num} {}",
+        "(type {argument_type}), which is required"
+    )]
+    MissingRequiredArgument {
+        argument_num: usize,
+        argument_type: ASType,
+    },
+    #[error(
+        "Argument #{argument_num} is of type {required_type}, but type {given_type} was given"
+    )]
+    ArgumentTypeError {
+        argument_num: usize,
+        required_type: ASType,
+        given_type: ASType,
+    },
 }
 
 // File error

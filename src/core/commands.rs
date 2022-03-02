@@ -86,7 +86,7 @@ impl Command {
         args: Vec<ASVariable>,
         kwargs: HashMap<String, ASVariable>,
     ) -> anyhow::Result<()> {
-        //TODO: disallow None type arguments
+        //TODO: disallow None and empty type arguments
         //TODO: make sure arg ordering/defaults are well done
 
         let mut c = 0;
@@ -97,8 +97,8 @@ impl Command {
                 None => Err(ASCmdError {
                     command: String::from(&self.name),
                     details: CommandErrors::TooManyPosArgs {
-                        max_args: self.args_to_kwargs.len() as u32,
-                        given_args: (&args).len() as u32,
+                        max_args: self.args_to_kwargs.len(),
+                        given_args: args.len(),
                     },
                 }),
                 Some(c) => Ok(c),
