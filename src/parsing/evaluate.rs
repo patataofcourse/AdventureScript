@@ -38,7 +38,11 @@ pub fn expr(
                 .parse::<usize>()
                 .unwrap();
             let value = parse_text(info, &brackets[index])?;
-            parsed = list(info, value.to_string(), strings)?;
+            parsed = if value.trim() == "" {
+                ASVariable::List(vec![])
+            } else {
+                list(info, value.to_string(), strings)?
+            };
         } else if val.starts_with("{") && val.ends_with("}") {
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
                 .parse::<usize>()
@@ -46,6 +50,8 @@ pub fn expr(
             let value = parse_text(info, &brackets[index])?;
             parsed = if value.contains(":") {
                 map(info, value.to_string(), strings)?
+            } else if value.trim() == "" {
+                ASVariable::Map(HashMap::new())
             } else {
                 let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
                     .parse::<usize>()
@@ -185,6 +191,10 @@ fn manage_methods(
 }
 
 fn list(info: &mut GameInfo, text: String, strings: &Vec<String>) -> anyhow::Result<ASVariable> {
+    if text.trim() == "" {
+        return Ok(ASVariable::List(vec![]));
+    }
+
     let mut list = vec![];
     let (text, brackets) = simplify_brackets(text)?;
 

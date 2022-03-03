@@ -2,7 +2,7 @@
 Some text here\n
 Blank lines are ignored now so you have to add a backslash-n
 \n
-\v[("this is a " + "test").str()] \v[2] \v[]
+\v[("this is a " + "test").str()] \v[2] \v[None]
 ! choice "test lists?";
 !! ["yes", {choice1}];
 !! ["no", {choice2}]
