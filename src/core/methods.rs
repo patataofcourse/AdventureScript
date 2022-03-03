@@ -28,7 +28,7 @@ impl Method {
         if args.len() > self.argtypes.len() {
             Err(ASMethodError {
                 method: String::from(&self.name),
-                type_name: "TYPE_NAME".to_string(),
+                type_name: var.get_type().to_string(),
                 details: MethodErrors::TooManyArguments {
                     given_args: args.len(),
                     max_args: self.argtypes.len(),
@@ -49,7 +49,7 @@ impl Method {
                 } else {
                     Err(ASMethodError {
                         method: String::from(&self.name),
-                        type_name: "TYPE_NAME".to_string(), //TODO
+                        type_name: var.get_type().to_string(),
                         details: MethodErrors::ArgumentTypeError {
                             argument_num: argnum,
                             required_type: self.argtypes[argnum].clone(),
@@ -65,7 +65,7 @@ impl Method {
         if argnum < self.required_args {
             Err(ASMethodError {
                 method: String::from(&self.name),
-                type_name: "TYPE_NAME".to_string(), //TODO
+                type_name: var.get_type().to_string(),
                 details: MethodErrors::MissingRequiredArgument {
                     argument_num: argnum,
                     argument_type: self.argtypes.get(argnum).unwrap().clone(),
