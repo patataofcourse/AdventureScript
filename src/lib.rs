@@ -1,6 +1,6 @@
 //! AdventureScript is a crate for creating text-based games.
 //!
-//! If you just want to run a game, the `AdventureScriptGame` struct handles all needed processes.
+//! If you just want to run a game, the [AdventureScriptGame] struct handles all needed processes.
 //! Example:
 //! ```no_run
 //! let mut game = AdventureScriptGame::new("path_to_game".to_string(), None);
@@ -8,7 +8,7 @@
 //! ```
 //!
 //! If what you want is to make a module, you can find the public API for the AdventureScript core in
-//! the `core` module, and the macros available in the crate will help keep your code readable.
+//! the [core] module, and the macros available in the crate will help keep your code readable.
 
 //TODO: update when modules are a thing ^
 

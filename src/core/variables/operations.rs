@@ -63,7 +63,7 @@ impl Mul for ASVariable {
                     op_err("multiply".to_string(), self, rhs)
                 }
             }
-            //TODO: lists and maps
+            //TODO: lists
             _ => op_err("multiply".to_string(), self, rhs),
         }
     }

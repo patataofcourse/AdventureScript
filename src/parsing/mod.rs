@@ -60,7 +60,7 @@ fn parse_text(info: &mut GameInfo, text: &str) -> anyhow::Result<String> {
                     "n" => "\n".to_string(),
                     r"\" => r"\".to_string(),
                     "v" => {
-                        let (tx, strings) = simplify(
+                        let (tx, strings) = simplify_strings(
                             match capture.get(3) {
                                 Some(c) => c,
                                 None => Err(ASSyntaxError::EmptyControlCode {
@@ -119,7 +119,7 @@ fn parse_command(info: &mut GameInfo, commands: &CmdSet, text: String) -> anyhow
         // or proper variable name char, and the one to the right is that or an opening
         // bracket (since those are gonna be evaluated too)
         let is_kwarg = Regex::new("^[A-Za-z0-9-_]*\\s*(=)\\s*[A-za-z0-9-_ {\"'\\[(?]")?;
-        let (text, strings) = simplify(text)?;
+        let (text, strings) = simplify_strings(text)?;
         let (text, brackets) = simplify_brackets(text)?;
 
         let mut must_be_kwarg = false; //args can only be before kwargs
@@ -154,7 +154,7 @@ fn parse_command(info: &mut GameInfo, commands: &CmdSet, text: String) -> anyhow
     command.run(info, args, kwargs)
 }
 
-fn simplify(mut text: String) -> anyhow::Result<(String, Vec<String>)> {
+fn simplify_strings(mut text: String) -> anyhow::Result<(String, Vec<String>)> {
     // yes this doesn't use regex shut up
 
     // Step 1:   Get the start and end of every string
@@ -232,7 +232,6 @@ fn simplify(mut text: String) -> anyhow::Result<(String, Vec<String>)> {
     Ok((text, quotetext))
 }
 
-//TODO: merge this into simplify!!! there's a lot of repeated code here
 fn simplify_brackets(mut text: String) -> anyhow::Result<(String, Vec<String>)> {
     // yes this doesn't use regex shut up
 

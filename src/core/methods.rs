@@ -23,8 +23,6 @@ impl Method {
         var: &ASVariable,
         mut args: Vec<ASVariable>,
     ) -> anyhow::Result<ASVariable> {
-        //TODO: get name of original type
-
         if args.len() > self.argtypes.len() {
             Err(ASMethodError {
                 method: String::from(&self.name),
@@ -77,7 +75,7 @@ impl Method {
             info.warn(format!(
                 "Method '{}' for object type {} is deprecated",
                 self.name,
-                "OBJTYPE HERE" //TODO
+                var.get_type()
             ));
         }
 
