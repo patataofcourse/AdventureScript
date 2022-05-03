@@ -1,12 +1,12 @@
 #some more testing shit
 
 !ch "What do you wanna do now?";
-!! ["variable/flag tests", {testing}];
-!! ["save time travel test", {travel}];
-!! ["game over & other shit", {gameover}];
-!! ["inventory and module stuff", {mod}];
-!! ["switch/case", {switch}];
-!! ["exit", None]
+!!> "variable/flag tests", {testing}
+!!> "save time travel test", {travel}
+!!> "game over & other shit", {gameover}
+!!> "inventory and module stuff", {mod}
+!!> "switch/case", {switch}
+!!> "exit", None
 
 !ending "No tests"
 

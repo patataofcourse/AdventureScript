@@ -23,7 +23,9 @@ pub fn parse_line(info: &mut GameInfo, commands: &CmdSet) -> anyhow::Result<()> 
                 Some(c) => c,
                 None => break,
             };
-            if next_ln.starts_with("!!") {
+            if next_ln.starts_with("!!>") {
+                ln += &format!("[{}];", next_ln[3..].trim());
+            } else if next_ln.starts_with("!!") {
                 ln += &format!(" {}", next_ln[2..].trim());
             } else {
                 break;
@@ -31,6 +33,7 @@ pub fn parse_line(info: &mut GameInfo, commands: &CmdSet) -> anyhow::Result<()> 
 
             c += 1
         }
+        ln = ln.trim_end().trim_end_matches(";").to_string();
         info.pointer += c - 1;
         parse_command(info, commands, ln)?;
     } else {
