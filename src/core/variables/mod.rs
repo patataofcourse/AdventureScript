@@ -39,8 +39,8 @@ pub enum ASVariable {
     Empty,
     /// Boolean value (true/false)
     Bool(bool),
-    /// Integer value (32-bit signed)
-    Int(i32),
+    /// Integer value (64-bit signed)
+    Int(i64),
     /// String value
     String(String),
     /// List value (vector of other `ASVariable`s of any type)
@@ -143,7 +143,7 @@ impl Display for ASVariable {
 #[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
 pub enum KeyVar {
     Bool(bool),
-    Int(i32),
+    Int(i64),
     String(String),
 }
 

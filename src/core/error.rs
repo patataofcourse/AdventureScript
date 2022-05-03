@@ -255,7 +255,7 @@ pub enum ASSyntaxError {
     #[error("Label {0} doesn't exist")]
     NonExistentLabel(String),
     #[error("Label {0} is defined multiple times in the following lines: {}",
-        ( |vec: &Vec<i32>| {
+        ( |vec: &Vec<i64>| {
             let mut out = "".to_string();
             for elmt in vec {
                 if out != "" {
@@ -266,7 +266,7 @@ pub enum ASSyntaxError {
             out
         } ) (.1)
     )]
-    RepeatedLabel(String, Vec<i32>),
+    RepeatedLabel(String, Vec<i64>),
     #[error("Syntax error at '{0}'")]
     InvalidVariableName(String),
     #[error("Invalid token {0}\nWere you trying to call a method?")]
@@ -299,7 +299,7 @@ pub enum ASVarError {
     #[error("List indexes should be 0 or positive")]
     NegativeListIndex,
     #[error("Tried to get item {index} of a list that only has {num_items} items")]
-    WrongListIndex { num_items: usize, index: i32 },
+    WrongListIndex { num_items: usize, index: i64 },
     #[error("Tried to get value of a map associated to key {key}, which doesn't exist")]
     WrongMapKey { key: KeyVar },
 }

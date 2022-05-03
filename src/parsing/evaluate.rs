@@ -27,8 +27,8 @@ pub fn expr(
         let val = val.unwrap();
         let parsed: ASVariable;
         // Literals
-        if val.parse::<i32>().is_ok() {
-            parsed = ASVariable::Int(val.parse::<i32>().unwrap());
+        if val.parse::<i64>().is_ok() {
+            parsed = ASVariable::Int(val.parse::<i64>().unwrap());
         } else if val == "true" || val == "True" {
             parsed = ASVariable::Bool(true);
         } else if val == "false" || val == "False" {

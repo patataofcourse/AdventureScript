@@ -16,7 +16,7 @@ pub struct Save {
     pub game_ver: String,
     pub script: PathBuf,
     //TODO: save position as a label??
-    pub pointer: i32,
+    pub pointer: i64,
     pub flags: HashMap<String, ASVariable>,
     pub variables: HashMap<String, ASVariable>,
     pub screentext: String,

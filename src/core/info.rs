@@ -13,7 +13,7 @@ pub struct GameInfo {
     pub root_dir: PathBuf,
     pub script_name: String,
     script: Vec<String>,
-    pub pointer: i32,
+    pub pointer: i64,
     pub quitting: bool,
     pub flags: HashMap<String, ASVariable>,
     pub variables: HashMap<String, ASVariable>,
@@ -55,7 +55,7 @@ impl GameInfo {
     pub fn script_name(&self) -> &str {
         &self.script_name
     }
-    pub fn pointer(&self) -> i32 {
+    pub fn pointer(&self) -> i64 {
         self.pointer + 1
     }
     pub fn root_dir(&self) -> &PathBuf {
@@ -68,7 +68,7 @@ impl GameInfo {
             None => Err(ASSyntaxError::EndOfScript {})?,
         }
     }
-    pub fn line_at(&self, pointer: i32) -> Option<&str> {
+    pub fn line_at(&self, pointer: i64) -> Option<&str> {
         //obtains the line of the script at a certain position, if it exists
         match self.script.get(pointer as usize) {
             Some(c) => Some(c.as_str()),
@@ -108,7 +108,7 @@ impl GameInfo {
         };
 
         let mut c = 0; //loop counter
-        let mut instances = Vec::<i32>::new(); //lines where there's been a match
+        let mut instances = Vec::<i64>::new(); //lines where there's been a match
         for line in &self.script {
             if line.trim() == format!("{{{}}}", lname) {
                 instances.push(c);
