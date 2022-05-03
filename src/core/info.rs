@@ -68,8 +68,8 @@ impl GameInfo {
             None => Err(ASSyntaxError::EndOfScript {})?,
         }
     }
+    /// obtains the line of the script at a certain position, if it exists
     pub fn line_at(&self, pointer: i64) -> Option<&str> {
-        //obtains the line of the script at a certain position, if it exists
         match self.script.get(pointer as usize) {
             Some(c) => Some(c.as_str()),
             None => None,

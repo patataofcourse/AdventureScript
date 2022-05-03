@@ -29,20 +29,25 @@ pub struct CmdSet {
 
 impl CmdSet {
     pub fn get(&self, name: &str) -> Option<&Command> {
-        for command in &self.commands {
+        let (module, name) = name.split_once(".").unwrap_or(("", name));
+        let module = if module != "" {
+            self.modules.get(module)?
+        } else {
+            self
+        };
+        for command in &module.commands {
             if command.name == name {
                 return Some(command);
             }
         }
-        for (alias, a_name) in &self.aliases {
+        for (alias, a_name) in &module.aliases {
             if alias == name {
-                return self.get(a_name);
+                return module.get(a_name);
             }
         }
         None
     }
     pub fn extend(&mut self, other: Self) {
-        //TODO: adapt for modules
         self.commands.extend(other.commands);
         self.aliases.extend(other.aliases);
     }
@@ -61,21 +66,7 @@ impl CmdSet {
         }
     }
     pub(crate) fn add_module(&mut self, commands: CmdSet, name: &str) {
-        self.extend(commands.adapt_for_module(name))
-    }
-    pub(crate) fn adapt_for_module(self, module_name: &str) -> Self {
-        let mut new_self = Self::new();
-        for command in &mut self.commands.clone() {
-            command.name = format!("{}.{}", module_name, command.name);
-            new_self.commands.push(command.clone());
-        }
-        for (key, value) in &self.aliases {
-            new_self.aliases.insert(
-                format!("{}.{}", module_name, key),
-                format!("{}.{}", module_name, value),
-            );
-        }
-        new_self
+        self.modules.insert(name.to_string(), commands);
     }
 }
 
