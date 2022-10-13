@@ -154,6 +154,27 @@ impl GameInfo {
         })
     }
 
+    pub fn get_var_mut(&mut self, var: &ASVariable) -> anyhow::Result<&mut ASVariable> {
+        Ok(match var {
+            ASVariable::VarRef { name, flag } => {
+                if *flag {
+                    if let None = self.flags.get(name) {
+                        self.flags.insert(name.to_string(), ASVariable::Bool(false));
+                    }
+                    self.flags.get_mut(name).unwrap()
+                } else {
+                    match self.variables.get_mut(name) {
+                        Some(c) => c,
+                        None => Err(ASVarError::VarNotFound(name.to_string()))?,
+                    }
+                }
+            }
+            _ => Err(ASOtherError::DevErr(
+                "Tried to get the variable value of a non-VarRef value".to_string(),
+            ))?,
+        })
+    }
+
     pub fn set_var(&mut self, var: &ASVariable, value: ASVariable) -> anyhow::Result<()> {
         if let ASVariable::VarRef { name, flag } = var {
             if *flag {

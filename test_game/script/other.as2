@@ -6,6 +6,7 @@
 !!> "game over & other shit", {gameover}
 !!> "inventory and module stuff", {mod}
 !!> "switch/case", {switch}
+!!> "append/remove", {append}
 !!> "exit", None
 
 !ending "No tests"
@@ -81,3 +82,12 @@ thanks!
 !ending "two"
 {neither}
 !ending "default"
+
+{append}
+!set list; [0]
+\v[list]
+!append list; 35
+\v[list]
+\v[list.index_of(35)]
+\v[[0, 35].index_of(35)]
+!end "did it work?"

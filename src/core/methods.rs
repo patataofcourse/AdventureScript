@@ -156,30 +156,50 @@ impl TypeMethods {
 
     pub fn get_for_type(info: &GameInfo, type_: &ASType) -> Self {
         let mut out = match type_ {
+            ASType::VarRef => todo!("Proper handling of VarRef methods"),
             ASType::List => Self::from(
-                vec![Method {
-                    name: "get".to_string(),
-                    func: |_info, var, args| -> anyhow::Result<ASVariable> {
-                        let pos = *unwrap_var!(args -> 0; Int)?;
-                        if pos < 0 {
-                            Err(ASVarError::NegativeListIndex)?;
-                        }
-                        if let ASVariable::List(list) = var {
-                            match list.get(pos as usize) {
-                                Some(c) => Ok(c.clone()),
-                                None => Err(ASVarError::WrongListIndex {
-                                    num_items: list.len(),
-                                    index: pos,
-                                })?,
+                vec![
+                    Method {
+                        name: "get".to_string(),
+                        func: |_info, var, args| -> anyhow::Result<ASVariable> {
+                            let pos = *unwrap_var!(args -> 0; Int)?;
+                            if pos < 0 {
+                                Err(ASVarError::NegativeListIndex)?;
                             }
-                        } else {
-                            panic!()
-                        }
+                            if let ASVariable::List(list) = var {
+                                match list.get(pos as usize) {
+                                    Some(c) => Ok(c.clone()),
+                                    None => Err(ASVarError::WrongListIndex {
+                                        num_items: list.len(),
+                                        index: pos,
+                                    })?,
+                                }
+                            } else {
+                                panic!()
+                            }
+                        },
+                        argtypes: vec![ASType::Int],
+                        required_args: 1,
+                        deprecated: false,
                     },
-                    argtypes: vec![ASType::Int],
-                    required_args: 1,
-                    deprecated: false,
-                }],
+                    Method {
+                        name: "index_of".to_string(),
+                        func: |_info, var, args| -> anyhow::Result<ASVariable> {
+                            if let ASVariable::List(list) = var {
+                                let var = &args[0];
+                                Ok(match list.iter().position(|r| r == var) {
+                                    Some(c) => ASVariable::Int(c as i64),
+                                    None => ASVariable::None,
+                                })
+                            } else {
+                                panic!()
+                            }
+                        },
+                        argtypes: vec![ASType::Any],
+                        required_args: 1,
+                        deprecated: false,
+                    },
+                ],
                 HashMap::new(),
             ),
             ASType::Map => Self::from(

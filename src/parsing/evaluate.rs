@@ -115,8 +115,8 @@ pub fn expr(
             if operators[c].as_str() == operation && values[c] == ASVariable::Empty {
                 operators.remove(c);
                 values[c] = match operation {
-                    "-" => (-values[c + 1].clone()),
-                    "!" => (!values[c + 1].clone()),
+                    "-" => -values[c + 1].clone(),
+                    "!" => !values[c + 1].clone(),
                     _ => panic!("unrecognized unary operator"),
                 }?;
                 values.remove(c + 1);

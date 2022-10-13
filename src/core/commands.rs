@@ -237,14 +237,14 @@ pub fn main_commands() -> CmdSet {
                                     match info.get_var(&ASVariable::VarRef {name: name.to_string(), flag: *flag})? {
                                             ASVariable::String(c) => c.to_string(),
                                             other => Err(ASCmdError {
-                                            command: "choice".to_string(),
-                                            details: CommandErrors::ChoiceWrongType{
-                                                choice: c,
-                                                number: 2,
-                                                given: other.get_type(),
-                                                asked: ASType::Bool
-                                            }
-                                        })?,
+                                                command: "choice".to_string(),
+                                                details: CommandErrors::ChoiceWrongType{
+                                                    choice: c,
+                                                    number: 2,
+                                                    given: other.get_type(),
+                                                    asked: ASType::Bool
+                                                }
+                                            })?,
                                     }
                                 },
                                 other => Err(ASCmdError {
@@ -464,6 +464,22 @@ pub fn main_commands() -> CmdSet {
                         c += 1;
                     }
                     info.goto_label(default)
+                }
+            },
+            command! {
+                append (!list: VarRef, !val: Any,) => |info, kwargs| {
+                    let list = match info.get_var_mut(kwargs.get("list").unwrap())? {
+                        ASVariable::List(c) => c,
+                        _ => Err(ASCmdError {
+                            command: "append".to_string(),
+                            details: CommandErrors::Generic {
+                                details : "append can only be used with type List".to_string(),
+                            },
+                        })?,
+                    };
+                    let val = kwargs.get("val").unwrap();
+                    list.push(val.clone());
+                    Ok(())
                 }
             },
         ],
