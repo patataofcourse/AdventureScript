@@ -148,7 +148,7 @@ Shows a custom error message and aborts game execution.
 !if var == 2; {labelA}; {labelB}
 ```
 
-*Introduced in AdventureScript 1.??? as `???`*
+*Introduced in AdventureScript 1.0-pre as `checkflag, checkvar, checklist`*
 
 Jumps to a different point in the script depending on whether the condition is true or false.
 
@@ -165,7 +165,7 @@ Jumps to a different point in the script depending on whether the condition is t
 !switch variable; [1, 2]; [{go_if_1}, {go_if_2}]; default={go_if_neither}
 ```
 
-*Introduced in AdventureScript 1.???*
+*Introduced in AdventureScript 1.3*
 
 Checks a certain value against a set of values, and when it finds a match, the game jumps to the specific label. If no matches happen, the game jumps to the `default` label.
 
@@ -191,7 +191,7 @@ Sets the value of the specified flag.
 **Arguments:**
 
 - `flag: VarRef`: The name of the flag.
-    - In this command, you can omit the `?` prefix (which specifies you're checking inside the flags)
+    - In this command, you can omit the `?` prefix (which usually indicates to fetch a flag rather than a variable)
 - `value: Bool`: The value to set the flag to. *(Default: `true`)*
 
 ### !set
@@ -206,7 +206,7 @@ Sets the value of the specified variable.
 
 **Arguments:**
 
-- `var: VarRef`: The name of the variable.
+- `var: VarRef(Any)`: The name of the variable.
     - You can optionally also set to flags, since they're essentially boolean variables, but `!flag` is recommended instead.
 - `value: Any`: The value to set the variable to.
 
@@ -223,7 +223,7 @@ Deletes the specified variable or flag.
 
 **Arguments:**
 
-- `var: VarRef`: The name of the variable or flag.
+- `var: VarRef(Any)`: The name of the variable or flag.
 
 ### !add
 ```none
@@ -237,5 +237,16 @@ Adds the specified value to the given variable.
 
 **Arguments:**
 
-- `var: VarRef`: The name of the variable to be added to.
+- `var: VarRef(Any)`: The name of the variable to be added to.
 - `value: Any`: The value to add to the variable (which should be compatible for adding in the first place!)
+
+### !append
+```none
+!append list; value
+
+!append somelist; "value 2"
+```
+Inserts the specified value into the given list.
+(TBD: index argument, map support)
+
+*Introduced in AdventureScript 1.???*
