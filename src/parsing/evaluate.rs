@@ -34,10 +34,9 @@ pub fn expr(
         } else if val == "false" || val == "False" {
             parsed = ASVariable::Bool(false);
         } else if val.starts_with("[") && val.ends_with("]") {
-            let index = match ((val.split_at(1).1).split_at(val.len() - 2).0).parse::<usize>() {
-                Ok(c) => c,
-                Err(_) => Err(ASSyntaxError::InvalidVariableName(val.to_string()))?,
-            };
+            let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
+                .parse::<usize>()
+                .unwrap();
             let value = parse_text(info, &brackets[index])?;
             parsed = if value.trim() == "" {
                 ASVariable::List(vec![])
