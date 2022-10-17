@@ -63,7 +63,17 @@ impl Mul for ASVariable {
                     op_err("multiply".to_string(), self, rhs)
                 }
             }
-            //TODO: lists
+            Self::List(c) => {
+                if let ASVariable::Int(c2) = rhs {
+                    let mut result = Vec::new();
+                    for _ in 0..c2 {
+                        result.extend(c.clone());
+                    }
+                    Ok(ASVariable::List(result))
+                } else {
+                    op_err("multiply".to_string(), self, rhs)
+                }
+            }
             _ => op_err("multiply".to_string(), self, rhs),
         }
     }

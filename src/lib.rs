@@ -8,9 +8,8 @@
 //! ```
 //!
 //! If what you want is to make a module, you can find the public API for the AdventureScript core in
-//! the [core] module, and the macros available in the crate will help keep your code readable.
-
-//TODO: update when modules are a thing ^
+//! the [core] module, and the macros available in the crate will help keep your code readable. [modules]
+//! has both a module API and the built-in modules as examples.
 
 pub mod core;
 pub mod modules;
@@ -35,8 +34,14 @@ pub struct AdventureScriptGame {
 }
 
 impl AdventureScriptGame {
-    /// document this better later, me
-    /// however, root_dir is basically the root folder of the game
+    /// Create a new AdventureScript runner
+    /// 
+    /// * `root_dir` - Root folder of the game's data
+    /// * `io` - The IO system to use when running the game
+    /// * `is_local` - Whether this game is ran as "portable". If true, saves will be stored in
+    /// the ./save folder, otherwise, in AppData, ~/.config, or equivalent
+    /// * `is_debug` - Whether to run the game in debug mode or not. Debug mode shows some
+    /// extra warnings, like deprecations
     pub fn new(
         root_dir: String,
         io: Option<AdventureIO>,
@@ -70,7 +75,7 @@ impl AdventureScriptGame {
             manage_error(&self.info, err);
             return;
         };
-        //parser and stuff
+        //main loop
         while !self.info.quitting {
             match parsing::parse_line(&mut self.info, &self.commands) {
                 Ok(_) => (),

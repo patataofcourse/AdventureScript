@@ -82,7 +82,7 @@ pub fn expr(
         //Flags
         else if val.starts_with("?") {
             if !Regex::new(r"^?[A-Za-z0-9-_]*$")?.is_match(&val) {
-                Err(ASSyntaxError::InvalidVariableName(val[1..].to_string()))? //TODO: get proper token content
+                Err(ASSyntaxError::InvalidVariableName(val.to_string()))? //TODO: get proper token content
             }
             parsed = ASVariable::VarRef {
                 name: val[1..].to_string(),
