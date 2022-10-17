@@ -468,18 +468,22 @@ pub fn main_commands() -> CmdSet {
             },
             command! {
                 append (!list: VarRef, !val: Any,) => |info, kwargs| {
-                    let list = match info.get_var_mut(kwargs.get("list").unwrap())? {
-                        ASVariable::List(c) => c,
+                    match info.get_var_mut(kwargs.get("list").unwrap())? {
+                        ASVariable::List(list) => {
+                            let val = kwargs.get("val").unwrap();
+                            list.push(val.clone());
+                            Ok(())
+                        }
+                        ASVariable::Map(map) => {
+                            todo!()
+                        }
                         _ => Err(ASCmdError {
                             command: "append".to_string(),
                             details: CommandErrors::Generic {
-                                details : "append can only be used with type List".to_string(),
+                                details : "append can only be used with types List or Map".to_string(),
                             },
                         })?,
-                    };
-                    let val = kwargs.get("val").unwrap();
-                    list.push(val.clone());
-                    Ok(())
+                    }
                 }
             },
         ],

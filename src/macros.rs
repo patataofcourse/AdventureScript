@@ -1,7 +1,7 @@
 #[macro_export]
+//TODO: proc macro?
 macro_rules! command {
-    //TODO: replace dexpr/kexpr with a tokentree
-    //TODO: maybe remove kwarg functionality and keep only posargs? it's not like an *args functionality is done
+    //TODO: replace dexpr with a tokentree
     ($name:ident $([deprecated=$is_depr:literal])? $((
         $(
             $(!$pname:ident:$ptype:ident),+,
@@ -9,14 +9,10 @@ macro_rules! command {
         $(
             $($dname:ident:$dtype:ident=$dexpr:expr),+,
         )?
-        $(
-            *,
-            $($kname:ident:$ktype:ident=$kexpr:expr),+,
-        )?
-    ))? => |$info:ident, $kwargs:ident| $fnbody: tt) => {
+    ))? => $function: expr) => {
         $crate::core::Command::new (
             stringify!($name).to_string(),
-            |$info, $kwargs| $fnbody,
+            $function,
             vec![
                 $(
                     $($(stringify!($pname).to_string()),+,)?
@@ -29,19 +25,15 @@ macro_rules! command {
                     $crate::core::ASType::$ptype,)),+,)?
                     $($((stringify!($dname).to_string(),
                     $crate::core::ASType::$dtype,)),+,)?
-                    $($((stringify!($kname).to_string(),
-                    $crate:::core:ASType::$ktype,)),+,)?
                 )?
             ]),
             std::collections::HashMap::<String, $crate::core::ASVariable>::from_iter([
                 $(
                     $($((stringify!($dname).to_string(),
                     $crate::core::ASVariable::$dtype($dexpr),)),+,)?
-                    $($((stringify!($kname).to_string(),
-                    $crate::core::ASVariable::$ktype($kexpr),)),+,)?
                 )?
             ]),
-            $(if $is_depr {true} else {false} && !)? false,
+            $($is_depr && !)? false,
             )
     };
 }
