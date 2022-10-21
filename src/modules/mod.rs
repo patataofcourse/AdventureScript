@@ -7,6 +7,7 @@ pub struct Module {
     pub name: String, //TODO: make it settable through config
     pub commands: CmdSet,
     pub objects: Vec<ObjSpec>,
+    pub globals: HashMap<String, ASType>,
 }
 
 impl Module {
@@ -15,16 +16,18 @@ impl Module {
         commands: Vec<Command>,
         aliases: HashMap<String, String>,
         objects: Vec<ObjSpec>,
+        globals: HashMap<String, ASType>,
     ) -> Self {
         Self {
             name,
             commands: CmdSet::from(commands, aliases),
             objects,
+            globals,
         }
     }
 
     pub fn add_to(self, info: &mut GameInfo, commands: &mut CmdSet) {
-        info.add_module(self.objects, &self.name);
+        info.add_module(self.objects, self.globals, &self.name);
         commands.add_module(self.commands, &self.name)
     }
 }

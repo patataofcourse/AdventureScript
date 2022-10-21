@@ -1,7 +1,7 @@
 use crate::{
     core::{
         error::{ASOtherError, ASSyntaxError, ASVarError},
-        ASVariable, AdventureIO, FileType,
+        ASType, ASVariable, AdventureIO, FileType,
     },
     formats::{config, config::Config, save},
     modules::ObjSpec,
@@ -23,6 +23,7 @@ pub struct GameInfo {
     pub allow_save: bool,
     pub screentext: String,
     pub objects: Vec<ObjSpec>,
+    pub mod_globals: HashMap<String, ASVariable>, //TODO: add to save
 }
 
 impl GameInfo {
@@ -42,6 +43,7 @@ impl GameInfo {
             allow_save: true,
             screentext: String::new(),
             objects: vec![],
+            mod_globals: HashMap::new(),
         }
     }
 
@@ -278,7 +280,12 @@ impl GameInfo {
         self.io.show(&self.screentext)
     }
 
-    pub(crate) fn add_module(&mut self, objects: Vec<ObjSpec>, name: &str) {
+    pub(crate) fn add_module(
+        &mut self,
+        objects: Vec<ObjSpec>,
+        globals: HashMap<String, ASType>,
+        name: &str,
+    ) {
         let mut out_obj = vec![];
         for object in objects {
             out_obj.push(object.adapt_for_module(name))

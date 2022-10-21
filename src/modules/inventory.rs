@@ -7,9 +7,10 @@ use crate::{
 
 use std::collections::HashMap;
 
-pub fn get_module() -> Module {
+pub fn get_module<'a>(name: Option<&'a str>) -> Module {
+    let name = if let Some(c) = name { c } else { "inv" }.to_string();
     Module::from(
-        "inv".to_string(),
+        name.clone(),
         vec![command! {
             test () => |info, _kwargs| {
                 info.show("Test command working!")
@@ -38,5 +39,9 @@ pub fn get_module() -> Module {
                 }
             },
         }],
+        HashMap::from([(
+            "global".to_string(),
+            ASType::Object(format!("{}.Inventory", name)),
+        )]),
     )
 }

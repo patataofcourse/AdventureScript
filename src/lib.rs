@@ -35,7 +35,7 @@ pub struct AdventureScriptGame {
 
 impl AdventureScriptGame {
     /// Create a new AdventureScript runner
-    /// 
+    ///
     /// * `root_dir` - Root folder of the game's data
     /// * `io` - The IO system to use when running the game
     /// * `is_local` - Whether this game is ran as "portable". If true, saves will be stored in
