@@ -32,6 +32,29 @@ impl Display for ASType {
     }
 }
 
+impl ASType {
+    /// Returns the default value for a variable of the specified type:
+    /// 
+    /// - Any / None /  VarRef / Label => None
+    ///     * For VarRef and Label, trying to use this value before it is initialized
+    ///     will result in an error
+    /// - Bool => false
+    /// - Int => 0
+    /// - String => ""
+    /// - List / Map => empty list or map
+    pub fn default_for_type(&self) -> ASVariable {
+        match self {
+            Self::Any | Self::None | Self::VarRef | Self::Label => ASVariable::None,
+            Self::Bool => ASVariable::Bool(false),
+            Self::Int => ASVariable::Int(0),
+            Self::String => ASVariable::String("".to_string()),
+            Self::List => ASVariable::List(vec![]),
+            Self::Map => ASVariable::Map(HashMap::new()),
+            Self::Object(c) => todo!(), //add object initializer??
+        }
+    }
+}
+
 /// Enum used to handle AdventureScript variables.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum ASVariable {

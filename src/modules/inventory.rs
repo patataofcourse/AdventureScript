@@ -39,9 +39,9 @@ pub fn get_module<'a>(name: Option<&'a str>) -> Module {
                 }
             },
         }],
-        HashMap::from([(
+        HashMap::from([/*(
             "global".to_string(),
             ASType::Object(format!("{}.Inventory", name)),
-        )]),
+        )*/]),
     )
 }

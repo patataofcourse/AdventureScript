@@ -140,6 +140,7 @@ impl TypeMethods {
         var: &ASVariable,
         args: Vec<ASVariable>,
     ) -> anyhow::Result<ASVariable> {
+        //TODO: Object/Module fields???
         match self.get(name) {
             Some(c) => c.clone().run(info, var, args),
             None => Err(ASSyntaxError::UnknownMethod(

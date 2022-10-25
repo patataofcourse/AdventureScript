@@ -144,6 +144,7 @@ impl GameInfo {
                     }
                     self.flags.get(name).unwrap()
                 } else {
+                    //TODO: modules / module globals
                     match self.variables.get(name) {
                         Some(c) => c,
                         None => Err(ASVarError::VarNotFound(name.to_string()))?,
@@ -286,11 +287,12 @@ impl GameInfo {
         globals: HashMap<String, ASType>,
         name: &str,
     ) {
-        let mut out_obj = vec![];
         for object in objects {
-            out_obj.push(object.adapt_for_module(name))
+            self.objects.push(object.adapt_for_module(name));
         }
-        self.objects = out_obj;
+        for (gname, global) in globals {
+            self.mod_globals.insert(format!("{}.{}", name, gname), global.default_for_type());
+        }
     }
 
     pub fn get_object(&self, spec: &str) -> Option<ObjSpec> {
