@@ -20,12 +20,23 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
             FnArg::Typed(c) => match c.ty.as_ref() {
                 Type::Infer(ty) => {
                     return quote_spanned!(ty.span()=>
-                        compile_error!("command macro: types should be defined explicitly");
+                        compile_error!("command macro: cannot infer types");
                     )
                     .into();
                 }
-                _ => {
-                    todo!();
+                Type::Paren(ty) => {
+                    //TODO: rerun the match
+                    return quote_spanned!(ty.span() => compile_error!("not yet implemented");)
+                        .into();
+                }
+                // explicit type description
+                Type::Path(ty) => {
+                    //TODO: try to resolve type
+                    return quote_spanned!(ty.span() => compile_error!("not yet implemented");)
+                        .into();
+                }
+                c => {
+                    todo!("{:?}", c);
                 }
             },
         }

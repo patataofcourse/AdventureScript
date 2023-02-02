@@ -500,9 +500,7 @@ pub fn main_commands() -> CmdSet {
     )
 }
 
-/*
 #[adventure_script_attr::command]
-fn cmd(a: B, c: u32, d: [_]) -> Result<()> {
+fn cmd(a: B, c: u32, d: [_], e: (u32), h: r#struct!()) -> Result<()> {
     todo!();
 }
-*/
