@@ -1,0 +1,13 @@
+[package]
+name = "adventure_script_attr"
+authors.workspace = true
+version.workspace = true
+edition.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "1.0"
+syn = { version = "1.0", features = ["full", "extra-traits"] }
+proc-macro2 = "1.0"

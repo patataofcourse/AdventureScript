@@ -499,3 +499,10 @@ pub fn main_commands() -> CmdSet {
         ]),
     )
 }
+
+/*
+#[adventure_script_attr::command]
+fn cmd(a: B, c: u32, d: [_]) -> Result<()> {
+    todo!();
+}
+*/

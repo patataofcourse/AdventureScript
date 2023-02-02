@@ -1,11 +1,20 @@
-[package]
-name = "adventure_script"
+[workspace]
+members = ["adventure_script_attr"]
+
+[workspace.package]
 version = "2.0.0-alpha.3"
 authors = ["patataofcourse"]
 edition = "2021"
+
+[package]
+name = "adventure_script"
 default-run = "test"
+authors.workspace = true
+version.workspace = true
+edition.workspace = true
 
 [dependencies]
+adventure_script_attr = { path = "adventure_script_attr" }
 anyhow = "1.0.44"
 dirs = "4.0.0"
 regex = "1.5.4"

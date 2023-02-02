@@ -34,7 +34,7 @@ impl Display for ASType {
 
 impl ASType {
     /// Returns the default value for a variable of the specified type:
-    /// 
+    ///
     /// - Any / None /  VarRef / Label => None
     ///     * For VarRef and Label, trying to use this value before it is initialized
     ///     will result in an error
@@ -57,8 +57,10 @@ impl ASType {
 
 /// Enum used to handle AdventureScript variables.
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[non_exhaustive]
 pub enum ASVariable {
-    /// Value used internally for parsing, DO NOT use in modules
+    #[doc(hidden)]
+    /// For internal use. DO NOT USE in modules
     Empty,
     /// Boolean value (true/false)
     Bool(bool),
