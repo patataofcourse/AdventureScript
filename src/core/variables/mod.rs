@@ -11,6 +11,7 @@ mod operations;
 /// Enum listing all possible types for AdventureScript variables. To see what each type means, check
 /// the `ASVariable` documentation.
 #[derive(Debug, PartialEq, Eq, Clone)]
+#[non_exhaustive]
 pub enum ASType {
     /// Not properly a type, but meant to be used when there's compatibility with any type (for example,
     /// in a command argument that may be of any type).
