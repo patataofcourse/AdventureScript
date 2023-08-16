@@ -27,19 +27,15 @@ pub(crate) fn manage_error(info: &GameInfo, err: anyhow::Error) {
     } else {
         error += "uncaught internal error:\n    ";
     };
-    info.error(format!(
-        "{}{}",
-        error,
-        (|| {
-            let err = err.to_string();
-            let mut lines = err.lines();
-            let mut out = lines.next().unwrap().to_string();
-            for line in lines {
-                out += &format!("\n    {}", line);
-            }
-            out
-        })()
-    ));
+    info.error(format!("{}{}", error, {
+        let err = err.to_string();
+        let mut lines = err.lines();
+        let mut out = lines.next().unwrap().to_string();
+        for line in lines {
+            out += &format!("\n    {}", line);
+        }
+        out
+    }));
 }
 
 // Command error
@@ -255,16 +251,16 @@ pub enum ASSyntaxError {
     #[error("Label {0} doesn't exist")]
     NonExistentLabel(String),
     #[error("Label {0} is defined multiple times in the following lines: {}",
-        ( |vec: &Vec<i64>| {
+        {
             let mut out = "".to_string();
-            for elmt in vec {
+            for elmt in .1 {
                 if out != "" {
                     out += ", ";
                 }
                 out += &elmt.to_string();
             }
             out
-        } ) (.1)
+        }
     )]
     RepeatedLabel(String, Vec<i64>),
     #[error("Syntax error at '{0}'")]

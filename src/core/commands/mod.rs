@@ -31,8 +31,8 @@ pub struct CmdSet {
 
 impl CmdSet {
     pub fn get(&self, name: &str) -> Option<&Command> {
-        let (module, name) = name.split_once(".").unwrap_or(("", name));
-        let module = if module != "" {
+        let (module, name) = name.split_once('.').unwrap_or(("", name));
+        let module = if !module.is_empty() {
             self.modules.get(module)?
         } else {
             self
@@ -72,6 +72,12 @@ impl CmdSet {
     }
 }
 
+impl Default for CmdSet {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Command {
     pub fn new(
         name: String,
@@ -98,10 +104,9 @@ impl Command {
         args: Vec<ASVariable>,
         kwargs: HashMap<String, ASVariable>,
     ) -> anyhow::Result<()> {
-        let mut c = 0;
         let mut kwargs = kwargs;
         // Turn positional arguments into keyword arguments
-        for arg in &args {
+        for (c, arg) in args.iter().enumerate() {
             let argname = match self.args_to_kwargs.get(c) {
                 None => Err(ASCmdError {
                     command: String::from(&self.name),
@@ -113,7 +118,6 @@ impl Command {
                 Some(c) => Ok(c),
             }?;
             kwargs.insert(String::from(argname), arg.to_owned());
-            c += 1;
         }
         // Pass default argument values
         for (key, value) in &self.default_values {
@@ -502,7 +506,7 @@ pub fn main_commands() -> CmdSet {
     )
 }
 
-#[command(name = "test")]
+#[command(crate_path = "crate")]
 fn cmd(a: B, c: u32, d: [_], e: (u32), h: r#struct()) -> Result<()> {
     todo!();
 }

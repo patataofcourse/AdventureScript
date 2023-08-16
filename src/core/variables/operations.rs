@@ -138,17 +138,19 @@ impl PartialOrd for ASVariable {
     }
 }
 
+#[inline]
 fn op_err(op: String, v1: ASVariable, v2: ASVariable) -> anyhow::Result<ASVariable> {
     Err(ASSyntaxError::OperationNotDefined {
-        op: op,
+        op,
         type1: v1.get_type(),
         type2: v2.get_type(),
     })?
 }
 
+#[inline]
 fn unary_op_err(op: String, v: ASVariable) -> anyhow::Result<ASVariable> {
     Err(ASSyntaxError::UnaryOperationNotDefined {
-        op: op,
+        op,
         type1: v.get_type(),
     })?
 }

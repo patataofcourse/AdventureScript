@@ -2,7 +2,8 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
-use syn::{parse_macro_input, AttributeArgs};
+use quote::{quote, ToTokens};
+use syn::{parse_macro_input, AttributeArgs, Lit, Path, Ident, spanned::Spanned};
 
 #[macro_use]
 mod util;
@@ -19,12 +20,46 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
         Some(c) => c.clone(),
         None => return error!("only functions are supported by #[command]"),
     };
+    let fn_name = func.name.clone();
 
     let args = parse_macro_input!(args as AttributeArgs);
     let args = match util::manage_attr_args(args) {
         Ok(c) => c,
         Err(e) => return e,
     };
+    let name = match args.get("name") {
+        Some(c) => c.to_token_stream(),
+        None => {
+            let name = fn_name.to_string();
+            quote! {#name}
+        }
+    };
+    let crate_path = match args.get("crate_path") {
+        Some(Lit::Str(c)) => match c.parse_with(Path::parse_mod_style) {
+            Ok(c) => c,
+            Err(e) => return e.to_compile_error().into(),
+        },
+        Some(c) => return error!(c.span() => "must be a string containing a path, eg. `\"as\"`"),
+        None => {
+            Ident::new("adventure_script", input.span()).into()
+        }
+    };
+    let deprecated = args.get("deprecated").is_some();
 
-    todo!()
+    //todo!();
+
+    quote! {
+        //TODO: remove this when done
+        #[allow(unreachable_code)]
+        pub fn #fn_name () -> #crate_path::core::Command {
+            #crate_path::core::Command {
+                name: String::from(#name),
+                func: todo!(),
+                args_to_kwargs: todo!(),
+                accepted_kwargs: todo!(),
+                default_values: todo!(),
+                deprecated: #deprecated,
+            }
+        }
+    }.into()
 }

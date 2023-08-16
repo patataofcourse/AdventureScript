@@ -8,6 +8,9 @@ use std::{
 
 mod operations;
 
+#[doc(hidden)]
+pub mod is_as_var;
+
 /// Enum listing all possible types for AdventureScript variables. To see what each type means, check
 /// the `ASVariable` documentation.
 #[derive(Debug, PartialEq, Eq, Clone)]
