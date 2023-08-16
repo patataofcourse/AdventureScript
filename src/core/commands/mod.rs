@@ -9,11 +9,18 @@ mod definitions;
 #[derive(Clone)]
 pub struct Command {
     pub name: String,
-    func: fn(&mut GameInfo, HashMap<String, ASVariable>) -> anyhow::Result<()>,
-    args_to_kwargs: Vec<String>,
-    accepted_kwargs: HashMap<String, ASType>,
-    default_values: HashMap<String, ASVariable>,
+    func: CommandFn,
+    args: Vec<CommandArg>,
     pub deprecated: bool,
+}
+
+pub type CommandFn = fn(&mut GameInfo, Vec<ASVariable>) -> anyhow::Result<()>;
+
+#[derive(Clone)]
+pub struct CommandArg {
+    pub name: String,
+    pub type_: ASType,
+    pub required: bool,
 }
 
 #[derive(Clone)]
@@ -75,132 +82,109 @@ impl Default for CmdSet {
 impl Command {
     pub fn new(
         name: String,
-        func: fn(&mut GameInfo, HashMap<String, ASVariable>) -> anyhow::Result<()>,
-        args_to_kwargs: Vec<String>,
-        accepted_kwargs: HashMap<String, ASType>,
-        default_values: HashMap<String, ASVariable>,
+        func: CommandFn,
+        args: Vec<CommandArg>,
         deprecated: bool,
-    ) -> Self {
-        //TODO: disallow None and Empty type arguments
-        //TODO: make sure arg ordering/defaults are well done
-        Self {
+    ) -> anyhow::Result<Self> {
+        let mut optionals = false;
+        for arg in &args {
+            if arg.type_ == ASType::None {
+                Err(ASOtherError::DevErr(format!(
+                    "Command '{}' takes a None type parameter",
+                    name
+                )))?
+            }
+
+            if optionals && arg.required {
+                Err(ASOtherError::DevErr(format!(
+                    "Command '{}' has a required argument after an optional one",
+                    name
+                )))?
+            } else if !arg.required {
+                optionals = true
+            }
+        }
+
+        Ok(Self {
             name,
             func,
-            args_to_kwargs,
-            accepted_kwargs,
-            default_values,
+            args,
             deprecated,
-        }
+        })
     }
     pub fn run(
         &self,
         info: &mut GameInfo,
-        args: Vec<ASVariable>,
+        mut args: Vec<ASVariable>,
         kwargs: HashMap<String, ASVariable>,
     ) -> anyhow::Result<()> {
-        let mut kwargs = kwargs;
-        // Turn positional arguments into keyword arguments
-        for (c, arg) in args.iter().enumerate() {
-            let argname = match self.args_to_kwargs.get(c) {
-                None => Err(ASCmdError {
-                    command: String::from(&self.name),
-                    details: CommandErrors::TooManyPosArgs {
-                        max_args: self.args_to_kwargs.len(),
-                        given_args: args.len(),
-                    },
-                }),
-                Some(c) => Ok(c),
-            }?;
-            kwargs.insert(String::from(argname), arg.to_owned());
+        // Check that there's not too many arguments
+        if args.len() > self.args.len() {
+            Err(ASCmdError {
+                command: self.name.to_string(),
+                details: CommandErrors::TooManyArguments {
+                    max_args: self.args.len(),
+                    given_args: args.len(),
+                },
+            })?
         }
-        // Pass default argument values
-        for (key, value) in &self.default_values {
-            if !kwargs.contains_key(key) {
-                kwargs.insert(String::from(key), value.to_owned());
-            }
+
+        // Expand args to the size of all the arguments
+        for _ in 0..(self.args.len() - args.len()) {
+            args.push(ASVariable::None);
         }
-        // Check that all given arguments are taken by the command and
-        // of the required type
-        for (key, value) in &kwargs.clone() {
-            if !self.accepted_kwargs.contains_key(key) {
+
+        // Pass kwargs to args
+        for (k, v) in kwargs {
+            let Some(pos) = self.args.iter().position(|c|{c.name == k}) else {
                 Err(ASCmdError {
-                    command: String::from(&self.name),
-                    details: CommandErrors::UndefinedArgument {
-                        argument_name: String::from(key),
-                        argument_type: value.get_type(),
-                    },
-                })?;
+                    command: self.name.to_string(),
+                    details: CommandErrors::UndefinedArgument { argument_name: k, argument_type: v.get_type() }
+                })?
+            };
+
+            args[pos] = v;
+        }
+
+        // Check argument types + that no required arg is None
+        let mut check_required = true;
+        for c in 0..args.iter().len() {
+            let arg_def = &self.args[c];
+            if !arg_def.required {
+                check_required = false;
             }
-            let arg_type = value.get_type();
-            if !(self.accepted_kwargs[key] == ASType::Any && arg_type != ASType::VarRef)
-                && self.accepted_kwargs[key] != arg_type
+
+            let arg_type = args[c].get_type();
+
+            if args[c] == ASVariable::None && arg_def.required && check_required {
+                Err(CommandErrors::MissingRequiredArgument {
+                    argument_name: arg_def.name.clone(),
+                    argument_type: arg_def.type_.clone(),
+                })?
+            } else if !(arg_def.type_ == ASType::Any && arg_type != ASType::VarRef)
+                && arg_def.type_ != arg_type
             {
                 if arg_type == ASType::VarRef {
-                    kwargs.insert(key.to_string(), info.get_var(value)?.clone());
-                } else if arg_type == ASType::None && self.accepted_kwargs[key] == ASType::Label {
-                    kwargs.insert(key.to_string(), ASVariable::Label(None));
+                    args[c] = info.get_var(&args[c].clone())?.clone()
+                } else if arg_type == ASType::None && arg_def.type_ == ASType::Label {
+                    args[c] = ASVariable::Label(None)
                 } else {
-                    if self.args_to_kwargs.contains(&String::from(key)) {
-                        Err(ASCmdError {
-                            command: String::from(&self.name),
-                            details: CommandErrors::PosArgTypeError {
-                                argument_name: String::from(key),
-                                argument_num: self
-                                    .args_to_kwargs
-                                    .iter()
-                                    .position(|r| r == &String::from(key))
-                                    .unwrap(),
-                                required_type: self.accepted_kwargs[key].clone(),
-                                given_type: value.get_type(),
-                            },
-                        })
-                    } else {
-                        Err(ASCmdError {
-                            command: String::from(&self.name),
-                            details: CommandErrors::ArgumentTypeError {
-                                argument_name: String::from(key),
-                                required_type: self.accepted_kwargs[key].clone(),
-                                given_type: value.get_type(),
-                            },
-                        })?
-                    }?;
+                    Err(ASCmdError {
+                        command: String::from(&self.name),
+                        details: CommandErrors::ArgumentTypeError {
+                            argument_name: self.name.clone(),
+                            required_type: arg_def.type_.clone(),
+                            given_type: arg_type,
+                        },
+                    })?
                 }
             }
         }
-        // Check that all arguments in the command have been given
-        for (key, value) in &self.accepted_kwargs {
-            if !kwargs.contains_key(key) {
-                if self.args_to_kwargs.contains(&String::from(key)) {
-                    Err(ASCmdError {
-                        command: String::from(&self.name),
-                        details: CommandErrors::MissingRequiredPosArg {
-                            argument_name: String::from(key),
-                            argument_num: self
-                                .args_to_kwargs
-                                .iter()
-                                .position(|r| r == &String::from(key))
-                                .unwrap(),
-                            argument_type: value.clone(),
-                        },
-                    })
-                } else {
-                    Err(ASCmdError {
-                        command: String::from(&self.name),
-                        details: CommandErrors::MissingRequiredArgument {
-                            argument_name: String::from(key),
-                            argument_type: value.clone(),
-                        },
-                    })?
-                }?;
-            }
-        }
 
-        if info.debug && self.deprecated {
-            info.warn(format!("Command '{}' is deprecated", self.name));
-        }
-
-        (self.func)(info, kwargs)
+        (self.func)(info, args)
     }
 }
 
 pub use definitions::main_commands;
+
+use super::error::ASOtherError;

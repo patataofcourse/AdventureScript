@@ -41,7 +41,7 @@ pub(crate) fn manage_error(info: &GameInfo, err: anyhow::Error) {
 // Command error
 
 #[derive(Debug)]
-pub struct ASCmdError {
+pub(crate) struct ASCmdError {
     pub command: String,
     pub details: CommandErrors,
 }
@@ -55,11 +55,9 @@ impl Display for ASCmdError {
 impl Error for ASCmdError {}
 
 #[derive(Debug, Error)]
-pub enum CommandErrors {
-    #[error("{details}")]
-    Generic { details: String },
-    #[error("Command can only take {max_args} positional arguments, but was given {given_args}")]
-    TooManyPosArgs { max_args: usize, given_args: usize },
+pub(crate) enum CommandErrors {
+    #[error("Command can only take {max_args} arguments, but was given {given_args}")]
+    TooManyArguments { max_args: usize, given_args: usize },
     #[error("Command was given argument {argument_name} (type {argument_type}), which it doesn't recognize")]
     UndefinedArgument {
         argument_name: String,
@@ -73,15 +71,6 @@ pub enum CommandErrors {
         argument_type: ASType,
     },
     #[error(
-        "Command is missing argument {argument_name} / #{argument_num} {}",
-        "(type {argument_type}), which is required"
-    )]
-    MissingRequiredPosArg {
-        argument_name: String,
-        argument_num: usize,
-        argument_type: ASType,
-    },
-    #[error(
         "Argument {argument_name} is of type {required_type}, but type {given_type} was given"
     )]
     ArgumentTypeError {
@@ -89,6 +78,7 @@ pub enum CommandErrors {
         required_type: ASType,
         given_type: ASType,
     },
+
     #[error(
         "Argument {argument_name} / #{argument_num} is of type {required_type}, but type {given_type} was given"
     )]

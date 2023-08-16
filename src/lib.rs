@@ -69,7 +69,8 @@ impl AdventureScriptGame {
             println!("AdventureScript v{}\n", env!("CARGO_PKG_VERSION"));
         }
         //add basic commands
-        self.commands.extend(main_commands());
+        self.commands
+            .extend(main_commands().expect("Main commands should not panic"));
         //load script file
         if let Err(err) = self.info.load_script(None) {
             manage_error(&self.info, err);
@@ -88,8 +89,9 @@ impl AdventureScriptGame {
         }
     }
 
-    pub fn add_module(&mut self, module: modules::Module) {
+    pub fn add_module(&mut self, module: modules::Module) -> anyhow::Result<()> {
         //TODO: error if module already exists
         module.add_to(&mut self.info, &mut self.commands);
+        Ok(())
     }
 }

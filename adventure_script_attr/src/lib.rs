@@ -49,13 +49,12 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
     quote! {
         //TODO: remove this when done
         #[allow(unreachable_code)]
-        pub fn #fn_name () -> #crate_path::core::Command {
+        //TODO: figure out the result type
+        pub fn #fn_name () -> #crate_path::Result<#crate_path::core::Command> {
             #crate_path::core::Command {
                 name: String::from(#name),
                 func: todo!(),
-                args_to_kwargs: todo!(),
-                accepted_kwargs: todo!(),
-                default_values: todo!(),
+                args: todo!(),
                 deprecated: #deprecated,
             }
         }

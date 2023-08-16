@@ -11,11 +11,12 @@ pub fn get_module(name: Option<&str>) -> Module {
     let name = if let Some(c) = name { c } else { "inv" }.to_string();
     Module::from(
         name.clone(),
-        vec![command_old! {
+        //TODO
+        vec![/* command_old! {
             test () => |info, _kwargs| {
                 info.show("Test command working!")
             }
-        }],
+        } */],
         HashMap::new(),
         vec![ObjSpec {
             name: "Inventory".to_string(),

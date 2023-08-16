@@ -6,6 +6,8 @@ use std::{
     hash::Hash,
 };
 
+use self::is_as_var::IsASVar;
+
 mod operations;
 
 #[doc(hidden)]
@@ -33,8 +35,7 @@ pub enum ASType {
     #[doc(hidden)]
     ListExplicit(Box<ASType>),
     #[doc(hidden)]
-    MapExplicit(Box<ASType>, Box<ASType>)
-
+    MapExplicit(Box<ASType>, Box<ASType>),
 }
 
 impl Display for ASType {
@@ -74,7 +75,7 @@ pub enum ASVariable {
     #[doc(hidden)]
     // For internal use. DO NOT USE in modules
     Empty,
-    
+
     /// Boolean value (true/false)
     Bool(bool),
     /// Integer value (64-bit signed)
