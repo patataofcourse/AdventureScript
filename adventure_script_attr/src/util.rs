@@ -35,12 +35,12 @@ pub fn manage_attr_args(args: AttributeArgs) -> Result<HashMap<String, Lit>, Tok
     for arg in args {
         match arg {
             syn::NestedMeta::Meta(c) => match c {
-                syn::Meta::Path(c) => out.insert(c.to_token_stream().to_string(), Lit::new(Literal::isize_suffixed(0))),
-                syn::Meta::List(c) => key_val_error(c.span())?,
-                syn::Meta::NameValue(c) => out.insert(
-                    c.path.to_token_stream().to_string(),
-                    c.lit,
+                syn::Meta::Path(c) => out.insert(
+                    c.to_token_stream().to_string(),
+                    Lit::new(Literal::isize_suffixed(0)),
                 ),
+                syn::Meta::List(c) => key_val_error(c.span())?,
+                syn::Meta::NameValue(c) => out.insert(c.path.to_token_stream().to_string(), c.lit),
             },
             syn::NestedMeta::Lit(c) => key_val_error(c.span())?,
         };

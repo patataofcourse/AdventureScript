@@ -109,18 +109,16 @@ impl GameInfo {
             ))?,
         };
 
-        let mut c = 0; //loop counter
         let mut instances = Vec::<i64>::new(); //lines where there's been a match
-        for line in &self.script {
+        for (c, line) in self.script.iter().enumerate() {
             if line.trim() == format!("{{{}}}", lname) {
-                instances.push(c);
+                instances.push(c as i64);
             }
-            c += 1;
         }
         match instances.len() {
             0 => Err(ASSyntaxError::NonExistentLabel(lname.to_string()))?,
             1 => {
-                self.pointer = *instances.get(0).unwrap();
+                self.pointer = *instances.first().unwrap();
                 Ok(())
             }
             _ => Err(ASSyntaxError::RepeatedLabel(lname.to_string(), instances))?,
@@ -139,7 +137,7 @@ impl GameInfo {
         Ok(match var {
             ASVariable::VarRef { name, flag } => {
                 if *flag {
-                    if let None = self.flags.get(name) {
+                    if self.flags.get(name).is_none() {
                         self.flags.insert(name.to_string(), ASVariable::Bool(false));
                     }
                     self.flags.get(name).unwrap()
@@ -161,7 +159,7 @@ impl GameInfo {
         Ok(match var {
             ASVariable::VarRef { name, flag } => {
                 if *flag {
-                    if let None = self.flags.get(name) {
+                    if self.flags.get(name).is_none() {
                         self.flags.insert(name.to_string(), ASVariable::Bool(false));
                     }
                     self.flags.get_mut(name).unwrap()
@@ -201,7 +199,7 @@ impl GameInfo {
         if let ASVariable::VarRef { name, flag } = var {
             if *flag {
                 self.flags.remove(&name.to_string());
-            } else if let None = self.variables.remove(name) {
+            } else if self.variables.remove(name).is_none() {
                 Err(ASVarError::VarNotFound(name.to_string()))?
             }
         } else {
@@ -215,7 +213,7 @@ impl GameInfo {
     //TODO: customization of choice text formatting
     pub fn query(&mut self, text: &str, choices: Vec<&str>) -> anyhow::Result<u8> {
         if !text.is_empty() {
-            self.io.show(&text)?;
+            self.io.show(text)?;
         }
         let mut c = 1;
         for ch in &choices {
@@ -267,7 +265,7 @@ impl GameInfo {
         self.io
             .load_file(self, &format!("{}.as2", filename), "r", FileType::Script)?
             .read_to_string(&mut file)?;
-        let lines = file.split("\n");
+        let lines = file.split('\n');
         for line in lines {
             self.script.push(line.to_string());
         }
@@ -300,6 +298,6 @@ impl GameInfo {
                 return Some(object.clone());
             }
         }
-        return None;
+        None
     }
 }

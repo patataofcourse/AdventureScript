@@ -56,7 +56,7 @@ impl Mul for ASVariable {
                 if let ASVariable::Int(c2) = rhs {
                     let mut result = String::new();
                     for _ in 0..c2 {
-                        result += &c;
+                        result += c;
                     }
                     Ok(ASVariable::String(result))
                 } else {

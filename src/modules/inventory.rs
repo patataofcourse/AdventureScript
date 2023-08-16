@@ -7,7 +7,7 @@ use crate::{
 
 use std::collections::HashMap;
 
-pub fn get_module<'a>(name: Option<&'a str>) -> Module {
+pub fn get_module(name: Option<&str>) -> Module {
     let name = if let Some(c) = name { c } else { "inv" }.to_string();
     Module::from(
         name.clone(),
@@ -32,7 +32,7 @@ pub fn get_module<'a>(name: Option<&'a str>) -> Module {
                 }
                 out = out.trim().to_string();
 
-                if out == "" {
+                if out.is_empty() {
                     "Empty!".to_string()
                 } else {
                     out

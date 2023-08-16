@@ -13,27 +13,23 @@ pub fn parse_line(info: &mut GameInfo, commands: &CmdSet) -> anyhow::Result<()> 
         info.pointer -= 1;
         ln = info.get_line()?.to_string();
     }
-    if ln.starts_with("#") || (ln.starts_with("{") && ln.trim().ends_with("}")) {
-    } else if ln.starts_with("!") {
+    if ln.starts_with('#') || (ln.starts_with('{') && ln.trim().ends_with('}')) {
+    } else if let Some(ln) = ln.strip_prefix('!') {
         //TODO: disallow multiline strings
         let mut c = 1;
         let mut ln = ln[1..].trim().to_owned();
-        loop {
-            let next_ln = match info.line_at(info.pointer + c) {
-                Some(c) => c,
-                None => break,
-            };
-            if next_ln.starts_with("!!>") {
-                ln += &format!("[{}];", next_ln[3..].trim());
-            } else if next_ln.starts_with("!!") {
-                ln += &format!(" {}", next_ln[2..].trim());
+        while let Some(next_ln) = info.line_at(info.pointer + c) {
+            if let Some(next_ln) = next_ln.strip_prefix("!!>") {
+                ln += &format!("[{}];", next_ln.trim());
+            } else if let Some(next_ln) = next_ln.strip_prefix("!!>") {
+                ln += &format!(" {}", next_ln.trim());
             } else {
                 break;
             }
 
             c += 1
         }
-        ln = ln.trim_end().trim_end_matches(";").to_string();
+        ln = ln.trim_end().trim_end_matches(';').to_string();
         info.pointer += c - 1;
         parse_command(info, commands, ln)?;
     } else {
@@ -51,7 +47,7 @@ pub fn parse_line(info: &mut GameInfo, commands: &CmdSet) -> anyhow::Result<()> 
 
 fn parse_text(info: &mut GameInfo, text: &str) -> anyhow::Result<String> {
     let control_code_regex = Regex::new(r"\\(.)(\[([^\[]*|\[.*\])\])?")?;
-    let control_codes = control_code_regex.captures_iter(&text);
+    let control_codes = control_code_regex.captures_iter(text);
 
     let mut text = text.to_string();
     for capture in control_codes {
@@ -95,14 +91,14 @@ fn parse_text(info: &mut GameInfo, text: &str) -> anyhow::Result<String> {
 // part 1 of the proper parser code - spoiler alert it's bad
 fn parse_command(info: &mut GameInfo, commands: &CmdSet, text: String) -> anyhow::Result<()> {
     // Get the command from the name
-    let split: Vec<&str> = text.split(" ").collect();
+    let split: Vec<&str> = text.split(' ').collect();
 
-    let name = match split.get(0) {
+    let name = match split.first() {
         Some(c) => c,
         None => Err(ASSyntaxError::NoCommand {})?,
     };
 
-    let command = match commands.get(*name) {
+    let command = match commands.get(name) {
         Some(c) => c,
         None => Err(ASSyntaxError::NonExistentCommand {
             command: name.to_string(),
@@ -126,7 +122,7 @@ fn parse_command(info: &mut GameInfo, commands: &CmdSet, text: String) -> anyhow
         let (text, brackets) = simplify_brackets(text)?;
 
         let mut must_be_kwarg = false; //args can only be before kwargs
-        for arg in text.split(";") {
+        for arg in text.split(';') {
             let arg = arg.trim();
 
             match is_kwarg.captures(arg) {
@@ -164,16 +160,14 @@ fn simplify_strings(mut text: String) -> anyhow::Result<(String, Vec<String>)> {
 
     // 1.1:   Get all quotes, both single and double
     let mut quotepos = Vec::<usize>::new(); // here we'll store the index of every quote that's not been escaped
-    let mut pos = 0;
     let mut prev_char = '\x00';
-    for chr in text.chars() {
+    for (pos, chr) in text.chars().enumerate() {
         // If the current character is a quote and the character before it isn't a backslash
         // because, well, escaping quotes in strings is A Thing tm
         if (chr == '"' || chr == '\'') && prev_char != '\\' {
             quotepos.push(pos);
         }
 
-        pos += 1;
         prev_char = chr;
     }
 
@@ -218,8 +212,7 @@ fn simplify_strings(mut text: String) -> anyhow::Result<(String, Vec<String>)> {
     quotes.reverse(); // Doing this so it won't mess with the other index values
 
     let mut quotetext = Vec::<String>::new();
-    let mut c = 0;
-    for quote in &quotes {
+    for (c, quote) in quotes.iter().enumerate() {
         quotetext.push(((text.split_at(quote.1).0).split_at(quote.0 + 1).1).to_string());
         text = format!(
             "{}\"{}\"{}",
@@ -227,7 +220,6 @@ fn simplify_strings(mut text: String) -> anyhow::Result<(String, Vec<String>)> {
             quotes.len() - c - 1, // this makes the indexes be in the right order
             text.split_at(quote.1 + 1).1
         );
-        c += 1;
     }
 
     quotetext.reverse();
@@ -289,8 +281,7 @@ fn simplify_brackets(mut text: String) -> anyhow::Result<(String, Vec<String>)> 
     brackets.reverse(); // Doing this so it won't mess with the other index values
 
     let mut brackettext = Vec::<String>::new();
-    let mut c = 0;
-    for bracket in &brackets {
+    for (c, bracket) in brackets.iter().enumerate() {
         brackettext.push(((text.split_at(bracket.1).0).split_at(bracket.0 + 1).1).to_string());
         text = format!(
             "{}{}{}",
@@ -298,7 +289,6 @@ fn simplify_brackets(mut text: String) -> anyhow::Result<(String, Vec<String>)> 
             brackets.len() - c - 1, // this makes the indexes be in the right order
             text.split_at(bracket.1).1
         );
-        c += 1;
     }
 
     brackettext.reverse();

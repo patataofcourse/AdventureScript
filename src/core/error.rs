@@ -254,7 +254,7 @@ pub enum ASSyntaxError {
         {
             let mut out = "".to_string();
             for elmt in .1 {
-                if out != "" {
+                if !out.is_empty() {
                     out += ", ";
                 }
                 out += &elmt.to_string();

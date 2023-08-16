@@ -236,3 +236,9 @@ impl TypeMethods {
         out
     }
 }
+
+impl Default for TypeMethods {
+    fn default() -> Self {
+        Self::new()
+    }
+}

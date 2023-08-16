@@ -15,7 +15,7 @@ fn show_(text: &str) -> anyhow::Result<()> {
 }
 
 fn wait_() -> anyhow::Result<()> {
-    stdin().read(&mut [0])?;
+    stdin().read_exact(&mut [0])?;
     Ok(())
 }
 
@@ -36,7 +36,7 @@ pub enum FileType {
 
 fn pc_save_location(info: &GameInfo) -> anyhow::Result<std::path::PathBuf> {
     //TODO: other platforms?
-    return match dirs::data_local_dir() {
+    match dirs::data_local_dir() {
         Some(c) => {
             let mut c = c;
             c.extend(&PathBuf::from("AdventureScript"));
@@ -47,7 +47,7 @@ fn pc_save_location(info: &GameInfo) -> anyhow::Result<std::path::PathBuf> {
             Ok(c)
         }
         None => Err(ASOtherError::UnsupportedPlatform)?,
-    };
+    }
 }
 
 fn load_file_(
@@ -121,6 +121,13 @@ fn warn_(text: String) {
     eprintln!("WARNING: {}", text)
 }
 
+pub type ShowFn = fn(&str) -> anyhow::Result<()>;
+pub type WaitFn = fn() -> anyhow::Result<()>;
+pub type InputFn = fn() -> anyhow::Result<String>;
+pub type LoadFileFn = fn(&GameInfo, &str, &str, FileType) -> anyhow::Result<File>;
+pub type ErrorFn = fn(String);
+pub type WarnFn = fn(String);
+
 pub struct AdventureIO {
     show: fn(&str) -> anyhow::Result<()>,
     wait: fn() -> anyhow::Result<()>,
@@ -157,12 +164,12 @@ impl AdventureIO {
     }
 
     pub fn default_with(
-        show: Option<fn(&str) -> anyhow::Result<()>>,
-        wait: Option<fn() -> anyhow::Result<()>>,
-        input: Option<fn() -> anyhow::Result<String>>,
-        load_file: Option<fn(&GameInfo, &str, &str, FileType) -> anyhow::Result<File>>,
-        error: Option<fn(String)>,
-        warn: Option<fn(String)>,
+        show: Option<ShowFn>,
+        wait: Option<WaitFn>,
+        input: Option<InputFn>,
+        load_file: Option<LoadFileFn>,
+        error: Option<ErrorFn>,
+        warn: Option<WarnFn>,
     ) -> Self {
         Self {
             show: show.unwrap_or(show_),

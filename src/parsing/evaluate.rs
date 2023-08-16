@@ -11,14 +11,14 @@ pub fn expr(
 ) -> anyhow::Result<ASVariable> {
     let text = text.trim();
     let operator_regex = Regex::new(r"\+|-|\*|/|\^|!=|!|==|>=|<=|<|>")?;
-    let mut operators = operator_regex.find_iter(&text).collect::<Vec<Match>>();
-    let raw_vals = operator_regex.split(&text);
+    let mut operators = operator_regex.find_iter(text).collect::<Vec<Match>>();
+    let raw_vals = operator_regex.split(text);
 
     let mut values = Vec::<ASVariable>::new();
     for v in raw_vals {
         let mut val: Option<String> = None;
         let mut methods = vec![];
-        for expr in v.split(".") {
+        for expr in v.split('.') {
             match val {
                 None => val = Some(expr.trim().to_string()),
                 Some(_) => methods.push(expr.trim().to_string()),
@@ -33,7 +33,7 @@ pub fn expr(
             parsed = ASVariable::Bool(true);
         } else if val == "false" || val == "False" {
             parsed = ASVariable::Bool(false);
-        } else if val.starts_with("[") && val.ends_with("]") {
+        } else if val.starts_with('[') && val.ends_with(']') {
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
                 .parse::<usize>()
                 .unwrap();
@@ -43,12 +43,12 @@ pub fn expr(
             } else {
                 list(info, value.to_string(), strings)?
             };
-        } else if val.starts_with("{") && val.ends_with("}") {
+        } else if val.starts_with('{') && val.ends_with('}') {
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
                 .parse::<usize>()
                 .unwrap();
             let value = parse_text(info, &brackets[index])?;
-            parsed = if value.contains(":") {
+            parsed = if value.contains(':') {
                 map(info, value.to_string(), strings)?
             } else if value.trim() == "" {
                 ASVariable::Map(HashMap::new())
@@ -62,30 +62,30 @@ pub fn expr(
                 }
                 ASVariable::Label(Some(lname.to_string()))
             }
-        } else if val.starts_with("(") && val.ends_with(")") {
+        } else if val.starts_with('(') && val.ends_with(')') {
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
                 .parse::<usize>()
                 .unwrap();
             let value = parse_text(info, &brackets[index])?;
             let (value, brcks) = simplify_brackets(value)?;
-            parsed = expr(info, value, &strings, &brcks)?;
-        } else if val.starts_with("\"") && val.ends_with("\"") {
+            parsed = expr(info, value, strings, &brcks)?;
+        } else if val.starts_with('\"') && val.ends_with('\"') {
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)
                 .parse::<usize>()
                 .unwrap();
             parsed = ASVariable::String(parse_text(info, &strings[index])?);
         } else if val == "None" {
             parsed = ASVariable::None;
-        } else if val == "" {
+        } else if val.is_empty() {
             parsed = ASVariable::Empty;
         }
         //Flags
-        else if val.starts_with("?") {
+        else if let Some(stripped) = val.strip_prefix('?') {
             if !Regex::new(r"^?[A-Za-z0-9-_]*$")?.is_match(&val) {
                 Err(ASSyntaxError::InvalidVariableName(val.to_string()))? //TODO: get proper token content
             }
             parsed = ASVariable::VarRef {
-                name: val[1..].to_string(),
+                name: stripped.to_string(),
                 flag: true,
             }
         }
@@ -101,13 +101,13 @@ pub fn expr(
         }
 
         // Can't run methods on an Empty type
-        if methods.len() > 0 && parsed == ASVariable::Empty {
+        if !methods.is_empty() && parsed == ASVariable::Empty {
             Err(ASSyntaxError::InvalidVariableName(val.to_string()))?
         }
         values.push(manage_methods(info, parsed, methods, strings, brackets)?)
     }
     //unary operations
-    for operation in vec!["-", "!"] {
+    for operation in ["-", "!"] {
         let mut c = 0;
         while c < operators.len() {
             // It's a unary operator if the first value is None
@@ -126,7 +126,7 @@ pub fn expr(
         }
     }
     //binary operations
-    for operation in vec!["^", "*", "/", "+", "-", "==", ">", "<", "!=", ">=", "<="] {
+    for operation in ["^", "*", "/", "+", "-", "==", ">", "<", "!=", ">=", "<="] {
         let mut c = 0;
         while c < operators.len() {
             if operators[c].as_str() == operation {
@@ -169,7 +169,7 @@ fn manage_methods(
     let mut value = value;
     for method in &methods {
         let method_captures = method_regex.captures(method);
-        if let None = method_captures {
+        if method_captures.is_none() {
             Err(ASSyntaxError::InvalidMethod(method.to_string()))? //TODO: get proper token content
         } else if let Some(c) = method_regex.captures(method) {
             let bracket = format!("[{}]", c.get(2).unwrap().as_str().parse::<usize>().unwrap());
@@ -198,7 +198,7 @@ fn list(info: &mut GameInfo, text: String, strings: &Vec<String>) -> anyhow::Res
     let mut list = vec![];
     let (text, brackets) = simplify_brackets(text)?;
 
-    for elmt in text.split(",") {
+    for elmt in text.split(',') {
         list.push(expr(info, elmt.to_string(), strings, &brackets)?);
     }
 
@@ -210,8 +210,8 @@ fn map(info: &mut GameInfo, text: String, strings: &Vec<String>) -> anyhow::Resu
     let (text, brackets) = simplify_brackets(text)?;
 
     let is_map = Regex::new(":")?;
-    for elmt in text.split(",") {
-        match is_map.find(&elmt) {
+    for elmt in text.split(',') {
+        match is_map.find(elmt) {
             Some(c) => {
                 let (key, value) = elmt.split_at(c.start());
                 let key = expr(info, key.to_string(), strings, &brackets)?;

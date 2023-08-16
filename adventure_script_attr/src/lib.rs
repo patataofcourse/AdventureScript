@@ -3,7 +3,7 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::{quote, ToTokens};
-use syn::{parse_macro_input, AttributeArgs, Lit, Path, Ident, spanned::Spanned};
+use syn::{parse_macro_input, spanned::Spanned, AttributeArgs, Ident, Lit, Path};
 
 #[macro_use]
 mod util;
@@ -40,9 +40,7 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
             Err(e) => return e.to_compile_error().into(),
         },
         Some(c) => return error!(c.span() => "must be a string containing a path, eg. `\"as\"`"),
-        None => {
-            Ident::new("adventure_script", input.span()).into()
-        }
+        None => Ident::new("adventure_script", input.span()).into(),
     };
     let deprecated = args.get("deprecated").is_some();
 
@@ -61,5 +59,6 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
                 deprecated: #deprecated,
             }
         }
-    }.into()
+    }
+    .into()
 }

@@ -41,12 +41,10 @@ pub trait ASKeyVar: IsASVar + ASVarByRef + Hash + Eq {
 
     fn into_key_var(self) -> KeyVar {
         KeyVar::new(self.into_adventure_var()).expect("This type should not implement ASKeyVar")
-
     }
 
     fn key_var(&self) -> KeyVar {
         KeyVar::new(self.adventure_var()).expect("This type should not implement ASKeyVar")
-        
     }
 }
 
@@ -135,7 +133,10 @@ impl ASKeyVar for bool {}
 
 // ---------------------------
 
-impl<T> IsASVar for Vec<T> where T: IsASVar {
+impl<T> IsASVar for Vec<T>
+where
+    T: IsASVar,
+{
     fn into_adventure_var(self) -> ASVariable {
         let mut out = vec![];
         for val in self {
@@ -151,7 +152,7 @@ impl<T> IsASVar for Vec<T> where T: IsASVar {
                     out.push(T::from_adventure_var(val)?)
                 }
                 Some(out)
-            },
+            }
             _ => None,
         }
     }
@@ -159,7 +160,11 @@ impl<T> IsASVar for Vec<T> where T: IsASVar {
 
 // ---------------------------
 
-impl<K, V> IsASVar for HashMap<K, V> where K: ASKeyVar, V: IsASVar {
+impl<K, V> IsASVar for HashMap<K, V>
+where
+    K: ASKeyVar,
+    V: IsASVar,
+{
     fn into_adventure_var(self) -> ASVariable {
         let mut out = HashMap::new();
         for (k, v) in self {
@@ -176,13 +181,12 @@ impl<K, V> IsASVar for HashMap<K, V> where K: ASKeyVar, V: IsASVar {
                     out.insert(K::from_key_var(k)?, V::from_adventure_var(v)?);
                 }
                 Some(out)
-            },
+            }
             _ => None,
         }
     }
 }
 
 // ---------------------------
-
 
 // TODO: Label, VarRef, Object

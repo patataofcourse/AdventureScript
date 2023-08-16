@@ -59,7 +59,7 @@ pub fn restore(info: &mut GameInfo) -> anyhow::Result<bool> {
         ))?,
     };
 
-    if !VersionReq::parse(&format!(">= 2.0.0-alpha.1")) //TODO: update on betas
+    if !VersionReq::parse(">= 2.0.0-alpha.1") //TODO: update on betas
         .unwrap()
         .matches(&ver)
     {
@@ -124,7 +124,7 @@ pub fn save(info: &mut GameInfo) -> anyhow::Result<()> {
     })
     .unwrap();
     info.load_file(save_path, "w", FileType::Save)?
-        .write(save.as_bytes())?;
+        .write_all(save.as_bytes())?;
 
     info.show("Saved")?;
     info.screentext = screentext; // so the "Saved." doesn't get added to the screentext
