@@ -1,6 +1,6 @@
 use super::{Module, ObjSpec};
 use crate::{
-    command,
+    command_old,
     core::{ASType, KeyVar, TypeMethods},
     unwrap_var,
 };
@@ -11,7 +11,7 @@ pub fn get_module<'a>(name: Option<&'a str>) -> Module {
     let name = if let Some(c) = name { c } else { "inv" }.to_string();
     Module::from(
         name.clone(),
-        vec![command! {
+        vec![command_old! {
             test () => |info, _kwargs| {
                 info.show("Test command working!")
             }

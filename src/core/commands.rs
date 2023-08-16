@@ -1,5 +1,5 @@
 use crate::{
-    command,
+    command_old,
     core::{
         error::{ASCmdError, ASGameError, CommandErrors},
         ASType, ASVariable, GameInfo,
@@ -9,6 +9,8 @@ use crate::{
 };
 use anyhow;
 use std::{collections::HashMap, iter::FromIterator};
+
+use adventure_script_attr::command;
 
 #[derive(Clone)]
 pub struct Command {
@@ -206,12 +208,12 @@ impl Command {
 pub fn main_commands() -> CmdSet {
     CmdSet::from(
         vec![
-            command! {
+            command_old! {
                 wait => |info, _kwargs| {
                     info.wait()
                 }
             },
-            command! {
+            command_old! {
                 choice (
                     !text: String,
                     !choice1: List,
@@ -328,12 +330,12 @@ pub fn main_commands() -> CmdSet {
                     Ok(())
                 }
             },
-            command! {
+            command_old! {
                 goto (!pos: Label, ) => |info, kwargs| {
                     info.goto_label(&kwargs["pos"])
                 }
             },
-            command! {
+            command_old! {
                 ending (name: String = "".to_string(), ) => |info, kwargs| {
                     let name = unwrap_var!(kwargs -> "name"; String)?;
                     info.show(&format!("Ending: {}", name))?;
@@ -341,7 +343,7 @@ pub fn main_commands() -> CmdSet {
                     Ok(())
                 }
             },
-            command! {
+            command_old! {
                 flag (!flag: VarRef, value: Bool = true, ) => |info, kwargs| {
                     let flag = match kwargs.get("flag").unwrap() {
                         //Make sure you're getting a flag, not a variable
@@ -354,7 +356,7 @@ pub fn main_commands() -> CmdSet {
                     info.set_var(&flag, kwargs.get("value").unwrap().clone())
                 }
             },
-            command! {
+            command_old! {
               set (!var: VarRef, !value: Any,) => |info, kwargs| {
                     let mut val = kwargs.get("value").unwrap().clone();
                     while val.get_type() == ASType::VarRef {
@@ -366,20 +368,20 @@ pub fn main_commands() -> CmdSet {
                     )
                 }
             },
-            command! {
+            command_old! {
                 add (!var: VarRef, !value: Any,) => |info, kwargs| {
                     let var = kwargs.get("var").unwrap();
                     let val = info.get_var(var)?.clone();
                     info.set_var(var, (val + kwargs.get("value").unwrap().clone())?)
                 }
             },
-            command! {
+            command_old! {
                 loadscript (!name: String,) => |info, kwargs| {
                     let script_name: &str = unwrap_var!(kwargs -> "name"; String)?;
                     info.load_script(Some(script_name))
                 }
             },
-            command! {
+            command_old! {
                 if (!condition: Bool, !gotrue: Label, !gofalse: Label, ) => |info, kwargs| {
                     let condition = *unwrap_var!(kwargs -> "condition"; Bool)?;
                     if condition {
@@ -389,19 +391,19 @@ pub fn main_commands() -> CmdSet {
                     }
                 }
             },
-            command! {
+            command_old! {
                 error (!message: String, ) => |_info, kwargs| {
                     let message = unwrap_var!(kwargs -> "message"; String)?.to_string();
                     Err(ASGameError(message))?
                 }
             },
-            command! {
+            command_old! {
                 save (!val: Bool, ) => |info, kwargs| {
                     info.allow_save = *unwrap_var!(kwargs -> "val"; Bool)?;
                     Ok(())
                 }
             },
-            command! {
+            command_old! {
                 gameover => |info, _kwargs| {
                     info.show("**GAME OVER**")?;
                     let query = info.query("Start over from last save?", vec!("Yes","No"))?;
@@ -415,12 +417,12 @@ pub fn main_commands() -> CmdSet {
                     Ok(())
                 }
             },
-            command! {
+            command_old! {
                 del (!var: VarRef,) => |info, kwargs| {
                     info.del_var(kwargs.get("var").unwrap())
                 }
             },
-            command! {
+            command_old! {
                 switch (
                     !check: Any,
                     !values: List,
@@ -466,7 +468,7 @@ pub fn main_commands() -> CmdSet {
                     info.goto_label(default)
                 }
             },
-            command! {
+            command_old! {
                 append (!list: VarRef, !val: Any,) => |info, kwargs| {
                     match info.get_var_mut(kwargs.get("list").unwrap())? {
                         ASVariable::List(list) => {
@@ -500,7 +502,7 @@ pub fn main_commands() -> CmdSet {
     )
 }
 
-#[adventure_script_attr::command]
-fn cmd(a: B, c: u32, d: [_], e: (u32), h: r#struct!()) -> Result<()> {
+#[command(name = "test")]
+fn cmd(a: B, c: u32, d: [_], e: (u32), h: r#struct()) -> Result<()> {
     todo!();
 }

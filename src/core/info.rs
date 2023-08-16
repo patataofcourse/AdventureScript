@@ -29,8 +29,8 @@ pub struct GameInfo {
 impl GameInfo {
     pub fn create(root_dir: PathBuf, io: AdventureIO, local: bool, debug: bool) -> GameInfo {
         GameInfo {
-            io: io,
-            root_dir: root_dir,
+            io,
+            root_dir,
             script_name: "start".to_string(),
             script: Vec::<String>::new(),
             pointer: 0,
@@ -201,10 +201,8 @@ impl GameInfo {
         if let ASVariable::VarRef { name, flag } = var {
             if *flag {
                 self.flags.remove(&name.to_string());
-            } else {
-                if let None = self.variables.remove(name) {
-                    Err(ASVarError::VarNotFound(name.to_string()))?
-                }
+            } else if let None = self.variables.remove(name) {
+                Err(ASVarError::VarNotFound(name.to_string()))?
             }
         } else {
             Err(ASOtherError::DevErr(
@@ -291,7 +289,8 @@ impl GameInfo {
             self.objects.push(object.adapt_for_module(name));
         }
         for (gname, global) in globals {
-            self.mod_globals.insert(format!("{}.{}", name, gname), global.default_for_type());
+            self.mod_globals
+                .insert(format!("{}.{}", name, gname), global.default_for_type());
         }
     }
 

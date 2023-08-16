@@ -1,6 +1,6 @@
 #[macro_export]
 //TODO: proc macro?
-macro_rules! command {
+macro_rules! command_old {
     //TODO: replace dexpr with a tokentree
     ($name:ident $([deprecated=$is_depr:literal])? $((
         $(

@@ -217,7 +217,7 @@ impl TypeMethods {
                         if let ASVariable::Map(map) = var {
                             match map.get(&key) {
                                 Some(c) => Ok(c.clone()),
-                                None => Err(ASVarError::WrongMapKey { key: key })?,
+                                None => Err(ASVarError::WrongMapKey { key })?,
                             }
                         } else {
                             panic!()
