@@ -28,6 +28,13 @@ pub enum ASType {
     VarRef,
     None,
     Object(String),
+
+    // for use with command signatures
+    #[doc(hidden)]
+    ListExplicit(Box<ASType>),
+    #[doc(hidden)]
+    MapExplicit(Box<ASType>, Box<ASType>)
+
 }
 
 impl Display for ASType {
@@ -55,6 +62,7 @@ impl ASType {
             Self::List => ASVariable::List(vec![]),
             Self::Map => ASVariable::Map(HashMap::new()),
             Self::Object(c) => todo!(), //add object initializer??
+            Self::ListExplicit(_) | Self::MapExplicit(..) => unimplemented!(),
         }
     }
 }
@@ -64,8 +72,9 @@ impl ASType {
 #[non_exhaustive]
 pub enum ASVariable {
     #[doc(hidden)]
-    /// For internal use. DO NOT USE in modules
+    // For internal use. DO NOT USE in modules
     Empty,
+    
     /// Boolean value (true/false)
     Bool(bool),
     /// Integer value (64-bit signed)

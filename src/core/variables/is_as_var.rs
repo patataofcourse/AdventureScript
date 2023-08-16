@@ -6,12 +6,14 @@ pub trait IsASVar
 where
     Self: Sized,
 {
+    const ADVENTURE_TYPE: ASType;
+
     fn into_adventure_var(self) -> ASVariable;
 
     fn from_adventure_var(var: &ASVariable) -> Option<Self>;
 
     fn into_adventure_type(self) -> ASType {
-        self.into_adventure_var().get_type()
+        Self::ADVENTURE_TYPE
     }
 }
 
@@ -51,6 +53,8 @@ pub trait ASKeyVar: IsASVar + ASVarByRef + Hash + Eq {
 // ---------------------------
 
 impl IsASVar for ASVariable {
+    const ADVENTURE_TYPE: ASType = ASType::Any;
+
     fn from_adventure_var(var: &ASVariable) -> Option<Self> {
         Some(var.clone())
     }
@@ -65,6 +69,8 @@ impl<T> IsASVar for Option<T>
 where
     T: IsASVar,
 {
+    const ADVENTURE_TYPE: ASType = T::ADVENTURE_TYPE;
+
     fn into_adventure_var(self) -> ASVariable {
         match self {
             Some(c) => c.into_adventure_var(),
@@ -78,11 +84,17 @@ where
             _ => T::from_adventure_var(var).map(|c| Some(c)),
         }
     }
+
+    fn into_adventure_type(self) -> ASType {
+        self.into_adventure_var().get_type()
+    }
 }
 
 // ---------------------------
 
 impl IsASVar for i64 {
+    const ADVENTURE_TYPE: ASType = ASType::Int;
+
     fn into_adventure_var(self) -> ASVariable {
         ASVariable::Int(self)
     }
@@ -100,6 +112,8 @@ impl ASKeyVar for i64 {}
 // ---------------------------
 
 impl IsASVar for String {
+    const ADVENTURE_TYPE: ASType = ASType::String;
+
     fn into_adventure_var(self) -> ASVariable {
         ASVariable::String(self)
     }
@@ -117,6 +131,8 @@ impl ASKeyVar for String {}
 // ---------------------------
 
 impl IsASVar for bool {
+    const ADVENTURE_TYPE: ASType = ASType::Bool;
+
     fn into_adventure_var(self) -> ASVariable {
         ASVariable::Bool(self)
     }
@@ -137,6 +153,8 @@ impl<T> IsASVar for Vec<T>
 where
     T: IsASVar,
 {
+    const ADVENTURE_TYPE: ASType = ASType::List;
+
     fn into_adventure_var(self) -> ASVariable {
         let mut out = vec![];
         for val in self {
@@ -144,6 +162,7 @@ where
         }
         ASVariable::List(out)
     }
+
     fn from_adventure_var(var: &ASVariable) -> Option<Self> {
         match var {
             ASVariable::List(c) => {
@@ -156,6 +175,19 @@ where
             _ => None,
         }
     }
+
+    fn into_adventure_type(self) -> ASType {
+        let as_type = T::ADVENTURE_TYPE;
+
+        // If it's ASVariable...
+        if as_type == ASType::Any {
+            // ...return regular List
+            ASType::List
+        } else {
+            // Otherwise, use ListExplicit
+            ASType::ListExplicit(Box::new(as_type))
+        }
+    }
 }
 
 // ---------------------------
@@ -165,6 +197,8 @@ where
     K: ASKeyVar,
     V: IsASVar,
 {
+    const ADVENTURE_TYPE: ASType = ASType::Map;
+
     fn into_adventure_var(self) -> ASVariable {
         let mut out = HashMap::new();
         for (k, v) in self {
@@ -183,6 +217,20 @@ where
                 Some(out)
             }
             _ => None,
+        }
+    }
+
+    fn into_adventure_type(self) -> ASType {
+        let k_type = K::ADVENTURE_TYPE;
+        let v_type = V::ADVENTURE_TYPE;
+
+        // If both are ASVariable...
+        if k_type == ASType::Any && v_type == ASType::Any {
+            // ...return regular Map
+            ASType::Map
+        } else {
+            // Otherwise, use MapExplicit
+            ASType::MapExplicit(Box::new(k_type), Box::new(v_type))
         }
     }
 }
