@@ -23,6 +23,8 @@ use crate::core::{error::manage_error, main_commands, AdventureIO, CmdSet, GameI
 use semver::Version;
 use std::path::PathBuf;
 
+pub use crate::core::error::Result;
+
 pub fn get_version() -> Version {
     Version::parse(env!("CARGO_PKG_VERSION")).unwrap()
 }

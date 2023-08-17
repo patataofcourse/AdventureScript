@@ -4,7 +4,12 @@ use never_say_never::Never;
 use proc_macro::TokenStream;
 use proc_macro2::Literal;
 use quote::ToTokens;
-use syn::{spanned::Spanned, AttributeArgs, Lit};
+use syn::{
+    parse::{Parse, ParseStream},
+    parse_quote,
+    spanned::Spanned,
+    Expr, ExprLit, ExprTuple, Ident, Lit, LitBool, Meta, MetaList, Token,
+};
 
 macro_rules! error {
     ($span:expr => $str:literal $(, $arg:expr)*$(,)?) => {
@@ -25,26 +30,47 @@ macro_rules! todo {
     }
 }
 
-pub fn manage_attr_args(args: AttributeArgs) -> Result<HashMap<String, Lit>, TokenStream> {
-    let mut out = HashMap::new();
+#[derive(Default)]
+pub struct AttrArgs {
+    pub named: Vec<String>,
+    pub value: HashMap<String, Expr>,
+}
 
-    let key_val_error = |span| -> Result<Never, TokenStream> {
-        Err(error!(span => "arguments for the attribute must be of `key = value` format"))
-    };
-
-    for arg in args {
-        match arg {
-            syn::NestedMeta::Meta(c) => match c {
-                syn::Meta::Path(c) => out.insert(
-                    c.to_token_stream().to_string(),
-                    Lit::new(Literal::isize_suffixed(0)),
-                ),
-                syn::Meta::List(c) => key_val_error(c.span())?,
-                syn::Meta::NameValue(c) => out.insert(c.path.to_token_stream().to_string(), c.lit),
-            },
-            syn::NestedMeta::Lit(c) => key_val_error(c.span())?,
+impl Parse for AttrArgs {
+    #[inline]
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let mut out = Self {
+            ..Default::default()
         };
-    }
 
-    Ok(out)
+        loop {
+            if input.is_empty() {
+                break;
+            }
+
+            let name_ident = input.parse::<Ident>()?;
+            let name = name_ident.to_string();
+
+            if out.named.iter().any(|c| *c == name) || out.value.iter().any(|(k, _)| **k == name) {
+                Err(syn::Error::new(
+                    name_ident.span(),
+                    "duplicate attribute argument",
+                ))?
+            }
+
+            if let Ok(c) = input.parse::<Token!(=)>() {
+                let val = input.parse::<Expr>()?;
+                out.value.insert(name, val);
+            } else {
+                out.named.push(name)
+            }
+
+            if input.is_empty() {
+                break;
+            }
+
+            input.parse::<Token!(,)>()?;
+        }
+        Ok(out)
+    }
 }

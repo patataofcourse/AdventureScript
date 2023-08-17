@@ -118,8 +118,6 @@ impl Command {
         mut args: Vec<ASVariable>,
         kwargs: HashMap<String, ASVariable>,
     ) -> anyhow::Result<()> {
-        dbg!(&args);
-        dbg!(&kwargs);
         // Check that there's not too many arguments
         if args.len() > self.args.len() {
             Err(ASCmdError {
@@ -159,10 +157,13 @@ impl Command {
             let arg_type = args[c].get_type();
 
             if args[c] == ASVariable::None && arg_def.required && check_required {
-                Err(ASCmdError{ command: self.name.clone(), details: CommandErrors::MissingRequiredArgument {
-                    argument_name: arg_def.name.clone(),
-                    argument_type: arg_def.type_.clone(),
-                }})?
+                Err(ASCmdError {
+                    command: self.name.clone(),
+                    details: CommandErrors::MissingRequiredArgument {
+                        argument_name: arg_def.name.clone(),
+                        argument_type: arg_def.type_.clone(),
+                    },
+                })?
             } else if !(arg_def.type_ == ASType::Any && arg_type != ASType::VarRef)
                 && arg_def.type_ != arg_type
             {

@@ -1,9 +1,11 @@
 use crate::core::{ASType, GameInfo, KeyVar};
 use std::{
     error::Error,
-    fmt::{Display, Formatter, Result},
+    fmt::{Display, Formatter, Result as FmtResult},
 };
 use thiserror::Error;
+
+pub type Result<T> = anyhow::Result<T>;
 
 pub(crate) fn manage_error(info: &GameInfo, err: anyhow::Error) {
     let mut error = format!(
@@ -47,7 +49,7 @@ pub(crate) struct ASCmdError {
 }
 
 impl Display for ASCmdError {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!(f, "on command {}:\n{}", self.command, self.details)
     }
 }
@@ -105,7 +107,7 @@ pub struct ASMethodError {
 }
 
 impl Display for ASMethodError {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!(
             f,
             "on method {} of type {} :\n{}",
@@ -165,7 +167,7 @@ impl ASFileError {
 }
 
 impl Display for ASFileError {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!(
             f,
             "error when {} file {}:\n{}",
@@ -259,7 +261,7 @@ pub enum ASSyntaxError {
 pub struct ASNotImplemented(pub String);
 
 impl Display for ASNotImplemented {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!(f, "{}", self.0)
     }
 }
@@ -288,7 +290,7 @@ pub enum ASVarError {
 pub struct ASGameError(pub String);
 
 impl Display for ASGameError {
-    fn fmt(&self, f: &mut Formatter) -> Result {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
         write!(f, "{}", self.0)
     }
 }

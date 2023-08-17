@@ -6,7 +6,8 @@ use crate::{
     command_old,
     core::{
         error::{ASCmdError, ASGameError, CommandErrors},
-        ASType, ASVariable, GameInfo, variables::is_as_var::IsASVar,
+        variables::is_as_var::IsASVar,
+        ASType, ASVariable, GameInfo,
     },
     formats::save,
     unwrap_var,
@@ -28,14 +29,18 @@ pub fn wait() -> anyhow::Result<Command> {
     })
 }
 
-// #[command(crate_path="crate")]
+#[command(crate_path = "crate")]
 pub fn choice(
     info: &mut GameInfo,
     text: String,
+    #[wrap_to(..9)]
     choices: Vec<Vec<ASVariable>>,
 ) -> anyhow::Result<()> {
     if choices.is_empty() {
-        Err(ASCmdError {command: "choice".to_string(), details: CommandErrors::ChoiceEmptyChoices})?
+        Err(ASCmdError {
+            command: "choice".to_string(),
+            details: CommandErrors::ChoiceEmptyChoices,
+        })?
     }
 
     let mut texts = Vec::<String>::new();
@@ -45,76 +50,85 @@ pub fn choice(
         let text = match choice.get(0) {
             Some(s) => match s {
                 ASVariable::String(c) => c.to_string(),
-                ASVariable::VarRef {name, flag} => {
-                    match info.get_var(&ASVariable::VarRef {name: name.to_string(), flag: *flag})? {
-                            ASVariable::String(c) => c.to_string(),
-                            other => Err(ASCmdError {
-                                command: "choice".to_string(),
-                                details: CommandErrors::ChoiceWrongType{
-                                    choice: c,
-                                    number: 2,
-                                    given: other.get_type(),
-                                    asked: ASType::Bool
-                                }
-                            })?,
+                ASVariable::VarRef { name, flag } => {
+                    match info.get_var(&ASVariable::VarRef {
+                        name: name.to_string(),
+                        flag: *flag,
+                    })? {
+                        ASVariable::String(c) => c.to_string(),
+                        other => Err(ASCmdError {
+                            command: "choice".to_string(),
+                            details: CommandErrors::ChoiceWrongType {
+                                choice: c,
+                                number: 2,
+                                given: other.get_type(),
+                                asked: ASType::Bool,
+                            },
+                        })?,
                     }
-                },
+                }
                 other => Err(ASCmdError {
                     command: "choice".to_string(),
-                    details: CommandErrors::ChoiceWrongType{
+                    details: CommandErrors::ChoiceWrongType {
                         choice: c,
                         number: 0,
                         given: other.get_type(),
-                        asked: ASType::String
-                    }
+                        asked: ASType::String,
+                    },
                 })?,
             },
-            None => break
+            None => break,
         };
-        let goto = match choice.get(1){
+        let goto = match choice.get(1) {
             Some(v) => match v {
                 ASVariable::None => ASVariable::Label(None),
-                ASVariable::Label{..} => v.clone(),
+                ASVariable::Label { .. } => v.clone(),
                 _ => Err(ASCmdError {
                     command: "choice".to_string(),
-                    details: CommandErrors::ChoiceWrongType{
+                    details: CommandErrors::ChoiceWrongType {
                         choice: c,
                         number: 1,
                         given: v.get_type(),
-                        asked: ASType::Label
-                    }
-                })?
+                        asked: ASType::Label,
+                    },
+                })?,
             },
             None => Err(ASCmdError {
                 command: "choice".to_string(),
-                details: CommandErrors::ChoiceMissingRequired{typ: ASType::Label, choice: c},
+                details: CommandErrors::ChoiceMissingRequired {
+                    typ: ASType::Label,
+                    choice: c,
+                },
             })?,
         };
         let flag = match choice.get(2) {
             Some(l) => match l {
                 ASVariable::Bool(c) => *c,
-                ASVariable::VarRef {name, flag} => {
-                    match info.get_var(&ASVariable::VarRef {name: name.to_string(), flag: *flag})? {
-                            ASVariable::Bool(c) => *c,
-                            other => Err(ASCmdError {
+                ASVariable::VarRef { name, flag } => {
+                    match info.get_var(&ASVariable::VarRef {
+                        name: name.to_string(),
+                        flag: *flag,
+                    })? {
+                        ASVariable::Bool(c) => *c,
+                        other => Err(ASCmdError {
                             command: "choice".to_string(),
-                            details: CommandErrors::ChoiceWrongType{
+                            details: CommandErrors::ChoiceWrongType {
                                 choice: c,
                                 number: 2,
                                 given: other.get_type(),
-                                asked: ASType::Bool
-                            }
+                                asked: ASType::Bool,
+                            },
                         })?,
                     }
-                },
+                }
                 other => Err(ASCmdError {
                     command: "choice".to_string(),
-                    details: CommandErrors::ChoiceWrongType{
+                    details: CommandErrors::ChoiceWrongType {
                         choice: c,
                         number: 2,
                         given: other.get_type(),
-                        asked: ASType::Bool
-                    }
+                        asked: ASType::Bool,
+                    },
                 })?,
             },
             None => true,
@@ -140,23 +154,33 @@ pub fn choice(
 
 pub fn main_commands() -> anyhow::Result<CmdSet> {
     Ok(CmdSet {
-        commands: vec![wait()?, Command {
-            name: "choice".to_string(),
-            func: |info, args| {
-                choice(info, String::from_adventure_var(&args[0]).unwrap(), Vec::from_adventure_var(&args[1]).unwrap())
-            },
-            args: vec![CommandArg {
-                name: "text".to_string(),
-                type_: ASType::String,
-                required: true,
-            }, CommandArg {
-                name: "choices".to_string(),
-                // TODO: replace with tuple type
-                type_: ASType::ListExplicit(Box::new(ASType::List)),
-                required: true,
-            }],
-            deprecated: false,
-        }],
+        commands: vec![
+            wait()?,
+            choice()?, /* Command {
+                name: "choice".to_string(),
+                func: |info, args| {
+                    choice(
+                        info,
+                        String::from_adventure_var(&args[0]).unwrap(),
+                        Vec::from_adventure_var(&args[1]).unwrap(),
+                    )
+                },
+                args: vec![
+                    CommandArg {
+                        name: "text".to_string(),
+                        type_: ASType::String,
+                        required: true,
+                    },
+                    CommandArg {
+                        name: "choices".to_string(),
+                        // TODO: replace with tuple type
+                        type_: ASType::ListExplicit(Box::new(ASType::List)),
+                        required: true,
+                    },
+                ],
+                deprecated: false,
+            }, */
+        ],
         aliases: HashMap::new(),
         modules: HashMap::new(),
     })
@@ -456,8 +480,3 @@ pub fn main_commands() -> anyhow::Result<CmdSet> {
 //         ]),
 //     )
 // }
-
-// #[command(crate_path = "crate")]
-fn cmd() -> anyhow::Result<()> {
-    todo!();
-}

@@ -126,53 +126,50 @@ impl ASVariable {
 
 impl Display for ASVariable {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::None => "None".to_string(),
-                Self::Bool(c) => if *c { "true" } else { "false" }.to_string(),
-                Self::Int(c) => c.to_string(),
-                Self::String(c) => c.to_string(),
-                Self::List(c) => format!("[{}]", {
-                    let mut out = String::new();
-                    let mut first_elem = true;
-                    for element in c {
-                        if first_elem {
-                            first_elem = false;
-                        } else {
-                            out += ", ";
-                        }
-                        out += &element.to_string();
+        let value = match self {
+            Self::None => "None".to_string(),
+            Self::Bool(c) => if *c { "true" } else { "false" }.to_string(),
+            Self::Int(c) => c.to_string(),
+            Self::String(c) => c.to_string(),
+            Self::List(c) => format!("[{}]", {
+                let mut out = String::new();
+                let mut first_elem = true;
+                for element in c {
+                    if first_elem {
+                        first_elem = false;
+                    } else {
+                        out += ", ";
                     }
-                    out
-                }),
-                Self::Map(c) => format!("{{{}}}", {
-                    let mut out = String::new();
-                    let mut first_elem = true;
-                    for (key, value) in c {
-                        if first_elem {
-                            first_elem = false;
-                        } else {
-                            out += ", "
-                        }
-                        out += &format!("{}: {}", key, value);
+                    out += &element.to_string();
+                }
+                out
+            }),
+            Self::Map(c) => format!("{{{}}}", {
+                let mut out = String::new();
+                let mut first_elem = true;
+                for (key, value) in c {
+                    if first_elem {
+                        first_elem = false;
+                    } else {
+                        out += ", "
                     }
-                    out
-                }),
-                Self::Label(c) => match c {
-                    Some(c) => format!("Label {{{}}}", c),
-                    None => String::from("Null label"),
-                },
-                Self::VarRef { name, flag } => {
-                    format!("{} {}", if *flag { "Flag" } else { "Variable" }, name)
+                    out += &format!("{}: {}", key, value);
                 }
-                Self::Object { spec, .. } => {
-                    format!("<Object type {}>", spec)
-                }
-                Self::Empty => panic!("Cannot use to_string with Empty type"),
+                out
+            }),
+            Self::Label(c) => match c {
+                Some(c) => format!("Label {{{}}}", c),
+                None => String::from("Null label"),
+            },
+            Self::VarRef { name, flag } => {
+                format!("{} {}", if *flag { "Flag" } else { "Variable" }, name)
             }
-        )
+            Self::Object { spec, .. } => {
+                format!("<Object type {}>", spec)
+            }
+            Self::Empty => panic!("Cannot use to_string with Empty type"),
+        };
+        write!(f, "{}", value)
     }
 }
 
