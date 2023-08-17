@@ -13,15 +13,17 @@ pub fn parse_line(info: &mut GameInfo, commands: &CmdSet) -> anyhow::Result<()> 
         info.pointer -= 1;
         ln = info.get_line()?.to_string();
     }
+    dbg!(&ln);
     if ln.starts_with('#') || (ln.starts_with('{') && ln.trim().ends_with('}')) {
     } else if let Some(ln) = ln.strip_prefix('!') {
         //TODO: disallow multiline strings
         let mut c = 1;
         let mut ln = ln[1..].trim().to_owned();
+        //TODO: !!>> ?
         while let Some(next_ln) = info.line_at(info.pointer + c) {
             if let Some(next_ln) = next_ln.strip_prefix("!!>") {
                 ln += &format!("[{}];", next_ln.trim());
-            } else if let Some(next_ln) = next_ln.strip_prefix("!!>") {
+            } else if let Some(next_ln) = next_ln.strip_prefix("!!") {
                 ln += &format!(" {}", next_ln.trim());
             } else {
                 break;

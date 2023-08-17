@@ -78,25 +78,17 @@ pub(crate) enum CommandErrors {
         required_type: ASType,
         given_type: ASType,
     },
-
-    #[error(
-        "Argument {argument_name} / #{argument_num} is of type {required_type}, but type {given_type} was given"
-    )]
-    PosArgTypeError {
-        argument_name: String,
-        argument_num: usize,
-        required_type: ASType,
-        given_type: ASType,
-    },
     #[error("Choice #{choice} is missing an argument (of type {typ})")]
-    ChoiceMissingRequired { choice: u8, typ: ASType },
+    ChoiceMissingRequired { choice: usize, typ: ASType },
     #[error("Choice #{choice}, argument {} is of type {asked}, but got {given}", number+1)]
     ChoiceWrongType {
-        choice: u8,
+        choice: usize,
         number: u8,
         given: ASType,
         asked: ASType,
     },
+    #[error("No choices were given")]
+    ChoiceEmptyChoices,
     #[error("Label #{} should be type Label, but got {given}", number+1)]
     SwitchLabelType { number: usize, given: ASType },
     #[error("!switch command was given a different number of values ({0}) and labels ({1})")]

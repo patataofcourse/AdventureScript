@@ -118,6 +118,8 @@ impl Command {
         mut args: Vec<ASVariable>,
         kwargs: HashMap<String, ASVariable>,
     ) -> anyhow::Result<()> {
+        dbg!(&args);
+        dbg!(&kwargs);
         // Check that there's not too many arguments
         if args.len() > self.args.len() {
             Err(ASCmdError {
@@ -135,15 +137,15 @@ impl Command {
         }
 
         // Pass kwargs to args
-        for (k, v) in kwargs {
-            let Some(pos) = self.args.iter().position(|c|{c.name == k}) else {
+        for (k, v) in &kwargs {
+            let Some(pos) = self.args.iter().position(|c|{c.name == *k}) else {
                 Err(ASCmdError {
                     command: self.name.to_string(),
-                    details: CommandErrors::UndefinedArgument { argument_name: k, argument_type: v.get_type() }
+                    details: CommandErrors::UndefinedArgument { argument_name: k.clone(), argument_type: v.get_type() }
                 })?
             };
 
-            args[pos] = v;
+            args[pos] = v.clone();
         }
 
         // Check argument types + that no required arg is None
@@ -157,10 +159,10 @@ impl Command {
             let arg_type = args[c].get_type();
 
             if args[c] == ASVariable::None && arg_def.required && check_required {
-                Err(CommandErrors::MissingRequiredArgument {
+                Err(ASCmdError{ command: self.name.clone(), details: CommandErrors::MissingRequiredArgument {
                     argument_name: arg_def.name.clone(),
                     argument_type: arg_def.type_.clone(),
-                })?
+                }})?
             } else if !(arg_def.type_ == ASType::Any && arg_type != ASType::VarRef)
                 && arg_def.type_ != arg_type
             {
@@ -172,7 +174,7 @@ impl Command {
                     Err(ASCmdError {
                         command: String::from(&self.name),
                         details: CommandErrors::ArgumentTypeError {
-                            argument_name: self.name.clone(),
+                            argument_name: arg_def.name.clone(),
                             required_type: arg_def.type_.clone(),
                             given_type: arg_type,
                         },

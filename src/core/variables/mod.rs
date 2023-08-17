@@ -6,8 +6,6 @@ use std::{
     hash::Hash,
 };
 
-use self::is_as_var::IsASVar;
-
 mod operations;
 
 #[doc(hidden)]

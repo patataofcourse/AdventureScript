@@ -6,13 +6,13 @@ use crate::{
     command_old,
     core::{
         error::{ASCmdError, ASGameError, CommandErrors},
-        ASType, ASVariable, GameInfo,
+        ASType, ASVariable, GameInfo, variables::is_as_var::IsASVar,
     },
     formats::save,
     unwrap_var,
 };
 
-use super::{CmdSet, Command};
+use super::{CmdSet, Command, CommandArg};
 
 // #[command(crate_path="crate")]
 // pub fn wait(info: &mut GameInfo) {
@@ -32,21 +32,16 @@ pub fn wait() -> anyhow::Result<Command> {
 pub fn choice(
     info: &mut GameInfo,
     text: String,
-    choice_1: Vec<ASVariable>,
-    choice_2: Option<Vec<ASVariable>>,
-    choice_3: Option<Vec<ASVariable>>,
-    choice_4: Option<Vec<ASVariable>>,
-    choice_5: Option<Vec<ASVariable>>,
-    choice_6: Option<Vec<ASVariable>>,
-    choice_7: Option<Vec<ASVariable>>,
-    choice_8: Option<Vec<ASVariable>>,
-    choice_9: Option<Vec<ASVariable>>,
+    choices: Vec<Vec<ASVariable>>,
 ) -> anyhow::Result<()> {
-    let mut c = 1;
+    if choices.is_empty() {
+        Err(ASCmdError {command: "choice".to_string(), details: CommandErrors::ChoiceEmptyChoices})?
+    }
+
     let mut texts = Vec::<String>::new();
     let mut gotos = Vec::<ASVariable>::new();
     // separate the choices into the vectors defined above
-    for choice in &[choice_1, choice_2, choice_3, choice_4, choice_5, choice_6, choice_7, choice_8, choice_9] {
+    for (c, choice) in choices.iter().enumerate() {
         let text = match choice.get(0) {
             Some(s) => match s {
                 ASVariable::String(c) => c.to_string(),
@@ -99,7 +94,7 @@ pub fn choice(
             Some(l) => match l {
                 ASVariable::Bool(c) => *c,
                 ASVariable::VarRef {name, flag} => {
-                    match info.get_var(&ASVariable::VarRef {name: name.to_string(),flag: *flag})? {
+                    match info.get_var(&ASVariable::VarRef {name: name.to_string(), flag: *flag})? {
                             ASVariable::Bool(c) => *c,
                             other => Err(ASCmdError {
                             command: "choice".to_string(),
@@ -128,7 +123,6 @@ pub fn choice(
             texts.push(text);
             gotos.push(goto.clone());
         }
-        c += 1
     }
     let mut text_refs: Vec<&str> = vec![];
     for t in &texts {
@@ -146,7 +140,23 @@ pub fn choice(
 
 pub fn main_commands() -> anyhow::Result<CmdSet> {
     Ok(CmdSet {
-        commands: vec![wait()?],
+        commands: vec![wait()?, Command {
+            name: "choice".to_string(),
+            func: |info, args| {
+                choice(info, String::from_adventure_var(&args[0]).unwrap(), Vec::from_adventure_var(&args[1]).unwrap())
+            },
+            args: vec![CommandArg {
+                name: "text".to_string(),
+                type_: ASType::String,
+                required: true,
+            }, CommandArg {
+                name: "choices".to_string(),
+                // TODO: replace with tuple type
+                type_: ASType::ListExplicit(Box::new(ASType::List)),
+                required: true,
+            }],
+            deprecated: false,
+        }],
         aliases: HashMap::new(),
         modules: HashMap::new(),
     })
