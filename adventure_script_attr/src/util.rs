@@ -1,14 +1,8 @@
 use std::collections::HashMap;
 
-use never_say_never::Never;
-use proc_macro::TokenStream;
-use proc_macro2::Literal;
-use quote::ToTokens;
 use syn::{
     parse::{Parse, ParseStream},
-    parse_quote,
-    spanned::Spanned,
-    Expr, ExprLit, ExprTuple, Ident, Lit, LitBool, Meta, MetaList, Token,
+    Expr, Ident, Token,
 };
 
 macro_rules! error {
@@ -59,7 +53,7 @@ impl Parse for AttrArgs {
                 ))?
             }
 
-            if let Ok(c) = input.parse::<Token!(=)>() {
+            if let Ok(_) = input.parse::<Token!(=)>() {
                 let val = input.parse::<Expr>()?;
                 out.value.insert(name, val);
             } else {

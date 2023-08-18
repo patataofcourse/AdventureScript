@@ -13,20 +13,11 @@ use crate::{
     formats::save,
 };
 
-use super::{CmdSet, Command, CommandArg};
+use super::CmdSet;
 
-// #[command(crate_path="crate")]
-// pub fn wait(info: &mut GameInfo) {
-//     info.wait();
-// }
-
-pub fn wait() -> anyhow::Result<Command> {
-    Ok(Command {
-        name: "wait".to_string(),
-        func: |info, _args| info.wait(),
-        args: vec![],
-        deprecated: false,
-    })
+#[command(crate_path = "crate")]
+pub fn wait(info: &mut GameInfo) -> anyhow::Result<()> {
+    info.wait()
 }
 
 #[command(crate_path = "crate")]
@@ -153,39 +144,13 @@ pub fn choice(
 
 pub fn main_commands() -> anyhow::Result<CmdSet> {
     Ok(CmdSet {
-        commands: vec![
-            wait()?,
-            choice()?, /* Command {
-                           name: "choice".to_string(),
-                           func: |info, args| {
-                               choice(
-                                   info,
-                                   String::from_adventure_var(&args[0]).unwrap(),
-                                   Vec::from_adventure_var(&args[1]).unwrap(),
-                               )
-                           },
-                           args: vec![
-                               CommandArg {
-                                   name: "text".to_string(),
-                                   type_: ASType::String,
-                                   required: true,
-                               },
-                               CommandArg {
-                                   name: "choices".to_string(),
-                                   // TODO: replace with tuple type
-                                   type_: ASType::ListExplicit(Box::new(ASType::List)),
-                                   required: true,
-                               },
-                           ],
-                           deprecated: false,
-                       }, */
-        ],
+        commands: vec![wait()?, choice()?],
         aliases: HashMap::new(),
         modules: HashMap::new(),
     })
 }
 
-// pub fn main_commands() -> CmdSet {
+// pub fn main_ocmannds() -> CmdSet {
 //     CmdSet::from(
 //         vec![
 //             command_old! {
