@@ -171,7 +171,7 @@ impl Command {
                     args[c] = info.get_var(&args[c].clone())?.clone()
                 } else if arg_type == ASType::None && arg_def.type_ == ASType::Label {
                     args[c] = ASVariable::Label(None)
-                } else if !(arg_type == ASType::None && !arg_def.required) {
+                } else if !(arg_type == ASType::None) || !arg_def.required {
                     Err(ASCmdError {
                         command: String::from(&self.name),
                         details: CommandErrors::ArgumentTypeError {

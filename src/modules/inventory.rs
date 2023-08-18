@@ -1,22 +1,23 @@
+use adventure_script_attr::command;
+
 use super::{Module, ObjSpec};
 use crate::{
-    command_old,
     core::{ASType, KeyVar, TypeMethods},
     unwrap_var,
 };
 
 use std::collections::HashMap;
 
+#[command(crate_path="crate", name="test")]
+pub fn test_cmd(info: &mut GameInfo) -> anyhow::Result<()> {
+    info.show("Test command working!")
+}
+
 pub fn get_module(name: Option<&str>) -> Module {
     let name = if let Some(c) = name { c } else { "inv" }.to_string();
     Module::from(
         name.clone(),
-        //TODO
-        vec![/* command_old! {
-            test () => |info, _kwargs| {
-                info.show("Test command working!")
-            }
-        } */],
+        vec![test_cmd().unwrap()],
         HashMap::new(),
         vec![ObjSpec {
             name: "Inventory".to_string(),

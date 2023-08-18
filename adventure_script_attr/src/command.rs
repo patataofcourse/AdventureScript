@@ -50,7 +50,7 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
         Some(c) => return error!(c.span() => "must be a string containing a path, eg. `\"as\"`"),
         None => Ident::new("adventure_script", input.span()).into(),
     };
-    let deprecated = args.named.iter().find(|c| *c == "deprecated").is_some();
+    let deprecated = args.named.iter().any(|c| c == "deprecated");
 
     //TODO: check if the return type is anyhow::Result
 
@@ -64,12 +64,7 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
             .attributes
             .iter()
             .find(|c| {
-                // ew
-                if let Some(true) = c.get_single_path_segment().map(|c| *c == "wrap_to") {
-                    true
-                } else {
-                    false
-                }
+                matches!(c.get_single_path_segment().map(|c| *c == "wrap_to"), Some(true))
             })
             .map(|c| syn::parse2::<Expr>(c.value.to_token_stream()));
 
@@ -116,11 +111,7 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
         if let Some(c) = item.wrap_to {
             match (&c.start, &c.end) {
                 (Some(start), Some(end)) => {
-                    let is_closed = if let RangeLimits::Closed(_) = c.limits {
-                        true
-                    } else {
-                        false
-                    };
+                    let is_closed = matches!(c.limits, RangeLimits::Closed(_));
                     let start = match start.as_ref() {
                         Expr::Lit(ExprLit {
                             lit: Lit::Int(c), ..
@@ -239,7 +230,7 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
     quote! {
         pub fn #fn_name () -> #crate_path::Result<#crate_path::core::Command> {
             //TODO: remove imports, use explicit <T as Trait>
-            use #crate_path::core::variables::is_as_var::{IsASVar, ASVarWrapTo};
+            use #crate_path::core::{IsASVar, ASVarWrapTo};
             use #crate_path::core::specialization_hack::{OptionInfo};
             fn func (
                 #info_name: &mut #crate_path::core::GameInfo,
@@ -250,12 +241,7 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
                 #func_inner
             };
             let args = vec![#args_value];
-            Ok(#crate_path::core::Command {
-                name: String::from(#name),
-                func,
-                args,
-                deprecated: #deprecated,
-            })
+            #crate_path::core::Command::new(String::from(#name), func, args, #deprecated)
         }
     }
     .into()

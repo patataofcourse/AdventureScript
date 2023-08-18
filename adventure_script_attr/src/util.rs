@@ -53,7 +53,7 @@ impl Parse for AttrArgs {
                 ))?
             }
 
-            if let Ok(_) = input.parse::<Token!(=)>() {
+            if input.parse::<Token!(=)>().is_ok() {
                 let val = input.parse::<Expr>()?;
                 out.value.insert(name, val);
             } else {
