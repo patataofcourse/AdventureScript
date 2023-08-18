@@ -12,3 +12,6 @@ pub use info::GameInfo;
 pub use io::{AdventureIO, FileType};
 pub use methods::{Method, TypeMethods};
 pub use variables::{ASType, ASVariable, KeyVar};
+
+#[doc(hidden)]
+pub use variables::is_as_var::{ASKeyVar, ASVarByRef, ASVarWrapTo, IsASVar};

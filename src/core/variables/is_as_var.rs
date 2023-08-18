@@ -52,9 +52,10 @@ pub trait ASKeyVar: IsASVar + ASVarByRef + Hash + Eq {
 }
 
 pub trait ASVarWrapTo: IsASVar {
-    const INNER_TYPE: ASType;
+    type InnerType: IsASVar;
+    const INNER_AS_TYPE: ASType = Self::InnerType::ADVENTURE_TYPE;
 
-    fn wrap(vars: Vec<ASVariable>) -> Option<Self>;
+    fn wrap(vars: Vec<Self::InnerType>) -> Option<Self>;
 }
 
 // ---------------------------
@@ -207,14 +208,10 @@ impl<T> ASVarWrapTo for Vec<T>
 where
     T: IsASVar,
 {
-    const INNER_TYPE: ASType = T::ADVENTURE_TYPE;
+    type InnerType = T;
 
-    fn wrap(vars: Vec<ASVariable>) -> Option<Self> {
-        let mut out = vec![];
-        for var in vars {
-            out.push(T::from_adventure_var(&var)?)
-        }
-        Some(out)
+    fn wrap(vars: Vec<Self::InnerType>) -> Option<Self> {
+        Some(vars)
     }
 }
 

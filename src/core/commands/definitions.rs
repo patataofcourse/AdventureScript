@@ -2,15 +2,15 @@ use std::collections::HashMap;
 
 use adventure_script_attr::command;
 
+//TODO: remove allow() when the commands have been ported
+#[allow(unused_imports)]
 use crate::{
-    command_old,
     core::{
         error::{ASCmdError, ASGameError, CommandErrors},
         variables::is_as_var::IsASVar,
         ASType, ASVariable, GameInfo,
     },
     formats::save,
-    unwrap_var,
 };
 
 use super::{CmdSet, Command, CommandArg};
