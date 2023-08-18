@@ -211,7 +211,6 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
                     }
                     arg_num += range_size;
 
-                    //TODO: error if None and not optional
                     wrapping_code = quote! {
                         #wrapping_code
                         let mut #name = vec![];
@@ -220,12 +219,12 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
                             #(
                                 if #names_numbered.0 < #start {
                                     // arg checking has already made sure this exists
-                                    #name.push(#names_numbered.1.unwrap());
-                                } else if let Some(elmt) = #names_numbered.1 {
+                                    #name.push(#names_numbered.1.clone().unwrap());
+                                } else if let Some(elmt) = &#names_numbered.1 {
                                     if is_done {
                                         todo!("error managing for '_3 exists _2 does not'")
                                     }
-                                    #name.push(elmt)
+                                    #name.push(elmt.clone())
                                 } else {
                                     is_done = true;
                                 }
@@ -239,16 +238,18 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
                 _ => return error!(c.span() => "range must have an explicit start and end"),
             }
         } else {
+            //TODO: error managing if !ty::IS_OPTIONAL and it's None
             wrapping_code = quote! {
                 #wrapping_code
                 let #name = #ty::from_adventure_var(&args[#arg_num]);
+                let #name = #crate_path::core::specialization_hack::Wrap::<#ty>::new().refer().unwrap_if_optional(#name);
             };
             args_value = quote! {
                 #args_value
                 #crate_path::core::commands::CommandArg {
                     name: String::from(#name_str),
                     type_: #ty::ADVENTURE_TYPE,
-                    required: !#ty::IS_OPTIONAL,
+                    required: !#crate_path::core::specialization_hack::Wrap::<#ty>::new().refer().is_optional(),
                 },
             };
             arg_num += 1;
@@ -259,6 +260,7 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
         pub fn #fn_name () -> #crate_path::Result<#crate_path::core::Command> {
             //TODO: remove imports, use explicit <T as Trait>
             use #crate_path::core::variables::is_as_var::{IsASVar, ASVarWrapTo};
+            use #crate_path::core::specialization_hack::{OptionInfo};
             let func = |
                 #info_name: &mut #crate_path::core::GameInfo,
                 args: Vec<#crate_path::core::ASVariable>,

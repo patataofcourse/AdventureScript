@@ -15,3 +15,6 @@ pub use variables::{ASType, ASVariable, KeyVar};
 
 #[doc(hidden)]
 pub use variables::is_as_var::{ASKeyVar, ASVarByRef, ASVarWrapTo, IsASVar};
+
+#[doc(hidden)]
+pub mod specialization_hack;

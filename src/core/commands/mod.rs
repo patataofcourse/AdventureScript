@@ -16,7 +16,7 @@ pub struct Command {
 
 pub type CommandFn = fn(&mut GameInfo, Vec<ASVariable>) -> anyhow::Result<()>;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct CommandArg {
     pub name: String,
     pub type_: ASType,
@@ -171,7 +171,7 @@ impl Command {
                     args[c] = info.get_var(&args[c].clone())?.clone()
                 } else if arg_type == ASType::None && arg_def.type_ == ASType::Label {
                     args[c] = ASVariable::Label(None)
-                } else {
+                } else if !(arg_type == ASType::None && !arg_def.required) {
                     Err(ASCmdError {
                         command: String::from(&self.name),
                         details: CommandErrors::ArgumentTypeError {
