@@ -33,8 +33,7 @@ pub fn wait() -> anyhow::Result<Command> {
 pub fn choice(
     info: &mut GameInfo,
     text: String,
-    #[wrap_to(..9)]
-    choices: Vec<Vec<ASVariable>>,
+    #[wrap_to(1..=9)] choices: Vec<Vec<ASVariable>>,
 ) -> anyhow::Result<()> {
     if choices.is_empty() {
         Err(ASCmdError {
@@ -157,29 +156,29 @@ pub fn main_commands() -> anyhow::Result<CmdSet> {
         commands: vec![
             wait()?,
             choice()?, /* Command {
-                name: "choice".to_string(),
-                func: |info, args| {
-                    choice(
-                        info,
-                        String::from_adventure_var(&args[0]).unwrap(),
-                        Vec::from_adventure_var(&args[1]).unwrap(),
-                    )
-                },
-                args: vec![
-                    CommandArg {
-                        name: "text".to_string(),
-                        type_: ASType::String,
-                        required: true,
-                    },
-                    CommandArg {
-                        name: "choices".to_string(),
-                        // TODO: replace with tuple type
-                        type_: ASType::ListExplicit(Box::new(ASType::List)),
-                        required: true,
-                    },
-                ],
-                deprecated: false,
-            }, */
+                           name: "choice".to_string(),
+                           func: |info, args| {
+                               choice(
+                                   info,
+                                   String::from_adventure_var(&args[0]).unwrap(),
+                                   Vec::from_adventure_var(&args[1]).unwrap(),
+                               )
+                           },
+                           args: vec![
+                               CommandArg {
+                                   name: "text".to_string(),
+                                   type_: ASType::String,
+                                   required: true,
+                               },
+                               CommandArg {
+                                   name: "choices".to_string(),
+                                   // TODO: replace with tuple type
+                                   type_: ASType::ListExplicit(Box::new(ASType::List)),
+                                   required: true,
+                               },
+                           ],
+                           deprecated: false,
+                       }, */
         ],
         aliases: HashMap::new(),
         modules: HashMap::new(),

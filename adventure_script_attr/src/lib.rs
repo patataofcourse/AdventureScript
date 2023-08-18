@@ -1,9 +1,13 @@
 extern crate proc_macro;
 
+use std::{collections::btree_map::Range, ops::RangeBounds};
+
 use proc_macro::TokenStream;
-use proc_macro2::TokenStream as TokenStream2;
-use quote::{quote, ToTokens};
-use syn::{spanned::Spanned, Expr, ExprLit, ExprRange, Ident, Lit, Path, ExprParen};
+use proc_macro2::{Span, TokenStream as TokenStream2};
+use quote::{format_ident, quote, ToTokens};
+use syn::{
+    spanned::Spanned, Expr, ExprLit, ExprParen, ExprRange, Ident, Lit, LitInt, Path, RangeLimits,
+};
 use venial::{FnParam, TyExpr};
 
 #[macro_use]
@@ -81,14 +85,25 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
         let wrap_to_result = item
             .attributes
             .iter()
-            .find(|c| c.get_single_path_segment().is_some_and(|c| *c == "wrap_to"))
+            .find(|c| {
+                // ew
+                if let Some(true) = c.get_single_path_segment().map(|c| *c == "wrap_to") {
+                    true
+                } else {
+                    false
+                }
+            })
             .map(|c| syn::parse2::<Expr>(c.value.to_token_stream()));
 
         let wrap_to = match wrap_to_result {
             None => None,
-            Some(Ok(Expr::Paren(ExprParen {expr, ..}))) => if let Expr::Range(c) = *expr {
-                Some(c)
-            } else {return error!(expr.span() => "expected a range")},
+            Some(Ok(Expr::Paren(ExprParen { expr, .. }))) => {
+                if let Expr::Range(c) = *expr {
+                    Some(c)
+                } else {
+                    return error!(expr.span() => "expected a range");
+                }
+            }
             Some(Ok(_)) => unreachable!(),
             Some(Err(e)) => return e.into_compile_error().into(),
         };
@@ -110,20 +125,114 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
         }
         Some(c) => c,
     };
+    let info_name = info.name;
 
-    let mut wrapping_code = quote! {};
-    for (c, item) in signature.enumerate() {
+    let mut wrapping_code = quote! {
+        use #crate_path::core::variables::is_as_var::IsASVar;
+    };
+    let mut args_value = quote! {};
+    let mut arg_num = 0usize;
+    for item in signature {
         let name = item.name;
+        let name_str = name.to_string();
         let ty = item.ty;
         if let Some(c) = item.wrap_to {
             match (&c.start, &c.end) {
-                (Some(start), Some(end)) => return todo!(),
+                (Some(start), Some(end)) => {
+                    let is_closed = if let RangeLimits::Closed(_) = c.limits {
+                        true
+                    } else {
+                        false
+                    };
+                    let start = match start.as_ref() {
+                        Expr::Lit(ExprLit {
+                            lit: Lit::Int(c), ..
+                        }) => {
+                            match c
+                                .base10_parse::<usize>()
+                                .map_err(|e| syn::Error::new(c.span(), e).to_compile_error().into())
+                            {
+                                Ok(c) => c,
+                                Err(e) => return e,
+                            }
+                        }
+                        _ => {
+                            return error!(start.span() => "wrap_to range bounds must be integer literals")
+                        }
+                    };
+                    let end = match end.as_ref() {
+                        Expr::Lit(ExprLit {
+                            lit: Lit::Int(c), ..
+                        }) => {
+                            match c
+                                .base10_parse::<usize>()
+                                .map_err(|e| syn::Error::new(c.span(), e).to_compile_error().into())
+                            {
+                                Ok(c) => c,
+                                Err(e) => return e,
+                            }
+                        }
+                        _ => {
+                            return error!(end.span() => "wrap_to range bounds must be integer literals")
+                        }
+                    };
+
+                    let (range, range_size) = if is_closed {
+                        (0..=(end - 1), (end - 1))
+                    } else {
+                        (0..=(end - 2), end - 2)
+                    };
+                    let bounds = range.clone().skip(start).collect::<Vec<_>>();
+
+                    let mut names_numbered = vec![];
+                    for pos in range {
+                        let name_numbered: Ident = format_ident!("{}_{}", name, pos);
+                        names_numbered.push(name_numbered.clone());
+                        let name_numbered_str = name_numbered.to_string();
+
+                        if bounds.contains(&pos) {
+                        } else {
+                            wrapping_code = quote! {
+                                #wrapping_code
+                                let #name_numbered = <#ty::INNER_TYPE>::from_adventure_var(&args[#arg_num + #pos]);
+                            };
+                            args_value = quote! {
+                                #args_value
+                                #crate_path::core::commands::CommandArg {
+                                    name: String::from(#name_numbered_str),
+                                    type_: #ty::ADVENTURE_TYPE,
+                                    required: !#ty::IS_OPTIONAL,
+                                },
+
+                            }
+                        }
+                    }
+                    arg_num += range_size;
+
+                    wrapping_code = quote! {
+                        #wrapping_code
+                        let #name = T::wrap_from(vec![#(#names_numbered),*]);
+                    }
+
+                    //return todo!();
+                }
                 _ => return error!(c.span() => "range must have an explicit start and end"),
             }
+        } else {
+            wrapping_code = quote! {
+                #wrapping_code
+                let #name = #ty::from_adventure_var(&args[#arg_num]).ok_or()?;
+            };
+            args_value = quote! {
+                #args_value
+                #crate_path::core::commands::CommandArg {
+                    name: String::from(#name_str),
+                    type_: #ty::ADVENTURE_TYPE,
+                    required: !#ty::IS_OPTIONAL,
+                },
+            };
+            arg_num += 1;
         }
-        quote! {
-            let name = #ty.from_adventure_var(args[#c]);
-        };
     }
 
     quote! {
@@ -131,10 +240,16 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
         #[allow(unreachable_code)]
         //TODO: figure out the result type
         pub fn #fn_name () -> #crate_path::Result<#crate_path::core::Command> {
+            use #crate_path::core::variables::is_as_var::{IsASVar, ASVarWrapTo};
             Ok(#crate_path::core::Command {
                 name: String::from(#name),
-                func: todo!(),
-                args: todo!(),
+                func: |#info_name, args| {
+                    #wrapping_code
+                    drop(args);
+                    //TODO: function contents
+                    Ok(())
+                },
+                args: vec![#args_value],
                 deprecated: #deprecated,
             })
         }

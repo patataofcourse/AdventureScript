@@ -24,6 +24,7 @@ macro_rules! error {
 macro_rules! todo {
     ($str:literal $(, $arg:expr)*$(,)?) => {
         venial::Error::new(format!(concat!("not yet implemented: ", $str), $($arg),*)).to_compile_error().into()
+
     };
     () => {
         venial::Error::new("not yet implemented").to_compile_error().into()

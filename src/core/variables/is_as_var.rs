@@ -7,6 +7,7 @@ where
     Self: Sized,
 {
     const ADVENTURE_TYPE: ASType;
+    const IS_OPTIONAL: bool;
 
     fn into_adventure_var(self) -> ASVariable;
 
@@ -50,10 +51,17 @@ pub trait ASKeyVar: IsASVar + ASVarByRef + Hash + Eq {
     }
 }
 
+pub trait ASVarWrapTo: IsASVar {
+    const INNER_TYPE: ASType;
+
+    fn wrap(vars: Vec<ASVariable>) -> Option<Self>;
+}
+
 // ---------------------------
 
 impl IsASVar for ASVariable {
     const ADVENTURE_TYPE: ASType = ASType::Any;
+    const IS_OPTIONAL: bool = true;
 
     fn from_adventure_var(var: &ASVariable) -> Option<Self> {
         Some(var.clone())
@@ -70,6 +78,7 @@ where
     T: IsASVar,
 {
     const ADVENTURE_TYPE: ASType = T::ADVENTURE_TYPE;
+    const IS_OPTIONAL: bool = true;
 
     fn into_adventure_var(self) -> ASVariable {
         match self {
@@ -94,6 +103,7 @@ where
 
 impl IsASVar for i64 {
     const ADVENTURE_TYPE: ASType = ASType::Int;
+    const IS_OPTIONAL: bool = false;
 
     fn into_adventure_var(self) -> ASVariable {
         ASVariable::Int(self)
@@ -113,6 +123,7 @@ impl ASKeyVar for i64 {}
 
 impl IsASVar for String {
     const ADVENTURE_TYPE: ASType = ASType::String;
+    const IS_OPTIONAL: bool = false;
 
     fn into_adventure_var(self) -> ASVariable {
         ASVariable::String(self)
@@ -132,6 +143,7 @@ impl ASKeyVar for String {}
 
 impl IsASVar for bool {
     const ADVENTURE_TYPE: ASType = ASType::Bool;
+    const IS_OPTIONAL: bool = false;
 
     fn into_adventure_var(self) -> ASVariable {
         ASVariable::Bool(self)
@@ -154,6 +166,7 @@ where
     T: IsASVar,
 {
     const ADVENTURE_TYPE: ASType = ASType::List;
+    const IS_OPTIONAL: bool = false;
 
     fn into_adventure_var(self) -> ASVariable {
         let mut out = vec![];
@@ -190,6 +203,21 @@ where
     }
 }
 
+impl<T> ASVarWrapTo for Vec<T>
+where
+    T: IsASVar,
+{
+    const INNER_TYPE: ASType = T::ADVENTURE_TYPE;
+
+    fn wrap(vars: Vec<ASVariable>) -> Option<Self> {
+        let mut out = vec![];
+        for var in vars {
+            out.push(T::from_adventure_var(&var)?)
+        }
+        Some(out)
+    }
+}
+
 // ---------------------------
 
 impl<K, V> IsASVar for HashMap<K, V>
@@ -198,6 +226,7 @@ where
     V: IsASVar,
 {
     const ADVENTURE_TYPE: ASType = ASType::Map;
+    const IS_OPTIONAL: bool = false;
 
     fn into_adventure_var(self) -> ASVariable {
         let mut out = HashMap::new();
