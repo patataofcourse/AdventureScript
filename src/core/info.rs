@@ -8,6 +8,8 @@ use crate::{
 };
 use std::{collections::HashMap, fs::File, io::Read, path::PathBuf};
 
+use super::variables::Label;
+
 pub struct GameInfo {
     pub io: AdventureIO,
     pub root_dir: PathBuf,
@@ -98,15 +100,10 @@ impl GameInfo {
     }
     //TODO: complete
 
-    pub fn goto_label(&mut self, var: &ASVariable) -> anyhow::Result<()> {
-        let lname = match var {
-            ASVariable::Label(c) => match c {
-                None => return Ok(()),
-                Some(c) => c,
-            },
-            _ => Err(ASOtherError::DevErr(
-                "Used goto_label function with a non-label ASVariable".to_string(),
-            ))?,
+    pub fn goto_label(&mut self, label: &Label) -> anyhow::Result<()> {
+        let lname = match &label.0 {
+            None => return Ok(()),
+            Some(c) => c,
         };
 
         let mut instances = Vec::<i64>::new(); //lines where there's been a match

@@ -43,7 +43,7 @@ impl Method {
                 if arg_type == ASType::VarRef {
                     args.insert(argnum, info.get_var(arg)?.clone());
                 } else if arg_type == ASType::None && self.argtypes[argnum] == ASType::Label {
-                    args.insert(argnum, ASVariable::Label(None));
+                    args.insert(argnum, ASVariable::Label(None.into()));
                 } else {
                     Err(ASMethodError {
                         method: String::from(&self.name),
@@ -126,12 +126,7 @@ impl TypeMethods {
                 return Some(method);
             }
         }
-        for (alias, a_name) in &self.aliases {
-            if alias == name {
-                return self.get(a_name);
-            }
-        }
-        None
+        self.aliases.get(name).map(|c| self.get(c)).unwrap_or(None)
     }
     pub fn run_method(
         &self,

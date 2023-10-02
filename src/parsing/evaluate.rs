@@ -60,7 +60,7 @@ pub fn expr(
                 if !Regex::new(r"^[A-Za-z0-9-_]*$")?.is_match(lname) {
                     Err(ASSyntaxError::InvalidVariableName(val.to_string()))?;
                 }
-                ASVariable::Label(Some(lname.to_string()))
+                ASVariable::Label(Some(lname.to_string()).into())
             }
         } else if val.starts_with('(') && val.ends_with(')') {
             let index = ((val.split_at(1).1).split_at(val.len() - 2).0)

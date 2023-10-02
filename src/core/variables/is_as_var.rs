@@ -1,6 +1,6 @@
 use std::{collections::HashMap, hash::Hash};
 
-use super::{ASType, ASVariable, KeyVar};
+use super::{ASType, ASVariable, KeyVar, Label};
 
 pub trait IsASVar
 where
@@ -255,4 +255,22 @@ where
 
 // ---------------------------
 
-// TODO: Label, VarRef, Object
+impl IsASVar for Label {
+    const ADVENTURE_TYPE: ASType = ASType::Label;
+
+    fn from_adventure_var(var: &ASVariable) -> Option<Self> {
+        if let ASVariable::Label(c) = var {
+            Some(c.clone())
+        } else {
+            None
+        }
+    }
+
+    fn into_adventure_var(self) -> ASVariable {
+        ASVariable::Label(self)
+    }
+}
+
+// ---------------------------
+
+// TODO: VarRef, Object

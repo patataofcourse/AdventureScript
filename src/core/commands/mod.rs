@@ -38,17 +38,14 @@ impl CmdSet {
         } else {
             self
         };
-        for command in &module.commands {
-            if command.name == name {
-                return Some(command);
-            }
+        if let Some(command) = module.commands.iter().find(|cmd| cmd.name == name) {
+            return Some(command);
         }
-        for (alias, a_name) in &module.aliases {
-            if alias == name {
-                return module.get(a_name);
-            }
-        }
-        None
+        module
+            .aliases
+            .get(name)
+            .map(|c| module.get(c))
+            .unwrap_or(None)
     }
     pub fn extend(&mut self, other: Self) {
         self.commands.extend(other.commands);
@@ -136,10 +133,13 @@ impl Command {
 
         // Pass kwargs to args
         for (k, v) in &kwargs {
-            let Some(pos) = self.args.iter().position(|c|{c.name == *k}) else {
+            let Some(pos) = self.args.iter().position(|c| c.name == *k) else {
                 Err(ASCmdError {
                     command: self.name.to_string(),
-                    details: CommandErrors::UndefinedArgument { argument_name: k.clone(), argument_type: v.get_type() }
+                    details: CommandErrors::UndefinedArgument {
+                        argument_name: k.clone(),
+                        argument_type: v.get_type(),
+                    },
                 })?
             };
 
@@ -170,8 +170,8 @@ impl Command {
                 if arg_type == ASType::VarRef {
                     args[c] = info.get_var(&args[c].clone())?.clone()
                 } else if arg_type == ASType::None && arg_def.type_ == ASType::Label {
-                    args[c] = ASVariable::Label(None)
-                } else if !(arg_type == ASType::None) || !arg_def.required {
+                    args[c] = ASVariable::Label(None.into())
+                } else if !(arg_type == ASType::None && !arg_def.required) {
                     Err(ASCmdError {
                         command: String::from(&self.name),
                         details: CommandErrors::ArgumentTypeError {

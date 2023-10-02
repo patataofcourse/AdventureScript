@@ -86,7 +86,7 @@ pub enum ASVariable {
     Map(HashMap<KeyVar, ASVariable>),
     /// A reference to a label, by name. If `None`, don't jump anywhere, instead continue to the next
     /// line as usual.
-    Label(Option<String>),
+    Label(Label),
     /// A reference to a variable or flag. Meant to be used with commands that define a variable or
     /// change its content.
     VarRef {
@@ -157,7 +157,7 @@ impl Display for ASVariable {
                 }
                 out
             }),
-            Self::Label(c) => match c {
+            Self::Label(c) => match &c.0 {
                 Some(c) => format!("Label {{{}}}", c),
                 None => String::from("Null label"),
             },
@@ -222,5 +222,14 @@ impl ASVariable {
 impl Display for KeyVar {
     fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "{}", self.get())
+    }
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+pub struct Label(pub Option<String>);
+
+impl From<Option<String>> for Label {
+    fn from(value: Option<String>) -> Self {
+        Self(value)
     }
 }
