@@ -37,6 +37,7 @@ pub struct ObjSpec {
     pub name: String,
     pub methods: TypeMethods,
     pub fields: HashMap<String, ASType>,
+    //TODO: Fn rather than fn
     pub stringify: fn(HashMap<String, ASVariable>) -> String,
 }
 

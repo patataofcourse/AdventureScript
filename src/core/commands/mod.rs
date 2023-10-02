@@ -14,6 +14,7 @@ pub struct Command {
     pub deprecated: bool,
 }
 
+//TODO: Fn rather than fn
 pub type CommandFn = fn(&mut GameInfo, Vec<ASVariable>) -> anyhow::Result<()>;
 
 #[derive(Clone, Debug)]
@@ -23,10 +24,11 @@ pub struct CommandArg {
     pub required: bool,
 }
 
+//TODO: assert the CmdSet is properly constructed (no duplicates)
 #[derive(Clone)]
 pub struct CmdSet {
     pub commands: Vec<Command>,
-    pub aliases: HashMap<String, String>,
+    pub aliases: HashMap<String, String>, //TODO: include aliases in command definitions
     pub modules: HashMap<String, CmdSet>, //TODO: make it work
 }
 

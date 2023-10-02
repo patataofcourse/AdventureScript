@@ -153,6 +153,13 @@ fn loadscript(info: &mut GameInfo, script: String) -> anyhow::Result<()> {
     info.load_script(Some(&script))
 }
 
+#[command(crate_path = "crate")]
+fn ending(info: &mut GameInfo, name: String) -> anyhow::Result<()> {
+    info.show(&format!("Ending: {}", name))?;
+    info.quit();
+    Ok(())
+}
+
 pub fn main_commands() -> anyhow::Result<CmdSet> {
     Ok(CmdSet {
         commands: vec![wait()?, choice()?, goto()?, loadscript()?],
@@ -162,6 +169,9 @@ pub fn main_commands() -> anyhow::Result<CmdSet> {
             ("w".to_string(), "wait".to_string()),
             ("go".to_string(), "goto".to_string()),
             ("ch".to_string(), "choice".to_string()),
+            //("sv".to_string(), "save".to_string()),
+            ("end".to_string(), "ending".to_string()),
+            //("lose".to_string(), "gameover".to_string()),
         ]),
         modules: HashMap::new(),
     })
@@ -170,14 +180,6 @@ pub fn main_commands() -> anyhow::Result<CmdSet> {
 // pub fn main_ocmannds() -> CmdSet {
 //     CmdSet::from(
 //         vec![
-//             command_old! {
-//                 ending (name: String = "".to_string(), ) => |info, kwargs| {
-//                     let name = unwrap_var!(kwargs -> "name"; String)?;
-//                     info.show(&format!("Ending: {}", name))?;
-//                     info.quit();
-//                     Ok(())
-//                 }
-//             },
 //             command_old! {
 //                 flag (!flag: VarRef, value: Bool = true, ) => |info, kwargs| {
 //                     let flag = match kwargs.get("flag").unwrap() {
@@ -316,10 +318,5 @@ pub fn main_commands() -> anyhow::Result<CmdSet> {
 //                 }
 //             },
 //         ],
-//         HashMap::from_iter([
-//             ("sv".to_string(), "save".to_string()),
-//             ("end".to_string(), "ending".to_string()),
-//             ("lose".to_string(), "gameover".to_string()),
-//         ]),
 //     )
 // }

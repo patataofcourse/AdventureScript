@@ -1,43 +1,4 @@
-#[macro_export]
-//TODO: proc macro?
-macro_rules! command_old {
-    //TODO: replace dexpr with a tokentree
-    ($name:ident $([deprecated=$is_depr:literal])? $((
-        $(
-            $(!$pname:ident:$ptype:ident),+,
-        )?
-        $(
-            $($dname:ident:$dtype:ident=$dexpr:expr),+,
-        )?
-    ))? => $function: expr) => {
-        $crate::core::Command::new (
-            stringify!($name).to_string(),
-            $function,
-            vec![
-                $(
-                    $($(stringify!($pname).to_string()),+,)?
-                    $($(stringify!($dname).to_string()),+,)?
-                )?
-            ],
-            ::std::collections::HashMap::<String, $crate::core::ASType>::from_iter([
-                $(
-                    $($((stringify!($pname).to_string(),
-                    $crate::core::ASType::$ptype,)),+,)?
-                    $($((stringify!($dname).to_string(),
-                    $crate::core::ASType::$dtype,)),+,)?
-                )?
-            ]),
-            std::collections::HashMap::<String, $crate::core::ASVariable>::from_iter([
-                $(
-                    $($((stringify!($dname).to_string(),
-                    $crate::core::ASVariable::$dtype($dexpr),)),+,)?
-                )?
-            ]),
-            $($is_depr && !)? false,
-            )
-    };
-}
-
+//TODO: remove this when i make a proc-macro for methods
 #[macro_export]
 macro_rules! unwrap_var {
     ($map:ident->$vname:expr; Option<$vtype:ident>) => {{

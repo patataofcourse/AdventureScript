@@ -121,6 +121,7 @@ fn warn_(text: String) {
     eprintln!("WARNING: {}", text)
 }
 
+//TODO: Fn rather than fn
 pub type ShowFn = fn(&str) -> anyhow::Result<()>;
 pub type WaitFn = fn() -> anyhow::Result<()>;
 pub type InputFn = fn() -> anyhow::Result<String>;
