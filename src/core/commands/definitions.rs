@@ -2,14 +2,13 @@ use std::collections::HashMap;
 
 use adventure_script_attr::command;
 
-use crate::core::variables::Label;
+use crate::core::VarRef;
 //TODO: remove allow() when the commands have been ported
 #[allow(unused_imports)]
 use crate::{
     core::{
         error::{ASCmdError, ASGameError, CommandErrors},
-        variables::is_as_var::IsASVar,
-        ASType, ASVariable, GameInfo,
+        ASType, ASVariable, GameInfo, IsASVar, Label,
     },
     formats::save,
 };
@@ -41,23 +40,18 @@ fn choice(
         let text = match choice.get(0) {
             Some(s) => match s {
                 ASVariable::String(c) => c.to_string(),
-                ASVariable::VarRef { name, flag } => {
-                    match info.get_var(&ASVariable::VarRef {
-                        name: name.to_string(),
-                        flag: *flag,
-                    })? {
-                        ASVariable::String(c) => c.to_string(),
-                        other => Err(ASCmdError {
-                            command: "choice".to_string(),
-                            details: CommandErrors::ChoiceWrongType {
-                                choice: c,
-                                number: 2,
-                                given: other.get_type(),
-                                asked: ASType::Bool,
-                            },
-                        })?,
-                    }
-                }
+                ASVariable::VarRef(r) => match info.get_var(r)? {
+                    ASVariable::String(c) => c.to_string(),
+                    other => Err(ASCmdError {
+                        command: "choice".to_string(),
+                        details: CommandErrors::ChoiceWrongType {
+                            choice: c,
+                            number: 2,
+                            given: other.get_type(),
+                            asked: ASType::Bool,
+                        },
+                    })?,
+                },
                 other => Err(ASCmdError {
                     command: "choice".to_string(),
                     details: CommandErrors::ChoiceWrongType {
@@ -95,23 +89,18 @@ fn choice(
         let flag = match choice.get(2) {
             Some(l) => match l {
                 ASVariable::Bool(c) => *c,
-                ASVariable::VarRef { name, flag } => {
-                    match info.get_var(&ASVariable::VarRef {
-                        name: name.to_string(),
-                        flag: *flag,
-                    })? {
-                        ASVariable::Bool(c) => *c,
-                        other => Err(ASCmdError {
-                            command: "choice".to_string(),
-                            details: CommandErrors::ChoiceWrongType {
-                                choice: c,
-                                number: 2,
-                                given: other.get_type(),
-                                asked: ASType::Bool,
-                            },
-                        })?,
-                    }
-                }
+                ASVariable::VarRef(r) => match info.get_var(r)? {
+                    ASVariable::Bool(c) => *c,
+                    other => Err(ASCmdError {
+                        command: "choice".to_string(),
+                        details: CommandErrors::ChoiceWrongType {
+                            choice: c,
+                            number: 2,
+                            given: other.get_type(),
+                            asked: ASType::Bool,
+                        },
+                    })?,
+                },
                 other => Err(ASCmdError {
                     command: "choice".to_string(),
                     details: CommandErrors::ChoiceWrongType {
@@ -160,9 +149,50 @@ fn ending(info: &mut GameInfo, name: String) -> anyhow::Result<()> {
     Ok(())
 }
 
+#[command(crate_path = "crate")]
+fn flag(info: &mut GameInfo, flag: VarRef, value: Option<bool>) -> anyhow::Result<()> {
+    // always interpret the VarRef as a flag
+    let flag = VarRef {
+        name: flag.name,
+        is_flag: true,
+    };
+    info.set_var(&flag, ASVariable::Bool(value.unwrap_or(true)))
+}
+
+#[command(crate_path = "crate")]
+fn set(info: &mut GameInfo, var: VarRef, value: ASVariable) -> anyhow::Result<()> {
+    info.set_var(&var, value)
+}
+
+#[command(crate_path = "crate")]
+fn add(info: &mut GameInfo, var: VarRef, val2: ASVariable) -> anyhow::Result<()> {
+    let val = info.get_var(&var)?.clone();
+    info.set_var(&var, (val + val2)?)
+}
+
+#[command(name = "if", crate_path = "crate")]
+fn if_cmd(
+    info: &mut GameInfo,
+    condition: bool,
+    go_true: Label,
+    go_false: Label,
+) -> anyhow::Result<()> {
+    info.goto_label(&if condition { go_true } else { go_false })
+}
+
 pub fn main_commands() -> anyhow::Result<CmdSet> {
     Ok(CmdSet {
-        commands: vec![wait()?, choice()?, goto()?, loadscript()?],
+        commands: vec![
+            wait()?,
+            choice()?,
+            goto()?,
+            loadscript()?,
+            ending()?,
+            flag()?,
+            set()?,
+            add()?,
+            if_cmd()?,
+        ],
         aliases: HashMap::from_iter([
             ("load".to_string(), "loadscript".to_string()),
             ("ld".to_string(), "loadscript".to_string()),
@@ -180,48 +210,6 @@ pub fn main_commands() -> anyhow::Result<CmdSet> {
 // pub fn main_ocmannds() -> CmdSet {
 //     CmdSet::from(
 //         vec![
-//             command_old! {
-//                 flag (!flag: VarRef, value: Bool = true, ) => |info, kwargs| {
-//                     let flag = match kwargs.get("flag").unwrap() {
-//                         //Make sure you're getting a flag, not a variable
-//                         ASVariable::VarRef { name, .. } => ASVariable::VarRef {
-//                             name: name.to_string(),
-//                             flag: true,
-//                         },
-//                         _ => panic!(),
-//                     };
-//                     info.set_var(&flag, kwargs.get("value").unwrap().clone())
-//                 }
-//             },
-//             command_old! {
-//               set (!var: VarRef, !value: Any,) => |info, kwargs| {
-//                     let mut val = kwargs.get("value").unwrap().clone();
-//                     while val.get_type() == ASType::VarRef {
-//                         val = info.get_var(&val)?.clone();
-//                     }
-//                     info.set_var(
-//                         kwargs.get("var").unwrap(),
-//                         val,
-//                     )
-//                 }
-//             },
-//             command_old! {
-//                 add (!var: VarRef, !value: Any,) => |info, kwargs| {
-//                     let var = kwargs.get("var").unwrap();
-//                     let val = info.get_var(var)?.clone();
-//                     info.set_var(var, (val + kwargs.get("value").unwrap().clone())?)
-//                 }
-//             },
-//             command_old! {
-//                 if (!condition: Bool, !gotrue: Label, !gofalse: Label, ) => |info, kwargs| {
-//                     let condition = *unwrap_var!(kwargs -> "condition"; Bool)?;
-//                     if condition {
-//                         info.goto_label(kwargs.get("gotrue").unwrap())
-//                     } else {
-//                         info.goto_label(kwargs.get("gofalse").unwrap())
-//                     }
-//                 }
-//             },
 //             command_old! {
 //                 error (!message: String, ) => |_info, kwargs| {
 //                     let message = unwrap_var!(kwargs -> "message"; String)?.to_string();

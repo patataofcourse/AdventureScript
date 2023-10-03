@@ -1,5 +1,5 @@
 use super::{parse_text, simplify_brackets};
-use crate::core::{error::ASSyntaxError, ASVariable, GameInfo, KeyVar, TypeMethods};
+use crate::core::{error::ASSyntaxError, ASVariable, GameInfo, KeyVar, TypeMethods, VarRef};
 use regex::{Match, Regex};
 use std::collections::HashMap;
 
@@ -84,20 +84,20 @@ pub fn expr(
             if !Regex::new(r"^?[A-Za-z0-9-_]*$")?.is_match(&val) {
                 Err(ASSyntaxError::InvalidVariableName(val.to_string()))? //TODO: get proper token content
             }
-            parsed = ASVariable::VarRef {
+            parsed = ASVariable::VarRef(VarRef {
                 name: stripped.to_string(),
-                flag: true,
-            }
+                is_flag: true,
+            })
         }
         // Variables
         else {
             if !Regex::new(r"^[A-Za-z0-9-_]*$")?.is_match(&val) {
                 Err(ASSyntaxError::InvalidVariableName(val.to_string()))? //TODO: get proper token content
             }
-            parsed = ASVariable::VarRef {
+            parsed = ASVariable::VarRef(VarRef {
                 name: val.to_string(),
-                flag: false,
-            }
+                is_flag: false,
+            })
         }
 
         // Can't run methods on an Empty type

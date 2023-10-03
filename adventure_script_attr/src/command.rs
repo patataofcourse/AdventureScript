@@ -57,14 +57,17 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
     let mut signature = vec![];
     for (item, _) in func.params.iter() {
         let FnParam::Typed(item) = item else {
-            return error!("commands cannot take `self` as a parameter")
+            return error!("commands cannot take `self` as a parameter");
         };
 
         let wrap_to_result = item
             .attributes
             .iter()
             .find(|c| {
-                matches!(c.get_single_path_segment().map(|c| *c == "wrap_to"), Some(true))
+                matches!(
+                    c.get_single_path_segment().map(|c| *c == "wrap_to"),
+                    Some(true)
+                )
             })
             .map(|c| syn::parse2::<Expr>(c.value.to_token_stream()));
 
@@ -212,14 +215,14 @@ pub fn command(args: TokenStream, input: TokenStream) -> TokenStream {
             //TODO: error managing if !ty::IS_OPTIONAL and it's None
             wrapping_code = quote! {
                 #wrapping_code
-                let #name = #ty::from_adventure_var(&args[#arg_num]);
+                let #name = #crate_path::core::specialization_hack::Wrap::<#ty>::new().refer().from_adventure_var(&args[#arg_num]);
                 let #name = #crate_path::core::specialization_hack::Wrap::<#ty>::new().refer().unwrap_if_optional(#name);
             };
             args_value = quote! {
                 #args_value
                 #crate_path::core::commands::CommandArg {
                     name: String::from(#name_str),
-                    type_: #ty::ADVENTURE_TYPE,
+                    type_: <#ty>::ADVENTURE_TYPE,
                     required: !#crate_path::core::specialization_hack::Wrap::<#ty>::new().refer().is_optional(),
                 },
             };

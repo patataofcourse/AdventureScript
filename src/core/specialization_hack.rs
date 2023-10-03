@@ -1,18 +1,28 @@
 use core::mem::MaybeUninit;
 
+use super::{ASVariable, IsASVar};
+
 // autoderef "specialization" magic
 // courtesy of aleok (https://github.com/aleokdev), with some modifications for my specific thing
 
 /// Implemented by only Option<T>.
-trait Optional {}
-impl<T> Optional for Option<T> {}
+pub trait Optional {
+    type Inner;
+}
+impl<T> Optional for Option<T> {
+    type Inner = T;
+}
 
 pub trait OptionInfo {
     fn is_optional(&self) -> bool;
 
     type AsOptional;
     type Unwrapped;
+    type InnerType: IsASVar;
     fn unwrap_if_optional(&self, in_: Self::AsOptional) -> Self::Unwrapped;
+    fn from_adventure_var(&self, t: &ASVariable) -> Option<Self::InnerType> {
+        Self::InnerType::from_adventure_var(t)
+    }
 }
 
 pub struct Wrap<T>(T);
@@ -30,25 +40,30 @@ impl<T> std::ops::DerefMut for Wrap<T> {
     }
 }
 
-impl<T: Optional> OptionInfo for Wrap<Wrap<&MaybeUninit<&T>>> {
+impl<T: Optional> OptionInfo for Wrap<Wrap<&MaybeUninit<&T>>>
+where
+    T::Inner: IsASVar,
+{
     fn is_optional(&self) -> bool {
         true
     }
 
     type AsOptional = T;
     type Unwrapped = T;
+    type InnerType = T::Inner;
     fn unwrap_if_optional(&self, in_: Self::AsOptional) -> Self::Unwrapped {
         in_
     }
 }
 
-impl<T> OptionInfo for Wrap<&MaybeUninit<&T>> {
+impl<T: IsASVar> OptionInfo for Wrap<&MaybeUninit<&T>> {
     fn is_optional(&self) -> bool {
         false
     }
 
     type AsOptional = Option<T>;
     type Unwrapped = T;
+    type InnerType = T;
     fn unwrap_if_optional(&self, in_: Self::AsOptional) -> Self::Unwrapped {
         in_.unwrap()
     }

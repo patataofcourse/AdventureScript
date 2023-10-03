@@ -1,14 +1,12 @@
 use crate::{
     core::{
-        error::{ASOtherError, ASSyntaxError, ASVarError},
-        ASType, ASVariable, AdventureIO, FileType,
+        error::{ASSyntaxError, ASVarError},
+        ASType, ASVariable, AdventureIO, FileType, Label, VarRef,
     },
     formats::{config, config::Config, save},
     modules::ObjSpec,
 };
 use std::{collections::HashMap, fs::File, io::Read, path::PathBuf};
-
-use super::variables::Label;
 
 pub struct GameInfo {
     pub io: AdventureIO,
@@ -130,79 +128,53 @@ impl GameInfo {
         self.quitting = true;
     }
 
-    pub fn get_var(&mut self, var: &ASVariable) -> anyhow::Result<&ASVariable> {
-        Ok(match var {
-            ASVariable::VarRef { name, flag } => {
-                if *flag {
-                    if self.flags.get(name).is_none() {
-                        self.flags.insert(name.to_string(), ASVariable::Bool(false));
-                    }
-                    self.flags.get(name).unwrap()
-                } else {
-                    //TODO: modules / module globals
-                    match self.variables.get(name) {
-                        Some(c) => c,
-                        None => Err(ASVarError::VarNotFound(name.to_string()))?,
-                    }
-                }
+    pub fn get_var(&mut self, var: &VarRef) -> anyhow::Result<&ASVariable> {
+        if var.is_flag {
+            if self.flags.get(&var.name).is_none() {
+                self.flags.insert(var.name.clone(), ASVariable::Bool(false));
             }
-            _ => Err(ASOtherError::DevErr(
-                "Tried to get the variable value of a non-VarRef value".to_string(),
-            ))?,
-        })
+            Ok(self.flags.get(&var.name).unwrap())
+        } else {
+            //TODO: modules / module globals
+            match self.variables.get(&var.name) {
+                Some(c) => Ok(c),
+                None => Err(ASVarError::VarNotFound(var.name.clone()))?,
+            }
+        }
     }
 
-    pub fn get_var_mut(&mut self, var: &ASVariable) -> anyhow::Result<&mut ASVariable> {
-        Ok(match var {
-            ASVariable::VarRef { name, flag } => {
-                if *flag {
-                    if self.flags.get(name).is_none() {
-                        self.flags.insert(name.to_string(), ASVariable::Bool(false));
-                    }
-                    self.flags.get_mut(name).unwrap()
-                } else {
-                    match self.variables.get_mut(name) {
-                        Some(c) => c,
-                        None => Err(ASVarError::VarNotFound(name.to_string()))?,
-                    }
-                }
+    pub fn get_var_mut(&mut self, var: &VarRef) -> anyhow::Result<&mut ASVariable> {
+        if var.is_flag {
+            if self.flags.get(&var.name).is_none() {
+                self.flags.insert(var.name.clone(), ASVariable::Bool(false));
             }
-            _ => Err(ASOtherError::DevErr(
-                "Tried to get the variable value of a non-VarRef value".to_string(),
-            ))?,
-        })
+            Ok(self.flags.get_mut(&var.name).unwrap())
+        } else {
+            match self.variables.get_mut(&var.name) {
+                Some(c) => Ok(c),
+                None => Err(ASVarError::VarNotFound(var.name.clone()))?,
+            }
+        }
     }
 
-    pub fn set_var(&mut self, var: &ASVariable, value: ASVariable) -> anyhow::Result<()> {
-        if let ASVariable::VarRef { name, flag } = var {
-            if *flag {
-                if let ASVariable::Bool(_) = value {
-                    self.flags.insert(name.to_string(), value);
-                } else {
-                    Err(ASVarError::FlagNotBool(name.to_string()))?;
-                }
+    pub fn set_var(&mut self, var: &VarRef, value: ASVariable) -> anyhow::Result<()> {
+        if var.is_flag {
+            if let ASVariable::Bool(_) = value {
+                self.flags.insert(var.name.clone(), value);
             } else {
-                self.variables.insert(name.to_string(), value);
+                Err(ASVarError::FlagNotBool(var.name.clone()))?;
             }
         } else {
-            Err(ASOtherError::DevErr(
-                "Tried to set the variable value of a non-VarRef value".to_string(),
-            ))?
+            self.variables.insert(var.name.clone(), value);
         }
         Ok(())
     }
 
-    pub fn del_var(&mut self, var: &ASVariable) -> anyhow::Result<()> {
-        if let ASVariable::VarRef { name, flag } = var {
-            if *flag {
-                self.flags.remove(&name.to_string());
-            } else if self.variables.remove(name).is_none() {
-                Err(ASVarError::VarNotFound(name.to_string()))?
-            }
-        } else {
-            Err(ASOtherError::DevErr(
-                "Tried to delete the variable value of a non-VarRef value".to_string(),
-            ))?
+    pub fn del_var(&mut self, var: &VarRef) -> anyhow::Result<()> {
+        if var.is_flag {
+            self.flags.remove(&var.name);
+        } else if self.variables.remove(&var.name).is_none() {
+            Err(ASVarError::VarNotFound(var.name.clone()))?
         }
         Ok(())
     }

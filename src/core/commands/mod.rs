@@ -170,7 +170,10 @@ impl Command {
                 && arg_def.type_ != arg_type
             {
                 if arg_type == ASType::VarRef {
-                    args[c] = info.get_var(&args[c].clone())?.clone()
+                    let ASVariable::VarRef(var) = &args[c] else {
+                        unreachable!()
+                    };
+                    args[c] = info.get_var(var)?.clone()
                 } else if arg_type == ASType::None && arg_def.type_ == ASType::Label {
                     args[c] = ASVariable::Label(None.into())
                 } else if !(arg_type == ASType::None && !arg_def.required) {

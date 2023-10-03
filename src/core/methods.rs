@@ -41,7 +41,10 @@ impl Method {
                 && self.argtypes[argnum] != arg_type
             {
                 if arg_type == ASType::VarRef {
-                    args.insert(argnum, info.get_var(arg)?.clone());
+                    let ASVariable::VarRef(var) = arg else {
+                        unreachable!()
+                    };
+                    args.insert(argnum, info.get_var(var)?.clone());
                 } else if arg_type == ASType::None && self.argtypes[argnum] == ASType::Label {
                     args.insert(argnum, ASVariable::Label(None.into()));
                 } else {

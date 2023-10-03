@@ -72,8 +72,8 @@ fn parse_text(info: &mut GameInfo, text: &str) -> anyhow::Result<String> {
                         )?;
                         let (tx, brackets) = simplify_brackets(tx)?;
                         let result = evaluate::expr(info, tx, &strings, &brackets)?;
-                        if let ASVariable::VarRef { .. } = result.clone() {
-                            info.get_var(&result)?.to_string()
+                        if let ASVariable::VarRef(c) = result {
+                            info.get_var(&c)?.to_string()
                         } else {
                             result.to_string()
                         }

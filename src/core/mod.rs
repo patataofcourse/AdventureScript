@@ -11,7 +11,7 @@ pub use commands::{main_commands, CmdSet, Command};
 pub use info::GameInfo;
 pub use io::{AdventureIO, FileType};
 pub use methods::{Method, TypeMethods};
-pub use variables::{ASType, ASVariable, KeyVar};
+pub use variables::{ASType, ASVariable, KeyVar, Label, VarRef};
 
 #[doc(hidden)]
 pub use variables::is_as_var::{ASKeyVar, ASVarByRef, ASVarWrapTo, IsASVar};

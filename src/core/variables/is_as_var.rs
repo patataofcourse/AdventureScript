@@ -1,6 +1,6 @@
 use std::{collections::HashMap, hash::Hash};
 
-use super::{ASType, ASVariable, KeyVar, Label};
+use super::{ASType, ASVariable, KeyVar, Label, VarRef};
 
 pub trait IsASVar
 where
@@ -273,4 +273,22 @@ impl IsASVar for Label {
 
 // ---------------------------
 
-// TODO: VarRef, Object
+impl IsASVar for VarRef {
+    const ADVENTURE_TYPE: ASType = ASType::VarRef;
+
+    fn from_adventure_var(var: &ASVariable) -> Option<Self> {
+        if let ASVariable::VarRef(c) = var {
+            Some(c.clone())
+        } else {
+            None
+        }
+    }
+
+    fn into_adventure_var(self) -> ASVariable {
+        ASVariable::VarRef(self)
+    }
+}
+
+// ---------------------------
+
+// TODO: Object

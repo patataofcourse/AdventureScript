@@ -89,12 +89,7 @@ pub enum ASVariable {
     Label(Label),
     /// A reference to a variable or flag. Meant to be used with commands that define a variable or
     /// change its content.
-    VarRef {
-        /// The name of the variable or flag.
-        name: String,
-        /// Whether it's a variable or a flag.
-        flag: bool,
-    },
+    VarRef(VarRef),
     /// Empty value, equivalent to Rust's `()`.
     None,
     /// A custom object/"class" type, to be used in modules
@@ -161,8 +156,8 @@ impl Display for ASVariable {
                 Some(c) => format!("Label {{{}}}", c),
                 None => String::from("Null label"),
             },
-            Self::VarRef { name, flag } => {
-                format!("{} {}", if *flag { "Flag" } else { "Variable" }, name)
+            Self::VarRef(VarRef { name, is_flag }) => {
+                format!("{} {}", if *is_flag { "Flag" } else { "Variable" }, name)
             }
             Self::Object { spec, .. } => {
                 format!("<Object type {}>", spec)
@@ -225,11 +220,17 @@ impl Display for KeyVar {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct Label(pub Option<String>);
 
 impl From<Option<String>> for Label {
     fn from(value: Option<String>) -> Self {
         Self(value)
     }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
+pub struct VarRef {
+    pub name: String,
+    pub is_flag: bool,
 }
