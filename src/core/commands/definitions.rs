@@ -277,6 +277,8 @@ pub fn main_commands() -> anyhow::Result<CmdSet> {
             save()?,
             del()?,
             gameover()?,
+            switch()?,
+            append()?,
         ],
         aliases: HashMap::from_iter([
             ("load".to_string(), "loadscript".to_string()),
