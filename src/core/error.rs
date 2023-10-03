@@ -11,7 +11,7 @@ pub(crate) fn manage_error(info: &GameInfo, err: anyhow::Error) {
     let mut error = format!(
         "\nAdventureScript error on script {}, line {} - ",
         info.script_name(),
-        info.pointer(),
+        info.position(),
     );
     if let Some(_c) = err.downcast_ref::<ASFileError>() {
     } else if let Some(_c) = err.downcast_ref::<ASCmdError>() {
@@ -58,6 +58,8 @@ impl Error for ASCmdError {}
 
 #[derive(Debug, Error)]
 pub(crate) enum CommandErrors {
+    #[error("{0}")]
+    Generic(String),
     #[error("Command can only take {max_args} arguments, but was given {given_args}")]
     TooManyArguments { max_args: usize, given_args: usize },
     #[error("Command was given argument {argument_name} (type {argument_type}), which it doesn't recognize")]

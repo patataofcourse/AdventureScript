@@ -143,8 +143,8 @@ fn loadscript(info: &mut GameInfo, script: String) -> anyhow::Result<()> {
 }
 
 #[command(crate_path = "crate")]
-fn ending(info: &mut GameInfo, name: String) -> anyhow::Result<()> {
-    info.show(&format!("Ending: {}", name))?;
+fn ending(info: &mut GameInfo, name: Option<String>) -> anyhow::Result<()> {
+    info.show(&format!("Ending: {}", name.unwrap_or(String::new())))?;
     info.quit();
     Ok(())
 }
@@ -180,6 +180,87 @@ fn if_cmd(
     info.goto_label(&if condition { go_true } else { go_false })
 }
 
+#[command(crate_path = "crate")]
+fn error(_: &mut GameInfo, message: String) -> anyhow::Result<()> {
+    Err(ASGameError(message))?
+}
+
+#[command(crate_path = "crate")]
+fn save(info: &mut GameInfo, enable: bool) -> anyhow::Result<()> {
+    info.allow_save = enable;
+    Ok(())
+}
+
+#[command(crate_path = "crate")]
+fn del(info: &mut GameInfo, var: VarRef) -> anyhow::Result<()> {
+    info.del_var(&var)
+}
+
+#[command(crate_path = "crate")]
+fn gameover(info: &mut GameInfo) -> anyhow::Result<()> {
+    info.show("**GAME OVER**")?;
+    let query = info.query("Start over from last save?", vec!["Yes", "No"])?;
+    if query == 1 {
+        if save::restore(info)? {
+            info.pointer -= 1
+        } else {
+            info.quit();
+        }
+    } else {
+        info.quit();
+    }
+    Ok(())
+}
+
+#[command(crate_path = "crate")]
+fn switch(
+    info: &mut GameInfo,
+    check: ASVariable,
+    values: Vec<ASVariable>,
+    gotos: Vec<Label>,
+    default: Option<Label>,
+) -> anyhow::Result<()> {
+    let default = default.unwrap_or(None.into());
+    if values.len() != gotos.len() {
+        Err(ASCmdError {
+            command: "switch".to_string(),
+            details: CommandErrors::SwitchParams(values.len(), gotos.len()),
+        })?
+    }
+
+    let mut c = 0; // counter
+    for value in values {
+        if value == check {
+            let label = gotos.get(c).unwrap();
+            info.goto_label(label)?;
+            return Ok(());
+        }
+        c += 1;
+    }
+    info.goto_label(&default)
+}
+
+#[command(crate_path = "crate")]
+fn append(info: &mut GameInfo, list: VarRef, val: ASVariable) -> anyhow::Result<()> {
+    match info.get_var_mut(&list)? {
+        ASVariable::List(list) => {
+            list.push(val);
+            Ok(())
+        }
+        ASVariable::Map(map) => {
+            // does this even make sense?
+            todo!()
+        }
+        //TODO: union type?
+        _ => Err(ASCmdError {
+            command: "append".to_string(),
+            details: CommandErrors::Generic(
+                "append can only be used with types List or Map".to_string(),
+            ),
+        })?,
+    }
+}
+
 pub fn main_commands() -> anyhow::Result<CmdSet> {
     Ok(CmdSet {
         commands: vec![
@@ -192,6 +273,10 @@ pub fn main_commands() -> anyhow::Result<CmdSet> {
             set()?,
             add()?,
             if_cmd()?,
+            error()?,
+            save()?,
+            del()?,
+            gameover()?,
         ],
         aliases: HashMap::from_iter([
             ("load".to_string(), "loadscript".to_string()),
@@ -199,112 +284,11 @@ pub fn main_commands() -> anyhow::Result<CmdSet> {
             ("w".to_string(), "wait".to_string()),
             ("go".to_string(), "goto".to_string()),
             ("ch".to_string(), "choice".to_string()),
-            //("sv".to_string(), "save".to_string()),
+            ("sv".to_string(), "save".to_string()),
             ("end".to_string(), "ending".to_string()),
-            //("lose".to_string(), "gameover".to_string()),
+            ("lose".to_string(), "gameover".to_string()),
+            ("err".to_string(), "error".to_string()),
         ]),
         modules: HashMap::new(),
     })
 }
-
-// pub fn main_ocmannds() -> CmdSet {
-//     CmdSet::from(
-//         vec![
-//             command_old! {
-//                 error (!message: String, ) => |_info, kwargs| {
-//                     let message = unwrap_var!(kwargs -> "message"; String)?.to_string();
-//                     Err(ASGameError(message))?
-//                 }
-//             },
-//             command_old! {
-//                 save (!val: Bool, ) => |info, kwargs| {
-//                     info.allow_save = *unwrap_var!(kwargs -> "val"; Bool)?;
-//                     Ok(())
-//                 }
-//             },
-//             command_old! {
-//                 gameover => |info, _kwargs| {
-//                     info.show("**GAME OVER**")?;
-//                     let query = info.query("Start over from last save?", vec!("Yes","No"))?;
-//                     if query == 1 {
-//                         if !save::restore(info)? {
-//                             info.quit();
-//                         };
-//                     } else {
-//                         info.quit();
-//                     }
-//                     Ok(())
-//                 }
-//             },
-//             command_old! {
-//                 del (!var: VarRef,) => |info, kwargs| {
-//                     info.del_var(kwargs.get("var").unwrap())
-//                 }
-//             },
-//             command_old! {
-//                 switch (
-//                     !check: Any,
-//                     !values: List,
-//                     !gotos: List,
-//                     default: Label = None,
-//                 ) => |info, kwargs| {
-//                     let check = kwargs.get("check").unwrap();
-//                     let values = unwrap_var!(kwargs -> "values"; List)?;
-//                     let labels = unwrap_var!(kwargs -> "gotos"; List)?;
-//                     let default = kwargs.get("default").unwrap();
-
-//                     if values.len() != labels.len() {
-//                         Err(ASCmdError {
-//                             command: "switch".to_string(),
-//                             details: CommandErrors::SwitchParams(values.len(), labels.len()),
-//                         })?
-//                     }
-
-//                     for (c, value) in values.iter().enumerate() {
-//                         let mut value = value.clone();
-//                         while value.get_type() == ASType::VarRef {
-//                             value = info.get_var(&value)?.clone();
-//                         }
-
-//                         if &value == check {
-//                             let label = labels.get(c).unwrap();
-//                             if label.get_type() != ASType::Label {
-//                                 Err(ASCmdError {
-//                                     command: "switch".to_string(),
-//                                     details: CommandErrors::SwitchLabelType{
-//                                         number: c,
-//                                         given: label.get_type(),
-//                                     }
-//                                 })?
-//                             }
-
-//                             info.goto_label(label)?;
-//                             return Ok(())
-//                         }
-//                     }
-//                     info.goto_label(default)
-//                 }
-//             },
-//             command_old! {
-//                 append (!list: VarRef, !val: Any,) => |info, kwargs| {
-//                     match info.get_var_mut(kwargs.get("list").unwrap())? {
-//                         ASVariable::List(list) => {
-//                             let val = kwargs.get("val").unwrap();
-//                             list.push(val.clone());
-//                             Ok(())
-//                         }
-//                         ASVariable::Map(map) => {
-//                             todo!()
-//                         }
-//                         _ => Err(ASCmdError {
-//                             command: "append".to_string(),
-//                             details: CommandErrors::Generic {
-//                                 details : "append can only be used with types List or Map".to_string(),
-//                             },
-//                         })?,
-//                     }
-//                 }
-//             },
-//         ],
-//     )
-// }

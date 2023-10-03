@@ -57,7 +57,7 @@ impl GameInfo {
     pub fn script_name(&self) -> &str {
         &self.script_name
     }
-    pub fn pointer(&self) -> i64 {
+    pub fn position(&self) -> i64 {
         self.pointer + 1
     }
     pub fn root_dir(&self) -> &PathBuf {
